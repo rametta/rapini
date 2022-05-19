@@ -1,6 +1,7 @@
 import ts from "typescript";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import { print } from "./print";
+import { parse } from "./parser";
 
 function makeImportAxiosInstanceTypeDeclaration() {
   return ts.factory.createImportDeclaration(
@@ -786,69 +787,11 @@ function makeMutations() {
   );
 }
 
-function makeQueryIds() {
-  //#region DYNAMIC
-  const properties = [
-    ts.factory.createPropertyAssignment(
-      ts.factory.createIdentifier("getCustomer"),
-      ts.factory.createArrowFunction(
-        undefined,
-        undefined,
-        [
-          ts.factory.createParameterDeclaration(
-            undefined,
-            undefined,
-            undefined,
-            ts.factory.createIdentifier("customerId"),
-            undefined,
-            ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
-            undefined
-          ),
-        ],
-        undefined,
-        ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-        ts.factory.createAsExpression(
-          ts.factory.createArrayLiteralExpression(
-            [
-              ts.factory.createStringLiteral("customers"),
-              ts.factory.createIdentifier("customerId"),
-            ],
-            false
-          ),
-          ts.factory.createTypeReferenceNode(
-            ts.factory.createIdentifier("const"),
-            undefined
-          )
-        )
-      )
-    ),
-    ts.factory.createPropertyAssignment(
-      ts.factory.createIdentifier("getCustomers"),
-      ts.factory.createArrowFunction(
-        undefined,
-        undefined,
-        [],
-        undefined,
-        ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-        ts.factory.createAsExpression(
-          ts.factory.createArrayLiteralExpression(
-            [ts.factory.createStringLiteral("customers")],
-            false
-          ),
-          ts.factory.createTypeReferenceNode(
-            ts.factory.createIdentifier("const"),
-            undefined
-          )
-        )
-      )
-    ),
-  ];
-  //#endregion
-
+function makeQueryIds(queryIds: ReturnType<typeof parse>["queryIds"]) {
   const returnStatement = ts.factory.createReturnStatement(
     ts.factory.createAsExpression(
       /*expression*/ ts.factory.createObjectLiteralExpression(
-        properties,
+        queryIds,
         /*multiline*/ true
       ),
       /*type*/ ts.factory.createTypeReferenceNode(
@@ -991,7 +934,7 @@ function makeInitialize() {
 
 function makeTypes() {}
 
-function makeSourceFile() {
+function makeSourceFile(data: ReturnType<typeof parse>) {
   return ts.factory.createSourceFile(
     /*statements*/ [
       makeImportReactQueryDeclartion(),
@@ -1001,7 +944,7 @@ function makeSourceFile() {
       makeRequests(),
       makeQueries(),
       makeMutations(),
-      makeQueryIds(),
+      makeQueryIds(data.queryIds),
       makeInitialize(),
     ],
     /*endOfFileToken*/ ts.factory.createToken(ts.SyntaxKind.EndOfFileToken),
@@ -1009,7 +952,7 @@ function makeSourceFile() {
   );
 }
 
-function makeSource() {
+function makeSource(data: ReturnType<typeof parse>) {
   const resultFile = ts.createSourceFile(
     "client.ts",
     "",
@@ -1021,7 +964,7 @@ function makeSource() {
 
   const result = printer.printNode(
     ts.EmitHint.Unspecified,
-    makeSourceFile(),
+    makeSourceFile(data),
     resultFile
   );
 
@@ -1036,8 +979,9 @@ export function generate(pathToOpenApiV3: string) {
     }
 
     console.log("API name: %s, Version: %s", api.info.title, api.info.version);
+    const data = parse(api);
 
-    const source = makeSource();
+    const source = makeSource(data);
     print(source);
   });
 }
