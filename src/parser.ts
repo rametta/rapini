@@ -136,9 +136,6 @@ function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
   );
 }
 
-function makeGetRequest(
-  pattern: string,
-  get: OpenAPIV3.PathItemObject["get"]
-) {}
+function makeRequest(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {}
 
 function makeGetQuery(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {}
