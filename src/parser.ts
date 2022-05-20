@@ -75,13 +75,18 @@ function schemaObjectTypeToTS(
   }
 }
 
+function toParamObjects(
+  params: (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[]
+): OpenAPIV3.ParameterObject[] {
+  return (
+    params?.filter(<typeof isParameterObject>(
+      ((param) => isParameterObject(param))
+    )) ?? []
+  );
+}
+
 function createParams(item: OpenAPIV3.OperationObject) {
-  const paramObjects =
-    item.parameters?.filter(<
-      (
-        param: OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject
-      ) => param is OpenAPIV3.ParameterObject
-    >((param) => isParameterObject(param))) ?? [];
+  const paramObjects = toParamObjects(item.parameters);
 
   return paramObjects
     .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
@@ -202,31 +207,135 @@ function makeRequests(pattern: string, item: OpenAPIV3.PathItemObject) {
   return requests;
 }
 
+// Optionally spreads a field if not null
+// Ex: ...(identifier !== null && identifier !== undefined ? { identifier } : undefined)
+function shorthandOptionalObjectLiteralSpread(identifier: string) {
+  return ts.factory.createSpreadAssignment(
+    ts.factory.createParenthesizedExpression(
+      ts.factory.createConditionalExpression(
+        /*condition*/ ts.factory.createBinaryExpression(
+          ts.factory.createBinaryExpression(
+            /*left*/ ts.factory.createIdentifier(identifier),
+            /*operator*/ ts.factory.createToken(
+              ts.SyntaxKind.ExclamationEqualsEqualsToken
+            ),
+            /*right*/ ts.factory.createNull()
+          ),
+          ts.factory.createToken(ts.SyntaxKind.AmpersandAmpersandToken),
+          ts.factory.createBinaryExpression(
+            /*left*/ ts.factory.createIdentifier(identifier),
+            /*operator*/ ts.factory.createToken(
+              ts.SyntaxKind.ExclamationEqualsEqualsToken
+            ),
+            /*right*/ ts.factory.createIdentifier("undefined")
+          )
+        ),
+        /*questionToken*/ ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+        /*whenTrue*/ ts.factory.createObjectLiteralExpression(
+          /*properties*/ [
+            ts.factory.createShorthandPropertyAssignment(
+              /*name*/ ts.factory.createIdentifier(identifier),
+              /*objectAssignmentInitializer*/ undefined
+            ),
+          ],
+          /*multiLine*/ false
+        ),
+        /*colonToken*/ ts.factory.createToken(ts.SyntaxKind.ColonToken),
+        /*whenFalse*/ ts.factory.createIdentifier("undefined")
+      )
+    )
+  );
+}
+
 function makeRequest(
   pattern: string,
   method: string,
   item: OpenAPIV3.OperationObject
 ) {
   const pathTemplateExpression = patternToPath(pattern);
-  const params = createParams(item).map((param) => param.arrowFuncParam);
+  const arrowFuncParams = createParams(item).map(
+    (param) => param.arrowFuncParam
+  );
+
+  const axiosConfigFields = [
+    ts.factory.createPropertyAssignment(
+      ts.factory.createIdentifier("method"),
+      ts.factory.createStringLiteral(method)
+    ),
+    ts.factory.createPropertyAssignment(
+      ts.factory.createIdentifier("url"),
+      pathTemplateExpression
+    ),
+  ];
+
+  const paramObjects = toParamObjects(item.parameters);
+  const queryParamObjects = paramObjects.filter(
+    (paramObject) => paramObject.in === "query"
+  );
+  const queryParamProperties = queryParamObjects.map((paramObject) =>
+    paramObject.required
+      ? ts.factory.createShorthandPropertyAssignment(
+          /*name*/ ts.factory.createIdentifier(paramObject.name),
+          /*objectAssignmentInitializer*/ undefined
+        )
+      : shorthandOptionalObjectLiteralSpread(paramObject.name)
+  );
+
+  if (queryParamProperties.length) {
+    axiosConfigFields.push(
+      ts.factory.createPropertyAssignment(
+        /*name*/ ts.factory.createIdentifier("params"),
+        /*initializer*/ ts.factory.createObjectLiteralExpression(
+          /*properties*/ queryParamProperties,
+          /*multiline*/ true
+        )
+      )
+    );
+  }
+
+  const data = [
+    ts.factory.createPropertyAssignment(
+      ts.factory.createIdentifier("field2"),
+      ts.factory.createIdentifier("value2")
+    ),
+    ts.factory.createPropertyAssignment(
+      ts.factory.createIdentifier("field3"),
+      ts.factory.createIdentifier("value3")
+    ),
+  ];
+
+  // add to data
+
+  // `data` field is only allowed for certain methods
+  if (data.length && ["put", "post", "patch", "delete"].includes(method)) {
+    axiosConfigFields.push(
+      ts.factory.createPropertyAssignment(
+        /*name*/ ts.factory.createIdentifier("data"),
+        /*initializer*/ ts.factory.createObjectLiteralExpression(
+          /*properties*/ data,
+          /*multiline*/ true
+        )
+      )
+    );
+  }
 
   return ts.factory.createPropertyAssignment(
     ts.factory.createIdentifier(item.operationId),
     ts.factory.createArrowFunction(
       /*modifiers*/ undefined,
       /*typeParams*/ undefined,
-      /*params*/ params,
+      /*params*/ arrowFuncParams,
       /*type*/ undefined,
       /*equalsGreaterThanToken*/ ts.factory.createToken(
         ts.SyntaxKind.EqualsGreaterThanToken
       ),
       /*body*/
       ts.factory.createCallExpression(
-        ts.factory.createPropertyAccessExpression(
-          ts.factory.createCallExpression(
+        /*expression*/ ts.factory.createPropertyAccessExpression(
+          /*expression*/ ts.factory.createCallExpression(
             /*expression*/ ts.factory.createPropertyAccessExpression(
-              ts.factory.createIdentifier("axios"),
-              ts.factory.createIdentifier("request")
+              /*expression*/ ts.factory.createIdentifier("axios"),
+              /*name*/ ts.factory.createIdentifier("request")
             ),
             /*typeArgs*/ [
               ts.factory.createTypeReferenceNode(
@@ -235,76 +344,34 @@ function makeRequest(
               ),
             ],
             /*args*/ [
-              ts.factory.createObjectLiteralExpression(
-                [
-                  ts.factory.createPropertyAssignment(
-                    ts.factory.createIdentifier("method"),
-                    ts.factory.createStringLiteral(method)
-                  ),
-                  ts.factory.createPropertyAssignment(
-                    ts.factory.createIdentifier("url"),
-                    pathTemplateExpression
-                  ),
-                  ts.factory.createPropertyAssignment(
-                    ts.factory.createIdentifier("params"),
-                    ts.factory.createObjectLiteralExpression(
-                      [
-                        ts.factory.createPropertyAssignment(
-                          ts.factory.createIdentifier("field"),
-                          ts.factory.createIdentifier("value")
-                        ),
-                        ts.factory.createPropertyAssignment(
-                          ts.factory.createIdentifier("field2"),
-                          ts.factory.createIdentifier("value2")
-                        ),
-                      ],
-                      true
-                    )
-                  ),
-                  ts.factory.createPropertyAssignment(
-                    ts.factory.createIdentifier("data"),
-                    ts.factory.createObjectLiteralExpression(
-                      [
-                        ts.factory.createPropertyAssignment(
-                          ts.factory.createIdentifier("field2"),
-                          ts.factory.createIdentifier("value2")
-                        ),
-                        ts.factory.createPropertyAssignment(
-                          ts.factory.createIdentifier("field3"),
-                          ts.factory.createIdentifier("value3")
-                        ),
-                      ],
-                      true
-                    )
-                  ),
-                ],
-                true
-              ),
+              ts.factory.createObjectLiteralExpression(axiosConfigFields, true),
             ]
           ),
-          ts.factory.createIdentifier("then")
+          /*name*/ ts.factory.createIdentifier("then")
         ),
-        undefined,
-        [
+        /*typeArgs*/ undefined,
+        /*args*/ [
           ts.factory.createArrowFunction(
-            undefined,
-            undefined,
-            [
+            /*modifiers*/ undefined,
+            /*typeParameters*/ undefined,
+            /*parameters*/ [
               ts.factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                undefined,
-                ts.factory.createIdentifier("res"),
-                undefined,
-                undefined,
-                undefined
+                /*decorators*/ undefined,
+                /*modifiers*/ undefined,
+                /*dotDotDotToken*/ undefined,
+                /*name*/ ts.factory.createIdentifier("res"),
+                /*questionToken*/ undefined,
+                /*type*/ undefined,
+                /*initializer*/ undefined
               ),
             ],
-            undefined,
-            ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-            ts.factory.createPropertyAccessExpression(
-              ts.factory.createIdentifier("res"),
-              ts.factory.createIdentifier("data")
+            /*type*/ undefined,
+            /*equalsGreaterThanToken*/ ts.factory.createToken(
+              ts.SyntaxKind.EqualsGreaterThanToken
+            ),
+            /*body*/ ts.factory.createPropertyAccessExpression(
+              /*expression*/ ts.factory.createIdentifier("res"),
+              /*name*/ ts.factory.createIdentifier("data")
             )
           ),
         ]
