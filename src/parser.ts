@@ -1,14 +1,6 @@
 import type { OpenAPI, OpenAPIV3 } from "openapi-types";
 import ts from "typescript";
-
-// const operationMethods = [
-//   "get",
-//   "post",
-//   "put",
-//   "delete",
-//   "options",
-// ] as const;
-// type OperationMethod = typeof operationMethods[number];
+import type { AxiosRequestConfig } from "axios";
 
 function isOpenApiV3Document(doc: OpenAPI.Document): doc is OpenAPIV3.Document {
   return "openapi" in doc;
@@ -46,11 +38,16 @@ export function parse(doc: OpenAPI.Document) {
 
 function parseOpenApiV3Doc(doc: OpenAPIV3.Document) {
   const queryIds = Object.entries(doc.paths)
-    .filter(([pattern, item]) => !!item.get)
+    .filter(([_, item]) => !!item.get)
     .map(([pattern, item]) => makeQueryId(pattern, item.get));
+
+  const requests = Object.entries(doc.paths).flatMap(([pattern, item]) =>
+    makeRequests(pattern, item)
+  );
 
   return {
     queryIds,
+    requests,
   };
 }
 
@@ -78,6 +75,7 @@ function schemaObjectTypeToTS(
   }
 }
 
+// queryIds's are only made for GET's
 function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
   if (!get.operationId) {
     throw `Missing "operationId" from "get" request with pattern ${pattern}`;
@@ -136,6 +134,187 @@ function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
   );
 }
 
-function makeRequest(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {}
+// Match everything inside of curly braces
+// Ex: /api/pet/{petId} -> would match {petId}
+const patternRegex = /({.+?})/;
 
-function makeGetQuery(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {}
+// Match all braces, like { or }
+const bracesRegex = /{|}/g;
+
+function patternToPath(pattern: string) {
+  const splits = pattern.split(patternRegex);
+  const [head, ...tail] = splits;
+
+  if (tail.length === 0) {
+    return ts.factory.createNoSubstitutionTemplateLiteral(head, head);
+  }
+
+  const chunks: string[][] = [];
+  const chunkSize = 2;
+  for (let i = 0; i < tail.length; i += chunkSize) {
+    const chunk = tail.slice(i, i + chunkSize);
+    chunks.push(chunk);
+  }
+
+  const headTemplate = ts.factory.createTemplateHead(head, head);
+
+  const middleTemplates = chunks.map(([name, path], index) =>
+    ts.factory.createTemplateSpan(
+      ts.factory.createIdentifier(name.replace(bracesRegex, "")),
+      index === chunks.length - 1
+        ? ts.factory.createTemplateTail(path, path)
+        : ts.factory.createTemplateMiddle(path, path)
+    )
+  );
+
+  return ts.factory.createTemplateExpression(headTemplate, middleTemplates);
+}
+
+function makeRequests(pattern: string, item: OpenAPIV3.PathItemObject) {
+  const requests: ts.PropertyAssignment[] = [];
+
+  if (item.get) {
+    requests.push(makeRequest(pattern, "get", item.get));
+  }
+  if (item.delete) {
+    requests.push(makeRequest(pattern, "delete", item.delete));
+  }
+  if (item.post) {
+    requests.push(makeRequest(pattern, "post", item.post));
+  }
+  if (item.put) {
+    requests.push(makeRequest(pattern, "put", item.put));
+  }
+  if (item.patch) {
+    requests.push(makeRequest(pattern, "patch", item.patch));
+  }
+  if (item.head) {
+    requests.push(makeRequest(pattern, "head", item.head));
+  }
+  if (item.options) {
+    requests.push(makeRequest(pattern, "options", item.options));
+  }
+
+  return requests;
+}
+
+function makeRequest(
+  pattern: string,
+  method: string,
+  item: OpenAPIV3.OperationObject
+) {
+  const pathTemplateExpression = patternToPath(pattern);
+
+  return ts.factory.createPropertyAssignment(
+    ts.factory.createIdentifier(item.operationId),
+    ts.factory.createArrowFunction(
+      /*modifiers*/ undefined,
+      /*typeParams*/ undefined,
+      /*params*/ [
+        // TODO THIS ARRAY
+        ts.factory.createParameterDeclaration(
+          undefined,
+          undefined,
+          undefined,
+          ts.factory.createIdentifier("customerId"),
+          undefined,
+          ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
+          undefined
+        ),
+      ],
+      /*type*/ undefined,
+      /*equalsGreaterThanToken*/ ts.factory.createToken(
+        ts.SyntaxKind.EqualsGreaterThanToken
+      ),
+      /*body*/
+      ts.factory.createCallExpression(
+        ts.factory.createPropertyAccessExpression(
+          ts.factory.createCallExpression(
+            /*expression*/ ts.factory.createPropertyAccessExpression(
+              ts.factory.createIdentifier("axios"),
+              ts.factory.createIdentifier("request")
+            ),
+            /*typeArgs*/ [
+              ts.factory.createTypeReferenceNode(
+                /*typeName*/ ts.factory.createIdentifier("Pet"), // TODO replace with real type
+                /*typeArgs*/ undefined
+              ),
+            ],
+            /*args*/ [
+              ts.factory.createObjectLiteralExpression(
+                [
+                  ts.factory.createPropertyAssignment(
+                    ts.factory.createIdentifier("method"),
+                    ts.factory.createStringLiteral(method)
+                  ),
+                  ts.factory.createPropertyAssignment(
+                    ts.factory.createIdentifier("url"),
+                    pathTemplateExpression
+                  ),
+                  ts.factory.createPropertyAssignment(
+                    ts.factory.createIdentifier("params"),
+                    ts.factory.createObjectLiteralExpression(
+                      [
+                        ts.factory.createPropertyAssignment(
+                          ts.factory.createIdentifier("field"),
+                          ts.factory.createIdentifier("value")
+                        ),
+                        ts.factory.createPropertyAssignment(
+                          ts.factory.createIdentifier("field2"),
+                          ts.factory.createIdentifier("value2")
+                        ),
+                      ],
+                      true
+                    )
+                  ),
+                  ts.factory.createPropertyAssignment(
+                    ts.factory.createIdentifier("data"),
+                    ts.factory.createObjectLiteralExpression(
+                      [
+                        ts.factory.createPropertyAssignment(
+                          ts.factory.createIdentifier("field2"),
+                          ts.factory.createIdentifier("value2")
+                        ),
+                        ts.factory.createPropertyAssignment(
+                          ts.factory.createIdentifier("field3"),
+                          ts.factory.createIdentifier("value3")
+                        ),
+                      ],
+                      true
+                    )
+                  ),
+                ],
+                true
+              ),
+            ]
+          ),
+          ts.factory.createIdentifier("then")
+        ),
+        undefined,
+        [
+          ts.factory.createArrowFunction(
+            undefined,
+            undefined,
+            [
+              ts.factory.createParameterDeclaration(
+                undefined,
+                undefined,
+                undefined,
+                ts.factory.createIdentifier("res"),
+                undefined,
+                undefined,
+                undefined
+              ),
+            ],
+            undefined,
+            ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+            ts.factory.createPropertyAccessExpression(
+              ts.factory.createIdentifier("res"),
+              ts.factory.createIdentifier("data")
+            )
+          ),
+        ]
+      )
+    )
+  );
+}

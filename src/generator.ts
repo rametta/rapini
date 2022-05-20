@@ -103,241 +103,12 @@ function makeOtherType() {
   );
 }
 
-function makeRequests() {
-  const axios = ts.factory.createIdentifier("axios");
-
-  //#region DYNAMIC
-  const properties = [
-    ts.factory.createPropertyAssignment(
-      ts.factory.createIdentifier("getCustomer"),
-      ts.factory.createArrowFunction(
-        undefined,
-        undefined,
-        [
-          ts.factory.createParameterDeclaration(
-            undefined,
-            undefined,
-            undefined,
-            ts.factory.createIdentifier("customerId"),
-            undefined,
-            ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
-            undefined
-          ),
-        ],
-        undefined,
-        ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-        ts.factory.createCallExpression(
-          ts.factory.createPropertyAccessExpression(
-            ts.factory.createCallExpression(
-              ts.factory.createPropertyAccessExpression(
-                axios,
-                ts.factory.createIdentifier("get")
-              ),
-              [
-                ts.factory.createTypeReferenceNode(
-                  ts.factory.createIdentifier("Customer"),
-                  undefined
-                ),
-              ],
-              [
-                ts.factory.createTemplateExpression(
-                  ts.factory.createTemplateHead(
-                    "/api/customer/",
-                    "/api/customer/"
-                  ),
-                  [
-                    ts.factory.createTemplateSpan(
-                      ts.factory.createIdentifier("customerId"),
-                      ts.factory.createTemplateTail("", "")
-                    ),
-                  ]
-                ),
-              ]
-            ),
-            ts.factory.createIdentifier("then")
-          ),
-          undefined,
-          [
-            ts.factory.createArrowFunction(
-              undefined,
-              undefined,
-              [
-                ts.factory.createParameterDeclaration(
-                  undefined,
-                  undefined,
-                  undefined,
-                  ts.factory.createIdentifier("res"),
-                  undefined,
-                  undefined,
-                  undefined
-                ),
-              ],
-              undefined,
-              ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-              ts.factory.createPropertyAccessExpression(
-                ts.factory.createIdentifier("res"),
-                ts.factory.createIdentifier("data")
-              )
-            ),
-          ]
-        )
-      )
-    ),
-    ts.factory.createPropertyAssignment(
-      ts.factory.createIdentifier("getCustomers"),
-      ts.factory.createArrowFunction(
-        undefined,
-        undefined,
-        [],
-        undefined,
-        ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-        ts.factory.createCallExpression(
-          ts.factory.createPropertyAccessExpression(
-            ts.factory.createCallExpression(
-              ts.factory.createPropertyAccessExpression(
-                axios,
-                ts.factory.createIdentifier("get")
-              ),
-              [
-                ts.factory.createArrayTypeNode(
-                  ts.factory.createTypeReferenceNode(
-                    ts.factory.createIdentifier("Customer"),
-                    undefined
-                  )
-                ),
-              ],
-              [
-                ts.factory.createNoSubstitutionTemplateLiteral(
-                  "/api/customers",
-                  "/api/customers"
-                ),
-              ]
-            ),
-            ts.factory.createIdentifier("then")
-          ),
-          undefined,
-          [
-            ts.factory.createArrowFunction(
-              undefined,
-              undefined,
-              [
-                ts.factory.createParameterDeclaration(
-                  undefined,
-                  undefined,
-                  undefined,
-                  ts.factory.createIdentifier("res"),
-                  undefined,
-                  undefined,
-                  undefined
-                ),
-              ],
-              undefined,
-              ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-              ts.factory.createPropertyAccessExpression(
-                ts.factory.createIdentifier("res"),
-                ts.factory.createIdentifier("data")
-              )
-            ),
-          ]
-        )
-      )
-    ),
-    ts.factory.createPropertyAssignment(
-      ts.factory.createIdentifier("postCustomer"),
-      ts.factory.createArrowFunction(
-        undefined,
-        undefined,
-        [
-          ts.factory.createParameterDeclaration(
-            undefined,
-            undefined,
-            undefined,
-            ts.factory.createIdentifier("customerId"),
-            undefined,
-            ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
-            undefined
-          ),
-          ts.factory.createParameterDeclaration(
-            undefined,
-            undefined,
-            undefined,
-            ts.factory.createIdentifier("payload"),
-            undefined,
-            ts.factory.createTypeReferenceNode(
-              ts.factory.createIdentifier("UpdateCustomer"),
-              undefined
-            ),
-            undefined
-          ),
-        ],
-        undefined,
-        ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-        ts.factory.createCallExpression(
-          ts.factory.createPropertyAccessExpression(
-            ts.factory.createCallExpression(
-              ts.factory.createPropertyAccessExpression(
-                axios,
-                ts.factory.createIdentifier("post")
-              ),
-              [
-                ts.factory.createTypeReferenceNode(
-                  ts.factory.createIdentifier("Customer"),
-                  undefined
-                ),
-              ],
-              [
-                ts.factory.createTemplateExpression(
-                  ts.factory.createTemplateHead(
-                    "/api/customer/",
-                    "/api/customer/"
-                  ),
-                  [
-                    ts.factory.createTemplateSpan(
-                      ts.factory.createIdentifier("customerId"),
-                      ts.factory.createTemplateTail("", "")
-                    ),
-                  ]
-                ),
-                ts.factory.createIdentifier("payload"),
-              ]
-            ),
-            ts.factory.createIdentifier("then")
-          ),
-          undefined,
-          [
-            ts.factory.createArrowFunction(
-              undefined,
-              undefined,
-              [
-                ts.factory.createParameterDeclaration(
-                  undefined,
-                  undefined,
-                  undefined,
-                  ts.factory.createIdentifier("res"),
-                  undefined,
-                  undefined,
-                  undefined
-                ),
-              ],
-              undefined,
-              ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-              ts.factory.createPropertyAccessExpression(
-                ts.factory.createIdentifier("res"),
-                ts.factory.createIdentifier("data")
-              )
-            ),
-          ]
-        )
-      )
-    ),
-  ];
-  //#endregion
-
+function makeRequests(requests: ReturnType<typeof parse>["requests"]) {
   const bodyStatements = [
     ts.factory.createReturnStatement(
       ts.factory.createAsExpression(
         /*expression*/ ts.factory.createObjectLiteralExpression(
-          properties,
+          /*properties*/ requests,
           /*multiline*/ true
         ),
         /*type*/ ts.factory.createTypeReferenceNode(
@@ -857,12 +628,6 @@ function makeInitialize() {
     )
   );
 
-  // const makeQueries = ts.factory.createCallExpression(
-  //   /*expression*/ ts.factory.createIdentifier("makeQueries"),
-  //   /*typeArgs*/ undefined,
-  //   /*args*/ undefined
-  // );
-
   const returnStatement = ts.factory.createReturnStatement(
     ts.factory.createObjectLiteralExpression(
       /*properties*/ [
@@ -941,7 +706,7 @@ function makeSourceFile(data: ReturnType<typeof parse>) {
       makeImportAxiosInstanceTypeDeclaration(),
       makeType(),
       makeOtherType(),
-      makeRequests(),
+      makeRequests(data.requests),
       makeQueries(),
       makeMutations(),
       makeQueryIds(data.queryIds),

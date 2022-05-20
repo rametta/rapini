@@ -12,6 +12,7 @@
   "author": "Jason Rametta",
   "license": "Apache-2.0",
   "dependencies": {
+    "axios": "^0.27.2",
     "swagger-parser": "^10.0.3"
   },
   "devDependencies": {
