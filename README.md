@@ -29,6 +29,9 @@ Once you run the CLI tool to generate the React Query code, you can then run `np
 import { initialize } from "your-custom-package";
 import { axiosInstance } from "./your-custom-axios-instance";
 
+// Can even import the generated Typescript Types if needed
+import type { Pet } from "your-custom-package";
+
 const config = initialize(axiosInstance);
 
 const { usePets } = config.queries;

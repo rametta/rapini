@@ -75,20 +75,15 @@ function schemaObjectTypeToTS(
   }
 }
 
-// queryIds's are only made for GET's
-function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
-  if (!get.operationId) {
-    throw `Missing "operationId" from "get" request with pattern ${pattern}`;
-  }
-
+function createParams(item: OpenAPIV3.OperationObject) {
   const paramObjects =
-    get.parameters?.filter(<
+    item.parameters?.filter(<
       (
         param: OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject
       ) => param is OpenAPIV3.ParameterObject
     >((param) => isParameterObject(param))) ?? [];
 
-  const params = paramObjects
+  return paramObjects
     .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
     .map((param) => ({
       name: ts.factory.createIdentifier(param.name),
@@ -106,6 +101,15 @@ function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
         /*initializer*/ undefined
       ),
     }));
+}
+
+// queryIds's are only made for GET's
+function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
+  if (!get.operationId) {
+    throw `Missing "operationId" from "get" request with pattern ${pattern}`;
+  }
+
+  const params = createParams(get);
 
   return ts.factory.createPropertyAssignment(
     /*name*/ ts.factory.createIdentifier(get.operationId),
@@ -204,24 +208,14 @@ function makeRequest(
   item: OpenAPIV3.OperationObject
 ) {
   const pathTemplateExpression = patternToPath(pattern);
+  const params = createParams(item).map((param) => param.arrowFuncParam);
 
   return ts.factory.createPropertyAssignment(
     ts.factory.createIdentifier(item.operationId),
     ts.factory.createArrowFunction(
       /*modifiers*/ undefined,
       /*typeParams*/ undefined,
-      /*params*/ [
-        // TODO THIS ARRAY
-        ts.factory.createParameterDeclaration(
-          undefined,
-          undefined,
-          undefined,
-          ts.factory.createIdentifier("customerId"),
-          undefined,
-          ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
-          undefined
-        ),
-      ],
+      /*params*/ params,
       /*type*/ undefined,
       /*equalsGreaterThanToken*/ ts.factory.createToken(
         ts.SyntaxKind.EqualsGreaterThanToken
