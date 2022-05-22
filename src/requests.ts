@@ -1,6 +1,6 @@
 import ts from "typescript";
 import type { OpenAPIV3 } from "openapi-types";
-import { toParamObjects, createParams } from "./common";
+import { toParamObjects, isSchemaObject, schemaObjectTypeToTS } from "./common";
 
 export function makeRequests(paths: OpenAPIV3.PathsObject) {
   const requests = Object.entries(paths).flatMap(([pattern, item]) =>
@@ -84,13 +84,72 @@ function makeRequestsPropertyAssignment(
   return requests;
 }
 
+function isRequestBodyObject(
+  obj: OpenAPIV3.ReferenceObject | OpenAPIV3.RequestBodyObject
+): obj is OpenAPIV3.RequestBodyObject {
+  return "content" in obj;
+}
+
+function createRequestParams(item: OpenAPIV3.OperationObject) {
+  const paramObjects = toParamObjects(item.parameters);
+
+  const itemParamsDeclarations = paramObjects
+    .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
+    .map((param) => ({
+      name: ts.factory.createIdentifier(param.name),
+      arrowFuncParam: ts.factory.createParameterDeclaration(
+        /*decorators*/ undefined,
+        /*modifiers*/ undefined,
+        /*dotDotDotToken*/ undefined,
+        /*name*/ ts.factory.createIdentifier(param.name),
+        /*questionToken*/ param.required
+          ? undefined
+          : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+        /*type*/ schemaObjectTypeToTS(
+          isSchemaObject(param.schema) ? param.schema.type : null
+        ),
+        /*initializer*/ undefined
+      ),
+    }));
+
+  if (item.requestBody) {
+    console.log((item as any).requestBody.content);
+
+    const payload = ts.factory.createIdentifier("payload");
+
+    // TODO: This type is not correct, just a placeholder
+    const type =
+      isRequestBodyObject(item.requestBody) &&
+      isSchemaObject(item.requestBody.content["application/json"].schema)
+        ? ts.factory.createTypeReferenceNode(
+            item.requestBody.content["application/json"].schema.type
+          )
+        : undefined;
+
+    itemParamsDeclarations.unshift({
+      name: payload,
+      arrowFuncParam: ts.factory.createParameterDeclaration(
+        /*decorators*/ undefined,
+        /*modifiers*/ undefined,
+        /*dotDotDotToken*/ undefined,
+        /*name*/ payload,
+        /*questionToken*/ undefined,
+        /*type*/ type,
+        /*initializer*/ undefined
+      ),
+    });
+  }
+
+  return itemParamsDeclarations;
+}
+
 function makeRequest(
   pattern: string,
   method: string,
   item: OpenAPIV3.OperationObject
 ) {
   const pathTemplateExpression = patternToPath(pattern);
-  const arrowFuncParams = createParams(item).map(
+  const arrowFuncParams = createRequestParams(item).map(
     (param) => param.arrowFuncParam
   );
 
@@ -130,28 +189,12 @@ function makeRequest(
     );
   }
 
-  const data = [
-    ts.factory.createPropertyAssignment(
-      ts.factory.createIdentifier("field2"),
-      ts.factory.createIdentifier("value2")
-    ),
-    ts.factory.createPropertyAssignment(
-      ts.factory.createIdentifier("field3"),
-      ts.factory.createIdentifier("value3")
-    ),
-  ];
-
-  // add to data
-
   // `data` field is only allowed for certain methods
-  if (data.length && ["put", "post", "patch", "delete"].includes(method)) {
+  if (item.requestBody && ["put", "post", "patch", "delete"].includes(method)) {
     axiosConfigFields.push(
       ts.factory.createPropertyAssignment(
         /*name*/ ts.factory.createIdentifier("data"),
-        /*initializer*/ ts.factory.createObjectLiteralExpression(
-          /*properties*/ data,
-          /*multiline*/ true
-        )
+        /*initializer*/ ts.factory.createIdentifier("payload")
       )
     );
   }
@@ -176,7 +219,7 @@ function makeRequest(
             ),
             /*typeArgs*/ [
               ts.factory.createTypeReferenceNode(
-                /*typeName*/ ts.factory.createIdentifier("Pet"), // TODO replace with real type
+                /*typeName*/ ts.factory.createIdentifier("Pet"), // TODO: This type is not correct, just a placeholder
                 /*typeArgs*/ undefined
               ),
             ],

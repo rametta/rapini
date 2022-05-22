@@ -13,7 +13,7 @@ function isOpenApiV3Document(doc: OpenAPI.Document): doc is OpenAPIV3.Document {
   return "openapi" in doc;
 }
 
-export function parse(doc: OpenAPI.Document) {
+function parse(doc: OpenAPI.Document) {
   if (isOpenApiV3Document(doc)) {
     return parseOpenApiV3Doc(doc);
   }
