@@ -56,3 +56,9 @@ export function capitalizeFirstLetter(str: string) {
 export function lowercaseFirstLetter(str: string) {
   return str.charAt(0).toLowerCase() + str.slice(1);
 }
+
+export function isRequestBodyObject(
+  obj: OpenAPIV3.ReferenceObject | OpenAPIV3.RequestBodyObject
+): obj is OpenAPIV3.RequestBodyObject {
+  return "content" in obj;
+}

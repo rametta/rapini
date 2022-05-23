@@ -26,7 +26,7 @@ function parseOpenApiV3Doc(doc: OpenAPIV3.Document) {
     queryIds: makeQueryIds(doc.paths),
     requests: makeRequests(doc.paths),
     queries: makeQueries(doc.paths),
-    mutations: makeMutations(),
+    mutations: makeMutations(doc.paths),
   };
 }
 
