@@ -113,8 +113,6 @@ function createRequestParams(item: OpenAPIV3.OperationObject) {
     }));
 
   if (item.requestBody) {
-    console.log((item as any).requestBody.content);
-
     const payload = ts.factory.createIdentifier("payload");
 
     // TODO: This type is not correct, just a placeholder
