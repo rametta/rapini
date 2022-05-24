@@ -61,15 +61,15 @@ function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
       ),
       /*body*/ ts.factory.createAsExpression(
         ts.factory.createArrayLiteralExpression(
-          [
+          /*elements*/ [
             ts.factory.createStringLiteral(get.operationId),
             ...params.map((p) => p.name),
           ],
-          false
+          /*multiline*/ false
         ),
         ts.factory.createTypeReferenceNode(
-          ts.factory.createIdentifier("const"),
-          undefined
+          /*typeName*/ ts.factory.createIdentifier("const"),
+          /*typeArgs*/ undefined
         )
       )
     )

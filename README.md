@@ -5,7 +5,7 @@ The generated code is packaged conveniently so that it can be published as a pac
 
 ## Features
 
-- :surfing: Generates axios calls for every endpoint, with typed payload.
+- :bicyclist: Generates axios calls for every endpoint, with typed payload.
 - :golfing: Generates custom react hooks that use React Query's useQuery and useMutation hooks for each axios call.
   - Every `GET` request get's it own custom useQuery hook
   - Every `POST`, `PUT`, `PATCH`, `DELETE` request get their own custom useMutation hook

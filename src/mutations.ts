@@ -89,21 +89,21 @@ function optionsParameterDeclaration(requestIdentifier: string) {
     /*name*/ ts.factory.createIdentifier("options"),
     /*questionToken*/ ts.factory.createToken(ts.SyntaxKind.QuestionToken),
     /*type*/ ts.factory.createTypeReferenceNode(
-      ts.factory.createIdentifier("Omit"),
-      [
+      /*typeName*/ ts.factory.createIdentifier("Omit"),
+      /*typeArguments*/ [
         ts.factory.createTypeReferenceNode(
-          ts.factory.createIdentifier("UseMutationOptions"),
-          [
+          /*typeName*/ ts.factory.createIdentifier("UseMutationOptions"),
+          /*typeArguments*/ [
             ts.factory.createTypeReferenceNode(
-              ts.factory.createIdentifier("Awaited"),
-              [
+              /*typeName*/ ts.factory.createIdentifier("Awaited"),
+              /*typeArguments*/ [
                 ts.factory.createTypeReferenceNode(
-                  ts.factory.createIdentifier("ReturnType"),
-                  [
+                  /*typeName*/ ts.factory.createIdentifier("ReturnType"),
+                  /*typeArguments*/ [
                     ts.factory.createTypeQueryNode(
-                      ts.factory.createQualifiedName(
-                        ts.factory.createIdentifier("requests"),
-                        ts.factory.createIdentifier(requestIdentifier)
+                      /*expressionName*/ ts.factory.createQualifiedName(
+                        /*left*/ ts.factory.createIdentifier("requests"),
+                        /*right*/ ts.factory.createIdentifier(requestIdentifier)
                       )
                     ),
                   ]
@@ -116,7 +116,7 @@ function optionsParameterDeclaration(requestIdentifier: string) {
           ]
         ),
         ts.factory.createLiteralTypeNode(
-          ts.factory.createStringLiteral("mutationFn")
+          /*literal*/ ts.factory.createStringLiteral("mutationFn")
         ),
       ]
     ),
@@ -139,6 +139,69 @@ function makeProperty(
 
   const hasRequestBody = !!operation.requestBody;
 
+  const returnStatement = ts.factory.createReturnStatement(
+    /*expression*/ ts.factory.createCallExpression(
+      /*expression*/ ts.factory.createIdentifier("useMutation"),
+      /*typeArguments*/ [
+        ts.factory.createTypeReferenceNode(
+          /*typeName*/ ts.factory.createIdentifier("Awaited"),
+          /*typeArgs*/ [
+            ts.factory.createTypeReferenceNode(
+              /*typeName*/ ts.factory.createIdentifier("ReturnType"),
+              /*typeArgs*/ [
+                ts.factory.createTypeQueryNode(
+                  /*expressionName*/ ts.factory.createQualifiedName(
+                    /*left*/ ts.factory.createIdentifier("requests"),
+                    /*right*/ ts.factory.createIdentifier(operationId)
+                  )
+                ),
+              ]
+            ),
+          ]
+        ),
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+      ],
+      /*args*/ [
+        ts.factory.createArrowFunction(
+          /*modifiers*/ undefined,
+          /*typeParameters*/ undefined,
+          /*parameters*/ hasRequestBody
+            ? [
+                ts.factory.createParameterDeclaration(
+                  /*decorators*/ undefined,
+                  /*modifiers*/ undefined,
+                  /*dotDotDotToken*/ undefined,
+                  /*name*/ ts.factory.createIdentifier("payload"),
+                  /*questionToken*/ undefined,
+                  /*type*/ undefined,
+                  /*initializer*/ undefined
+                ),
+              ]
+            : [],
+          /*type*/ undefined,
+          /*equalsGreaterThanToken*/ ts.factory.createToken(
+            ts.SyntaxKind.EqualsGreaterThanToken
+          ),
+          /*body*/ ts.factory.createCallExpression(
+            /*expression*/ ts.factory.createPropertyAccessExpression(
+              /*expression*/ ts.factory.createIdentifier("requests"),
+              /*name*/ ts.factory.createIdentifier(operationId)
+            ),
+            /*typeArguments*/ undefined,
+            /*args*/ hasRequestBody
+              ? [
+                  ts.factory.createIdentifier("payload"),
+                  ...params.map((p) => p.name),
+                ]
+              : params.map((p) => p.name)
+          )
+        ),
+        ts.factory.createIdentifier("options"),
+      ]
+    )
+  );
+
   return ts.factory.createPropertyAssignment(
     /*name*/ ts.factory.createIdentifier(identifier),
     /*initializer*/ ts.factory.createArrowFunction(
@@ -153,68 +216,7 @@ function makeProperty(
         ts.SyntaxKind.EqualsGreaterThanToken
       ),
       /*body*/ ts.factory.createBlock(
-        /*statements*/ [
-          ts.factory.createReturnStatement(
-            ts.factory.createCallExpression(
-              ts.factory.createIdentifier("useMutation"),
-              [
-                ts.factory.createTypeReferenceNode(
-                  ts.factory.createIdentifier("Awaited"),
-                  [
-                    ts.factory.createTypeReferenceNode(
-                      ts.factory.createIdentifier("ReturnType"),
-                      [
-                        ts.factory.createTypeQueryNode(
-                          ts.factory.createQualifiedName(
-                            ts.factory.createIdentifier("requests"),
-                            ts.factory.createIdentifier(operationId)
-                          )
-                        ),
-                      ]
-                    ),
-                  ]
-                ),
-                ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
-                ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
-              ],
-              [
-                ts.factory.createArrowFunction(
-                  undefined,
-                  undefined,
-                  hasRequestBody
-                    ? [
-                        ts.factory.createParameterDeclaration(
-                          undefined,
-                          undefined,
-                          undefined,
-                          ts.factory.createIdentifier("payload"),
-                          undefined,
-                          undefined,
-                          undefined
-                        ),
-                      ]
-                    : [],
-                  undefined,
-                  ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-                  ts.factory.createCallExpression(
-                    ts.factory.createPropertyAccessExpression(
-                      ts.factory.createIdentifier("requests"),
-                      ts.factory.createIdentifier(operationId)
-                    ),
-                    undefined,
-                    hasRequestBody
-                      ? [
-                          ts.factory.createIdentifier("payload"),
-                          ...params.map((p) => p.name),
-                        ]
-                      : params.map((p) => p.name)
-                  )
-                ),
-                ts.factory.createIdentifier("options"),
-              ]
-            )
-          ),
-        ],
+        /*statements*/ [returnStatement],
         /*multiline*/ true
       )
     )

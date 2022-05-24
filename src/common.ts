@@ -4,11 +4,7 @@ import type { OpenAPIV3 } from "openapi-types";
 export function toParamObjects(
   params: (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[]
 ): OpenAPIV3.ParameterObject[] {
-  return (
-    params?.filter(<typeof isParameterObject>(
-      ((param) => isParameterObject(param))
-    )) ?? []
-  );
+  return params?.filter(<typeof isParameterObject>isParameterObject) ?? [];
 }
 
 export function isParameterObject(

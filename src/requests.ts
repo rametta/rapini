@@ -15,7 +15,7 @@ function makeRequestsDeclaration(
 ) {
   const bodyStatements = [
     ts.factory.createReturnStatement(
-      ts.factory.createAsExpression(
+      /*expression*/ ts.factory.createAsExpression(
         /*expression*/ ts.factory.createObjectLiteralExpression(
           /*properties*/ requests,
           /*multiline*/ true
@@ -156,12 +156,12 @@ function makeRequest(
 
   const axiosConfigFields = [
     ts.factory.createPropertyAssignment(
-      ts.factory.createIdentifier("method"),
-      ts.factory.createStringLiteral(method)
+      /*name*/ ts.factory.createIdentifier("method"),
+      /*initializer*/ ts.factory.createStringLiteral(method)
     ),
     ts.factory.createPropertyAssignment(
-      ts.factory.createIdentifier("url"),
-      pathTemplateExpression
+      /*name*/ ts.factory.createIdentifier("url"),
+      /*initializer*/ pathTemplateExpression
     ),
   ];
 
@@ -313,7 +313,10 @@ function patternToPath(pattern: string) {
   const [head, ...tail] = splits;
 
   if (tail.length === 0) {
-    return ts.factory.createNoSubstitutionTemplateLiteral(head, head);
+    return ts.factory.createNoSubstitutionTemplateLiteral(
+      /*text*/ head,
+      /*rawText*/ head
+    );
   }
 
   const chunks: string[][] = [];
@@ -323,12 +326,15 @@ function patternToPath(pattern: string) {
     chunks.push(chunk);
   }
 
-  const headTemplate = ts.factory.createTemplateHead(head, head);
+  const headTemplate = ts.factory.createTemplateHead(
+    /*text*/ head,
+    /*rawText*/ head
+  );
 
   const middleTemplates = chunks.map(([name, path], index) =>
     ts.factory.createTemplateSpan(
-      ts.factory.createIdentifier(name.replace(bracesRegex, "")),
-      index === chunks.length - 1
+      /*expression*/ ts.factory.createIdentifier(name.replace(bracesRegex, "")),
+      /*literal*/ index === chunks.length - 1
         ? ts.factory.createTemplateTail(path, path)
         : ts.factory.createTemplateMiddle(path, path)
     )

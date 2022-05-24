@@ -53,22 +53,22 @@ export function makeInitialize() {
           /*objectAssignmentInitializer*/ undefined
         ),
         ts.factory.createPropertyAssignment(
-          ts.factory.createIdentifier("queries"),
-          ts.factory.createCallExpression(
-            ts.factory.createIdentifier("makeQueries"),
-            undefined,
-            [
+          /*name*/ ts.factory.createIdentifier("queries"),
+          /*initializer*/ ts.factory.createCallExpression(
+            /*expression*/ ts.factory.createIdentifier("makeQueries"),
+            /*typeArgs*/ undefined,
+            /*args*/ [
               ts.factory.createIdentifier("requests"),
               ts.factory.createIdentifier("queryIds"),
             ]
           )
         ),
         ts.factory.createPropertyAssignment(
-          ts.factory.createIdentifier("mutations"),
-          ts.factory.createCallExpression(
-            ts.factory.createIdentifier("makeMutations"),
-            undefined,
-            [ts.factory.createIdentifier("requests")]
+          /*name*/ ts.factory.createIdentifier("mutations"),
+          /*initializer*/ ts.factory.createCallExpression(
+            /*expression*/ ts.factory.createIdentifier("makeMutations"),
+            /*typeArgs*/ undefined,
+            /*args*/ [ts.factory.createIdentifier("requests")]
           )
         ),
       ],
