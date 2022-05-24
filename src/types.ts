@@ -1,5 +1,9 @@
 import { OpenAPIV3 } from "openapi-types";
-import ts, { PropertySignature, TypeElement, TypeNode } from "typescript";
+import ts, { EnumType, PropertySignature, TypeNode } from "typescript";
+
+function filterNonStringEnumValues(entry: unknown): entry is string {
+  return typeof entry === "string";
+}
 
 function generateTsType(nullable: boolean, type: TypeNode) {
   return nullable
@@ -16,19 +20,23 @@ function schemaObjectTypeToTS(
     | OpenAPIV3.NonArraySchemaObjectType
     | undefined,
   nullable: boolean = false,
-  enumValues: any[] | undefined
+  enumValues: unknown[] | undefined
 ) {
   switch (objectType) {
     case "string":
       if (enumValues && enumValues.length > 0) {
-        const enums = nullable ? [...enumValues, "null"] : enumValues;
-        return ts.factory.createUnionTypeNode(
-          enums.map((value) =>
+        const enums = enumValues
+          .filter(filterNonStringEnumValues)
+          .map((value) =>
             ts.factory.createLiteralTypeNode(
               ts.factory.createStringLiteral(value)
             )
-          )
-        );
+          );
+
+        if (nullable) {
+          enums.push(ts.factory.createLiteralTypeNode(ts.factory.createNull()));
+        }
+        return ts.factory.createUnionTypeNode(enums);
       }
       return generateTsType(
         nullable,
