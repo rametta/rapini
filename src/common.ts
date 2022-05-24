@@ -54,6 +54,24 @@ export function lowercaseFirstLetter(str: string) {
   return str.charAt(0).toLowerCase() + str.slice(1);
 }
 
+/**
+ * Normalizes operation id's so there is consistency
+ * @param operationId Raw value from openapi file
+ * @returns normalized value with underscores and dashes removed, and in camelCase
+ * @example normalizeOperationId("helloGoodbye") // helloGoodbye
+ * @example normalizeOperationId("test1-test8-test1_test2") // test1Test8Test1Test2
+ * @example normalizeOperationId("Test1_test8-test1_test2") // test1Test8Test1Test2
+ */
+export function normalizeOperationId(operationId: string) {
+  const split = operationId
+    .split("-")
+    .flatMap((x) => x.split("_"))
+    .map((x, i) =>
+      i === 0 ? lowercaseFirstLetter(x) : capitalizeFirstLetter(x)
+    );
+  return split.join("");
+}
+
 export function isRequestBodyObject(
   obj: OpenAPIV3.ReferenceObject | OpenAPIV3.RequestBodyObject
 ): obj is OpenAPIV3.RequestBodyObject {

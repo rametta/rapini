@@ -3,6 +3,7 @@ import type { OpenAPIV3 } from "openapi-types";
 import {
   capitalizeFirstLetter,
   isSchemaObject,
+  normalizeOperationId,
   schemaObjectTypeToTS,
   toParamObjects,
 } from "./common";
@@ -133,73 +134,72 @@ function makeProperty(
   if (!operationId) {
     throw `Missing "operationId" from "${method}" request with pattern ${pattern}`;
   }
+  const normalizedOperationId = normalizeOperationId(operationId);
 
-  const identifier = `use${capitalizeFirstLetter(operationId)}`;
+  const identifier = `use${capitalizeFirstLetter(normalizedOperationId)}`;
   const params = createParams(operation);
 
   const hasRequestBody = !!operation.requestBody;
 
-  const returnStatement = ts.factory.createReturnStatement(
-    /*expression*/ ts.factory.createCallExpression(
-      /*expression*/ ts.factory.createIdentifier("useMutation"),
-      /*typeArguments*/ [
-        ts.factory.createTypeReferenceNode(
-          /*typeName*/ ts.factory.createIdentifier("Awaited"),
-          /*typeArgs*/ [
-            ts.factory.createTypeReferenceNode(
-              /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-              /*typeArgs*/ [
-                ts.factory.createTypeQueryNode(
-                  /*expressionName*/ ts.factory.createQualifiedName(
-                    /*left*/ ts.factory.createIdentifier("requests"),
-                    /*right*/ ts.factory.createIdentifier(operationId)
-                  )
-                ),
-              ]
-            ),
-          ]
-        ),
-        ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
-        ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
-      ],
-      /*args*/ [
-        ts.factory.createArrowFunction(
-          /*modifiers*/ undefined,
-          /*typeParameters*/ undefined,
-          /*parameters*/ hasRequestBody
-            ? [
-                ts.factory.createParameterDeclaration(
-                  /*decorators*/ undefined,
-                  /*modifiers*/ undefined,
-                  /*dotDotDotToken*/ undefined,
-                  /*name*/ ts.factory.createIdentifier("payload"),
-                  /*questionToken*/ undefined,
-                  /*type*/ undefined,
-                  /*initializer*/ undefined
-                ),
-              ]
-            : [],
-          /*type*/ undefined,
-          /*equalsGreaterThanToken*/ ts.factory.createToken(
-            ts.SyntaxKind.EqualsGreaterThanToken
+  const body = /*expression*/ ts.factory.createCallExpression(
+    /*expression*/ ts.factory.createIdentifier("useMutation"),
+    /*typeArguments*/ [
+      ts.factory.createTypeReferenceNode(
+        /*typeName*/ ts.factory.createIdentifier("Awaited"),
+        /*typeArgs*/ [
+          ts.factory.createTypeReferenceNode(
+            /*typeName*/ ts.factory.createIdentifier("ReturnType"),
+            /*typeArgs*/ [
+              ts.factory.createTypeQueryNode(
+                /*expressionName*/ ts.factory.createQualifiedName(
+                  /*left*/ ts.factory.createIdentifier("requests"),
+                  /*right*/ ts.factory.createIdentifier(normalizedOperationId)
+                )
+              ),
+            ]
           ),
-          /*body*/ ts.factory.createCallExpression(
-            /*expression*/ ts.factory.createPropertyAccessExpression(
-              /*expression*/ ts.factory.createIdentifier("requests"),
-              /*name*/ ts.factory.createIdentifier(operationId)
-            ),
-            /*typeArguments*/ undefined,
-            /*args*/ hasRequestBody
-              ? [
-                  ts.factory.createIdentifier("payload"),
-                  ...params.map((p) => p.name),
-                ]
-              : params.map((p) => p.name)
-          )
+        ]
+      ),
+      ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+      ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+    ],
+    /*args*/ [
+      ts.factory.createArrowFunction(
+        /*modifiers*/ undefined,
+        /*typeParameters*/ undefined,
+        /*parameters*/ hasRequestBody
+          ? [
+              ts.factory.createParameterDeclaration(
+                /*decorators*/ undefined,
+                /*modifiers*/ undefined,
+                /*dotDotDotToken*/ undefined,
+                /*name*/ ts.factory.createIdentifier("payload"),
+                /*questionToken*/ undefined,
+                /*type*/ undefined,
+                /*initializer*/ undefined
+              ),
+            ]
+          : [],
+        /*type*/ undefined,
+        /*equalsGreaterThanToken*/ ts.factory.createToken(
+          ts.SyntaxKind.EqualsGreaterThanToken
         ),
-        ts.factory.createIdentifier("options"),
-      ]
-    )
+        /*body*/ ts.factory.createCallExpression(
+          /*expression*/ ts.factory.createPropertyAccessExpression(
+            /*expression*/ ts.factory.createIdentifier("requests"),
+            /*name*/ ts.factory.createIdentifier(normalizedOperationId)
+          ),
+          /*typeArguments*/ undefined,
+          /*args*/ hasRequestBody
+            ? [
+                ts.factory.createIdentifier("payload"),
+                ...params.map((p) => p.name),
+              ]
+            : params.map((p) => p.name)
+        )
+      ),
+      ts.factory.createIdentifier("options"),
+    ]
   );
 
   return ts.factory.createPropertyAssignment(
@@ -209,16 +209,13 @@ function makeProperty(
       /*typeParameters*/ undefined,
       /*parameters*/ [
         ...params.map((p) => p.arrowFuncParam),
-        optionsParameterDeclaration(operationId),
+        optionsParameterDeclaration(normalizedOperationId),
       ],
       /*type*/ undefined,
       /*equalsGreaterThanToken*/ ts.factory.createToken(
         ts.SyntaxKind.EqualsGreaterThanToken
       ),
-      /*body*/ ts.factory.createBlock(
-        /*statements*/ [returnStatement],
-        /*multiline*/ true
-      )
+      /*body*/ body
     )
   );
 }

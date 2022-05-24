@@ -3,6 +3,7 @@ import type { OpenAPIV3 } from "openapi-types";
 import {
   capitalizeFirstLetter,
   isSchemaObject,
+  normalizeOperationId,
   schemaObjectTypeToTS,
   toParamObjects,
 } from "./common";
@@ -79,7 +80,8 @@ function makeProperty(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
     throw `Missing "operationId" from "get" request with pattern ${pattern}`;
   }
 
-  const identifierName = `use${capitalizeFirstLetter(get.operationId)}`;
+  const normalizedOperationId = normalizeOperationId(get.operationId);
+  const identifierName = `use${capitalizeFirstLetter(normalizedOperationId)}`;
 
   const params = createParams(get);
 
@@ -90,7 +92,7 @@ function makeProperty(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
       /*typeParams*/ undefined,
       /*params*/ [
         ...params.map((p) => p.arrowFuncParam),
-        optionsParameterDeclaration(get.operationId),
+        optionsParameterDeclaration(normalizedOperationId),
       ],
       /*type*/ undefined,
       /*equalsGreaterThanToken*/ ts.factory.createToken(
@@ -103,7 +105,7 @@ function makeProperty(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
           ts.factory.createCallExpression(
             /*expression*/ ts.factory.createPropertyAccessExpression(
               /*expression*/ ts.factory.createIdentifier("queryIds"),
-              /*name*/ ts.factory.createIdentifier(get.operationId)
+              /*name*/ ts.factory.createIdentifier(normalizedOperationId)
             ),
             /*typeArgs*/ undefined,
             /*args*/ params.map((p) => p.name)
@@ -119,7 +121,7 @@ function makeProperty(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
             /*body*/ ts.factory.createCallExpression(
               /*expression*/ ts.factory.createPropertyAccessExpression(
                 /*expression*/ ts.factory.createIdentifier("requests"),
-                /*name*/ ts.factory.createIdentifier(get.operationId)
+                /*name*/ ts.factory.createIdentifier(normalizedOperationId)
               ),
               /*typeArguments*/ undefined,
               /*args*/ params.map((p) => p.name)

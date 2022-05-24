@@ -1,6 +1,11 @@
 import ts from "typescript";
 import type { OpenAPIV3 } from "openapi-types";
-import { isSchemaObject, schemaObjectTypeToTS, toParamObjects } from "./common";
+import {
+  isSchemaObject,
+  normalizeOperationId,
+  schemaObjectTypeToTS,
+  toParamObjects,
+} from "./common";
 
 export function makeQueryIds(paths: OpenAPIV3.PathsObject) {
   const queryIds = Object.entries(paths)
@@ -47,10 +52,11 @@ function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
     throw `Missing "operationId" from "get" request with pattern ${pattern}`;
   }
 
+  const normalizedOperationId = normalizeOperationId(get.operationId);
   const params = createParams(get);
 
   return ts.factory.createPropertyAssignment(
-    /*name*/ ts.factory.createIdentifier(get.operationId),
+    /*name*/ ts.factory.createIdentifier(normalizedOperationId),
     /*initializer*/ ts.factory.createArrowFunction(
       /*modifiers*/ undefined,
       /*typeParams*/ undefined,
@@ -62,7 +68,7 @@ function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
       /*body*/ ts.factory.createAsExpression(
         ts.factory.createArrayLiteralExpression(
           /*elements*/ [
-            ts.factory.createStringLiteral(get.operationId),
+            ts.factory.createStringLiteral(normalizedOperationId),
             ...params.map((p) => p.name),
           ],
           /*multiline*/ false

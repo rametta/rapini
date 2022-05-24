@@ -1,6 +1,11 @@
 import ts from "typescript";
 import type { OpenAPIV3 } from "openapi-types";
-import { toParamObjects, isSchemaObject, schemaObjectTypeToTS } from "./common";
+import {
+  toParamObjects,
+  isSchemaObject,
+  schemaObjectTypeToTS,
+  normalizeOperationId,
+} from "./common";
 
 export function makeRequests(paths: OpenAPIV3.PathsObject) {
   const requests = Object.entries(paths).flatMap(([pattern, item]) =>
@@ -122,9 +127,7 @@ function createRequestParams(item: OpenAPIV3.OperationObject) {
     const type =
       isRequestBodyObject(item.requestBody) &&
       isSchemaObject(item.requestBody.content["application/json"].schema)
-        ? ts.factory.createTypeReferenceNode(
-            item.requestBody.content["application/json"]?.schema?.type ?? "TODO"
-          )
+        ? ts.factory.createTypeReferenceNode("unknown")
         : undefined;
 
     itemParamsDeclarations.unshift({
@@ -201,7 +204,7 @@ function makeRequest(
   }
 
   return ts.factory.createPropertyAssignment(
-    ts.factory.createIdentifier(item.operationId!),
+    ts.factory.createIdentifier(normalizeOperationId(item.operationId!)),
     ts.factory.createArrowFunction(
       /*modifiers*/ undefined,
       /*typeParams*/ undefined,
