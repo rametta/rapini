@@ -1,17 +1,23 @@
 import type { OpenAPIV3 } from "openapi-types";
 import ts from "typescript";
 
-type SchemaOrReferenceObject =
-  | OpenAPIV3.ReferenceObject
-  | OpenAPIV3.SchemaObject;
-
 function schemaObjectTypeToTS(
   objectType:
     | OpenAPIV3.ArraySchemaObjectType
-    | OpenAPIV3.NonArraySchemaObjectType
+    | OpenAPIV3.NonArraySchemaObjectType,
+  enumValues: string[]
 ) {
   switch (objectType) {
     case "string":
+      if (enumValues.length > 0) {
+        return ts.factory.createUnionTypeNode(
+          enumValues.map((value) =>
+            ts.factory.createLiteralTypeNode(
+              ts.factory.createStringLiteral(value)
+            )
+          )
+        );
+      }
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword);
     case "integer":
     case "number":
@@ -30,25 +36,27 @@ function schemaObjectTypeToTS(
 }
 
 function isSchemaObject(
-  param: SchemaOrReferenceObject
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
 ): param is OpenAPIV3.SchemaObject {
   return "properties" in param;
 }
 
 function isArraySchemaObject(
-  param: SchemaOrReferenceObject
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
 ): param is OpenAPIV3.ArraySchemaObject {
   return "items" in param;
 }
 
 function makeType(
-  properties: { [name: string]: SchemaOrReferenceObject },
+  properties: {
+    [name: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject;
+  },
   required: string[]
 ) {
   if (properties) {
     return Object.keys(properties).map((key) => {
-      if (isSchemaObject(properties[key])) {
-        const item = properties[key];
+      const item = properties[key];
+      if (isSchemaObject(item)) {
         const isRequired = required.includes(key);
         return ts.factory.createPropertySignature(
           /*modifiers*/ undefined,
@@ -56,14 +64,16 @@ function makeType(
           /*questionTOken*/ isRequired
             ? undefined
             : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-          /*type*/ schemaObjectTypeToTS(item.type)
+          /*type*/ schemaObjectTypeToTS(item.type, item.enum)
         );
       }
     });
   }
 }
 
-function generateProperties(item: SchemaOrReferenceObject) {
+function generateProperties(
+  item: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+) {
   if (isSchemaObject(item)) {
     return ts.factory.createTypeLiteralNode(
       makeType(item.properties, item.required ?? [])
@@ -78,11 +88,11 @@ function generateProperties(item: SchemaOrReferenceObject) {
 }
 
 export function makeTypes(doc: OpenAPIV3.Document) {
-  return Object.entries(doc.components.schemas).map(([pattern, item]) => {
+  return Object.entries(doc.components.schemas).map(([typeName, item]) => {
     return ts.factory.createTypeAliasDeclaration(
       /*decoratos*/ undefined,
       /*modifiers*/ [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-      /*name*/ ts.factory.createIdentifier(pattern),
+      /*name*/ ts.factory.createIdentifier(typeName),
       /*typeParameters*/ undefined,
       /*type*/ generateProperties(item)
     );
