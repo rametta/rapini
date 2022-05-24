@@ -111,6 +111,11 @@ components:
           type: string
         tag:
           type: string
+        petType:
+          type: string
+          enum:
+            - cat
+            - doge
     Pets:
       type: array
       items:
