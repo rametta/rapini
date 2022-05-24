@@ -42,10 +42,11 @@ function parseOpenApiV3Doc(
 }
 
 function makeSourceFile(data: ReturnType<typeof parse>) {
+  const types = data.types ? data.types : [];
   return ts.factory.createSourceFile(
     /*statements*/ [
       ...makeImports(),
-      ...data.types,
+      ...types,
       makeInitialize(),
       data.queryIds,
       data.requests,

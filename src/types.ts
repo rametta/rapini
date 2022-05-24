@@ -1,15 +1,17 @@
-import type { OpenAPIV3 } from "openapi-types";
-import ts from "typescript";
+import { OpenAPIV3 } from "openapi-types";
+import ts, { PropertySignature, TypeElement, TypeNode } from "typescript";
 
 function schemaObjectTypeToTS(
   objectType:
     | OpenAPIV3.ArraySchemaObjectType
-    | OpenAPIV3.NonArraySchemaObjectType,
-  enumValues: string[]
+    | OpenAPIV3.NonArraySchemaObjectType
+    | undefined,
+  enumValues: any[] | undefined
 ) {
+  console.log(objectType);
   switch (objectType) {
     case "string":
-      if (enumValues.length > 0) {
+      if (enumValues && enumValues.length > 0) {
         return ts.factory.createUnionTypeNode(
           enumValues.map((value) =>
             ts.factory.createLiteralTypeNode(
@@ -41,60 +43,81 @@ function isSchemaObject(
   return "properties" in param;
 }
 
+function isPropertyTypeObject(
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): param is OpenAPIV3.SchemaObject {
+  return "type" in param;
+}
+
 function isArraySchemaObject(
   param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
 ): param is OpenAPIV3.ArraySchemaObject {
   return "items" in param;
 }
 
-function makeType(
-  properties: {
-    [name: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject;
-  },
-  required: string[]
-) {
-  if (properties) {
-    return Object.keys(properties).map((key) => {
-      const item = properties[key];
-      if (isSchemaObject(item)) {
-        const isRequired = required.includes(key);
-        return ts.factory.createPropertySignature(
-          /*modifiers*/ undefined,
-          /*name*/ ts.factory.createIdentifier(key),
-          /*questionTOken*/ isRequired
-            ? undefined
-            : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-          /*type*/ schemaObjectTypeToTS(item.type, item.enum)
-        );
-      }
-    });
-  }
+function filterNonSchemaObjectEntry(
+  entry: [string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject]
+): entry is [string, OpenAPIV3.SchemaObject] {
+  const [_, value] = entry;
+  return isSchemaObject(value);
 }
 
-function generateProperties(
-  item: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-) {
-  if (isSchemaObject(item)) {
-    return ts.factory.createTypeLiteralNode(
-      makeType(item.properties, item.required ?? [])
+function makeType(
+  properties: {
+    [name: string]: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject;
+  },
+  required: string[]
+): PropertySignature[] {
+  return Object.keys(properties).map((key) => {
+    const item = properties[key];
+    console.log(item);
+    const isRequired = required.includes(key);
+    return ts.factory.createPropertySignature(
+      /*modifiers*/ undefined,
+      /*name*/ ts.factory.createIdentifier(key),
+      /*questionTOken*/ isRequired
+        ? undefined
+        : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+      /*type*/ isPropertyTypeObject(item)
+        ? schemaObjectTypeToTS(item.type, item.enum)
+        : ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
     );
-  } else if (isArraySchemaObject(item) && isSchemaObject(item.items)) {
+  });
+}
+
+function generateProperties(item: OpenAPIV3.SchemaObject): TypeNode {
+  if (
+    isArraySchemaObject(item) &&
+    isSchemaObject(item.items) &&
+    item.items.properties
+  ) {
     return ts.factory.createArrayTypeNode(
       ts.factory.createTypeLiteralNode(
         makeType(item.items.properties, item.items.required ?? [])
       )
     );
   }
+
+  return ts.factory.createTypeLiteralNode(
+    makeType(item.properties ?? {}, item.required ?? [])
+  );
 }
 
 export function makeTypes(doc: OpenAPIV3.Document) {
-  return Object.entries(doc.components.schemas).map(([typeName, item]) => {
-    return ts.factory.createTypeAliasDeclaration(
-      /*decoratos*/ undefined,
-      /*modifiers*/ [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-      /*name*/ ts.factory.createIdentifier(typeName),
-      /*typeParameters*/ undefined,
-      /*type*/ generateProperties(item)
+  const schemas = doc?.components?.schemas;
+  if (schemas) {
+    const schemaObjs = Object.entries(schemas).filter(
+      filterNonSchemaObjectEntry
     );
-  });
+
+    return schemaObjs.map(([typeName, item]) => {
+      return ts.factory.createTypeAliasDeclaration(
+        /*decoratos*/ undefined,
+        /*modifiers*/ [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+        /*name*/ ts.factory.createIdentifier(typeName),
+        /*typeParameters*/ undefined,
+        /*type*/ generateProperties(item)
+      );
+    });
+  }
 }
