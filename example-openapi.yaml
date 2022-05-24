@@ -111,6 +111,7 @@ components:
           type: string
         tag:
           type: string
+          nullable: true
         petType:
           type: string
           enum:

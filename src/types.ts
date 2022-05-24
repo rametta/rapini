@@ -1,36 +1,61 @@
 import { OpenAPIV3 } from "openapi-types";
 import ts, { PropertySignature, TypeElement, TypeNode } from "typescript";
 
+function generateTsType(nullable: boolean, type: TypeNode) {
+  return nullable
+    ? ts.factory.createUnionTypeNode([
+        type,
+        ts.factory.createLiteralTypeNode(ts.factory.createNull()),
+      ])
+    : type;
+}
+
 function schemaObjectTypeToTS(
   objectType:
     | OpenAPIV3.ArraySchemaObjectType
     | OpenAPIV3.NonArraySchemaObjectType
     | undefined,
+  nullable: boolean = false,
   enumValues: any[] | undefined
 ) {
-  console.log(objectType);
   switch (objectType) {
     case "string":
       if (enumValues && enumValues.length > 0) {
+        const enums = nullable ? [...enumValues, "null"] : enumValues;
         return ts.factory.createUnionTypeNode(
-          enumValues.map((value) =>
+          enums.map((value) =>
             ts.factory.createLiteralTypeNode(
               ts.factory.createStringLiteral(value)
             )
           )
         );
       }
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword);
+      return generateTsType(
+        nullable,
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
+      );
     case "integer":
     case "number":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword);
+      return generateTsType(
+        nullable,
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
+      );
     case "boolean":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword);
+      return generateTsType(
+        nullable,
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword)
+      );
     case "object":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
-    case "array":
-      return ts.factory.createArrayTypeNode(
+      return generateTsType(
+        nullable,
         ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
+      );
+    case "array":
+      return generateTsType(
+        nullable,
+        ts.factory.createArrayTypeNode(
+          ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
+        )
       );
     default:
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
@@ -70,7 +95,6 @@ function makeType(
 ): PropertySignature[] {
   return Object.keys(properties).map((key) => {
     const item = properties[key];
-    console.log(item);
     const isRequired = required.includes(key);
     return ts.factory.createPropertySignature(
       /*modifiers*/ undefined,
@@ -79,7 +103,7 @@ function makeType(
         ? undefined
         : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
       /*type*/ isPropertyTypeObject(item)
-        ? schemaObjectTypeToTS(item.type, item.enum)
+        ? schemaObjectTypeToTS(item.type, item.nullable, item.enum)
         : ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
     );
   });
