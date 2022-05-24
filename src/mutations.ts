@@ -63,19 +63,19 @@ function makeProperties(pattern: string, path: OpenAPIV3.PathItemObject) {
   const properties: ts.PropertyAssignment[] = [];
 
   if (path.post) {
-    properties.push(makeProperty(pattern, path.post, "post", path.get));
+    properties.push(makeProperty(pattern, path.post, "post"));
   }
 
   if (path.put) {
-    properties.push(makeProperty(pattern, path.put, "put", path.get));
+    properties.push(makeProperty(pattern, path.put, "put"));
   }
 
   if (path.patch) {
-    properties.push(makeProperty(pattern, path.patch, "patch", path.get));
+    properties.push(makeProperty(pattern, path.patch, "patch"));
   }
 
   if (path.delete) {
-    properties.push(makeProperty(pattern, path.delete, "delete", path.get));
+    properties.push(makeProperty(pattern, path.delete, "delete"));
   }
 
   return properties;
@@ -127,8 +127,7 @@ function optionsParameterDeclaration(requestIdentifier: string) {
 function makeProperty(
   pattern: string,
   operation: OpenAPIV3.OperationObject,
-  method: string,
-  get?: OpenAPIV3.PathItemObject["get"]
+  method: string
 ) {
   const operationId = operation.operationId;
   if (!operationId) {
