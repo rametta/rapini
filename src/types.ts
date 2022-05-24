@@ -1,6 +1,10 @@
 import type { OpenAPIV3 } from "openapi-types";
 import ts from "typescript";
 
+type SchemaOrReferenceObject =
+  | OpenAPIV3.ReferenceObject
+  | OpenAPIV3.SchemaObject;
+
 function schemaObjectTypeToTS(
   objectType:
     | OpenAPIV3.ArraySchemaObjectType
@@ -26,63 +30,61 @@ function schemaObjectTypeToTS(
 }
 
 function isSchemaObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+  param: SchemaOrReferenceObject
 ): param is OpenAPIV3.SchemaObject {
   return "properties" in param;
 }
 
 function isArraySchemaObject(
-  param:
-    | OpenAPIV3.ArraySchemaObject
-    | OpenAPIV3.ReferenceObject
-    | OpenAPIV3.SchemaObject
+  param: SchemaOrReferenceObject
 ): param is OpenAPIV3.ArraySchemaObject {
   return "items" in param;
 }
 
-function makeType(properties: object, required: string[]) {
+function makeType(
+  properties: { [name: string]: SchemaOrReferenceObject },
+  required: string[]
+) {
   if (properties) {
     return Object.keys(properties).map((key) => {
-      const isRequired = required.includes(key);
-      return ts.factory.createPropertySignature(
-        undefined,
-        ts.factory.createIdentifier(key),
-        isRequired
-          ? undefined
-          : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-        schemaObjectTypeToTS(properties[key].type)
-      );
+      if (isSchemaObject(properties[key])) {
+        const item = properties[key];
+        const isRequired = required.includes(key);
+        return ts.factory.createPropertySignature(
+          /*modifiers*/ undefined,
+          /*name*/ ts.factory.createIdentifier(key),
+          /*questionTOken*/ isRequired
+            ? undefined
+            : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+          /*type*/ schemaObjectTypeToTS(item.type)
+        );
+      }
     });
   }
 }
 
-function generateProperties(
-  item:
-    | OpenAPIV3.ArraySchemaObject
-    | OpenAPIV3.ReferenceObject
-    | OpenAPIV3.SchemaObject
-) {
+function generateProperties(item: SchemaOrReferenceObject) {
   if (isSchemaObject(item)) {
     return ts.factory.createTypeLiteralNode(
-      makeType(item.properties, item.required || [])
+      makeType(item.properties, item.required ?? [])
     );
   } else if (isArraySchemaObject(item) && isSchemaObject(item.items)) {
     return ts.factory.createArrayTypeNode(
       ts.factory.createTypeLiteralNode(
-        makeType(item.items.properties, item.items.required || [])
+        makeType(item.items.properties, item.items.required ?? [])
       )
     );
   }
 }
 
-export function generateTypes(doc: OpenAPIV3.Document) {
+export function makeTypes(doc: OpenAPIV3.Document) {
   return Object.entries(doc.components.schemas).map(([pattern, item]) => {
     return ts.factory.createTypeAliasDeclaration(
-      undefined,
-      [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-      ts.factory.createIdentifier(pattern),
-      undefined,
-      generateProperties(item)
+      /*decoratos*/ undefined,
+      /*modifiers*/ [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+      /*name*/ ts.factory.createIdentifier(pattern),
+      /*typeParameters*/ undefined,
+      /*type*/ generateProperties(item)
     );
   });
 }
