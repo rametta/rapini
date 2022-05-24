@@ -38,7 +38,12 @@ function makeImportReactQueryDeclartion() {
       ts.factory.createImportSpecifier(
         /*typeOnly*/ false,
         /*propertyName*/ undefined,
-        /*name*/ ts.factory.createIdentifier("useQueryClient")
+        /*name*/ ts.factory.createIdentifier("UseMutationOptions") // TODO: Split out into it's own type import with UseQueryOptions
+      ),
+      ts.factory.createImportSpecifier(
+        /*typeOnly*/ false,
+        /*propertyName*/ undefined,
+        /*name*/ ts.factory.createIdentifier("UseQueryOptions") // TODO: Split out into it's own type import with UseMutationOptions
       ),
     ])
   );

@@ -3,6 +3,13 @@
 Rapini is a tool that generates [React Query](https://react-query.tanstack.com/), [Axios](https://axios-http.com/) and [Typescript](https://www.typescriptlang.org/) types, based on an [OpenAPI](https://www.openapis.org/) spec file.
 The generated code is packaged conveniently so that it can be published as a package on any NPM registry.
 
+## Features
+
+- :surfing: Generates axios calls for every endpoint, with typed payload.
+- :golfing: Generates custom react hooks that use React Query's useQuery and useMutation hooks for each axios call.
+- :rowboat: Generates query keys for every hook.
+- :weight_lifting: Generates strong typescript types for all inputs, outputs, and options.
+
 ## Installation
 
 Rapini is a CLI tool so you can install it globally for convenience

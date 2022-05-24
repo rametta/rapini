@@ -88,7 +88,10 @@ function makeProperty(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
     /*initializer*/ ts.factory.createArrowFunction(
       /*modifiers*/ undefined,
       /*typeParams*/ undefined,
-      /*params*/ params.map((p) => p.arrowFuncParam),
+      /*params*/ [
+        ...params.map((p) => p.arrowFuncParam),
+        optionsParameterDeclaration(get.operationId),
+      ],
       /*type*/ undefined,
       /*equalsGreaterThanToken*/ ts.factory.createToken(
         ts.SyntaxKind.EqualsGreaterThanToken
@@ -122,6 +125,7 @@ function makeProperty(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
               /*args*/ params.map((p) => p.name)
             )
           ),
+          ts.factory.createIdentifier("options"),
         ]
       )
     )
@@ -153,3 +157,80 @@ function createParams(item: OpenAPIV3.OperationObject) {
       ),
     }));
 }
+
+function optionsParameterDeclaration(requestIdentifier: string) {
+  return ts.factory.createParameterDeclaration(
+    /*decorators*/ undefined,
+    /*modifiers*/ undefined,
+    /*dotDotDotToken*/ undefined,
+    /*name*/ ts.factory.createIdentifier("options"),
+    /*questionToken*/ ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+    /*type*/ ts.factory.createTypeReferenceNode(
+      ts.factory.createIdentifier("Omit"),
+      [
+        ts.factory.createTypeReferenceNode(
+          ts.factory.createIdentifier("UseQueryOptions"),
+          [
+            ts.factory.createTypeReferenceNode(
+              ts.factory.createIdentifier("Awaited"),
+              [
+                ts.factory.createTypeReferenceNode(
+                  ts.factory.createIdentifier("ReturnType"),
+                  [
+                    ts.factory.createTypeQueryNode(
+                      ts.factory.createQualifiedName(
+                        ts.factory.createIdentifier("requests"),
+                        ts.factory.createIdentifier(requestIdentifier)
+                      )
+                    ),
+                  ]
+                ),
+              ]
+            ),
+            ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+            ts.factory.createTypeReferenceNode(
+              ts.factory.createIdentifier("Awaited"),
+              [
+                ts.factory.createTypeReferenceNode(
+                  ts.factory.createIdentifier("ReturnType"),
+                  [
+                    ts.factory.createTypeQueryNode(
+                      ts.factory.createQualifiedName(
+                        ts.factory.createIdentifier("requests"),
+                        ts.factory.createIdentifier(requestIdentifier)
+                      )
+                    ),
+                  ]
+                ),
+              ]
+            ),
+            ts.factory.createTypeReferenceNode(
+              ts.factory.createIdentifier("ReturnType"),
+              [
+                ts.factory.createIndexedAccessTypeNode(
+                  ts.factory.createTypeQueryNode(
+                    ts.factory.createIdentifier("queryIds")
+                  ),
+                  ts.factory.createLiteralTypeNode(
+                    ts.factory.createStringLiteral(requestIdentifier)
+                  )
+                ),
+              ]
+            ),
+          ]
+        ),
+        ts.factory.createUnionTypeNode([
+          ts.factory.createLiteralTypeNode(
+            ts.factory.createStringLiteral("queryKey")
+          ),
+          ts.factory.createLiteralTypeNode(
+            ts.factory.createStringLiteral("queryFn")
+          ),
+        ]),
+      ]
+    ),
+    /*initializer*/ undefined
+  );
+}
+
+// options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.showPetById>>, unknown, Awaited<ReturnType<typeof requests.showPetById>>, ReturnType<typeof queryIds['listPets']>>, "queryKey" | "queryFn">

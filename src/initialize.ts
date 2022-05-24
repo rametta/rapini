@@ -68,10 +68,7 @@ export function makeInitialize() {
           ts.factory.createCallExpression(
             ts.factory.createIdentifier("makeMutations"),
             undefined,
-            [
-              ts.factory.createIdentifier("requests"),
-              ts.factory.createIdentifier("queryIds"),
-            ]
+            [ts.factory.createIdentifier("requests")]
           )
         ),
       ],

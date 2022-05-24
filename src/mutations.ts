@@ -2,7 +2,6 @@ import ts from "typescript";
 import type { OpenAPIV3 } from "openapi-types";
 import {
   capitalizeFirstLetter,
-  isRequestBodyObject,
   isSchemaObject,
   schemaObjectTypeToTS,
   toParamObjects,
@@ -30,30 +29,13 @@ export function makeMutations(paths: OpenAPIV3.PathsObject) {
     /*initializer*/ undefined
   );
 
-  const queryIdsParam = ts.factory.createParameterDeclaration(
-    /*decorators*/ undefined,
-    /*modifiers*/ undefined,
-    /*dotDotDotToken*/ undefined,
-    /*name*/ ts.factory.createIdentifier("queryIds"),
-    /*questionToken*/ undefined,
-    /*type*/ ts.factory.createTypeReferenceNode(
-      /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-      /*typeArgs*/ [
-        ts.factory.createTypeQueryNode(
-          /*exprName*/ ts.factory.createIdentifier("makeQueryIds")
-        ),
-      ]
-    ),
-    /*initializer*/ undefined
-  );
-
   return ts.factory.createFunctionDeclaration(
     /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*asteriskToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("makeMutations"),
     /*typeParameters*/ undefined,
-    /*parameters*/ [requestsParam, queryIdsParam],
+    /*parameters*/ [requestsParam],
     /*type*/ undefined,
     /*body*/ ts.factory.createBlock(
       [
@@ -99,25 +81,46 @@ function makeProperties(pattern: string, path: OpenAPIV3.PathItemObject) {
   return properties;
 }
 
-// Generates: `const queryClient = useQueryClient();`
-function useQueryClientStatement() {
-  return ts.factory.createVariableStatement(
+function optionsParameterDeclaration(requestIdentifier: string) {
+  return ts.factory.createParameterDeclaration(
+    /*decorators*/ undefined,
     /*modifiers*/ undefined,
-    /*declarationList*/ ts.factory.createVariableDeclarationList(
-      /*declarations*/ [
-        ts.factory.createVariableDeclaration(
-          /*name*/ ts.factory.createIdentifier("queryClient"),
-          /*exclamationToken*/ undefined,
-          /*type*/ undefined,
-          /*initializer*/ ts.factory.createCallExpression(
-            /*expression*/ ts.factory.createIdentifier("useQueryClient"),
-            /*typeArgs*/ undefined,
-            /*args*/ []
-          )
+    /*dotDotDotToken*/ undefined,
+    /*name*/ ts.factory.createIdentifier("options"),
+    /*questionToken*/ ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+    /*type*/ ts.factory.createTypeReferenceNode(
+      ts.factory.createIdentifier("Omit"),
+      [
+        ts.factory.createTypeReferenceNode(
+          ts.factory.createIdentifier("UseMutationOptions"),
+          [
+            ts.factory.createTypeReferenceNode(
+              ts.factory.createIdentifier("Awaited"),
+              [
+                ts.factory.createTypeReferenceNode(
+                  ts.factory.createIdentifier("ReturnType"),
+                  [
+                    ts.factory.createTypeQueryNode(
+                      ts.factory.createQualifiedName(
+                        ts.factory.createIdentifier("requests"),
+                        ts.factory.createIdentifier(requestIdentifier)
+                      )
+                    ),
+                  ]
+                ),
+              ]
+            ),
+            ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+            ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+            ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+          ]
         ),
-      ],
-      /*flags*/ ts.NodeFlags.Const
-    )
+        ts.factory.createLiteralTypeNode(
+          ts.factory.createStringLiteral("mutationFn")
+        ),
+      ]
+    ),
+    /*initializer*/ undefined
   );
 }
 
@@ -137,63 +140,21 @@ function makeProperty(
 
   const hasRequestBody = !!operation.requestBody;
 
-  const onSuccessStatements = get
-    ? [
-        ts.factory.createExpressionStatement(
-          ts.factory.createCallExpression(
-            ts.factory.createPropertyAccessExpression(
-              ts.factory.createIdentifier("queryClient"),
-              ts.factory.createIdentifier("setQueryData")
-            ),
-            undefined,
-            [
-              ts.factory.createCallExpression(
-                ts.factory.createPropertyAccessExpression(
-                  ts.factory.createIdentifier("queryIds"),
-                  ts.factory.createIdentifier(get?.operationId ?? "TODO")
-                ),
-                undefined,
-                [ts.factory.createIdentifier("TODO")]
-              ),
-              ts.factory.createIdentifier("response"),
-            ]
-          )
-        ),
-        ts.factory.createExpressionStatement(
-          ts.factory.createCallExpression(
-            ts.factory.createPropertyAccessExpression(
-              ts.factory.createIdentifier("queryClient"),
-              ts.factory.createIdentifier("invalidateQueries")
-            ),
-            undefined,
-            [
-              ts.factory.createCallExpression(
-                ts.factory.createPropertyAccessExpression(
-                  ts.factory.createIdentifier("queryIds"),
-                  ts.factory.createIdentifier(get?.operationId ?? "TODO")
-                ),
-                undefined,
-                [ts.factory.createIdentifier("TODO")]
-              ),
-            ]
-          )
-        ),
-      ]
-    : [];
-
   return ts.factory.createPropertyAssignment(
     /*name*/ ts.factory.createIdentifier(identifier),
     /*initializer*/ ts.factory.createArrowFunction(
       /*modifiers*/ undefined,
       /*typeParameters*/ undefined,
-      /*parameters*/ params.map((p) => p.arrowFuncParam),
+      /*parameters*/ [
+        ...params.map((p) => p.arrowFuncParam),
+        optionsParameterDeclaration(operationId),
+      ],
       /*type*/ undefined,
       /*equalsGreaterThanToken*/ ts.factory.createToken(
         ts.SyntaxKind.EqualsGreaterThanToken
       ),
       /*body*/ ts.factory.createBlock(
         /*statements*/ [
-          useQueryClientStatement(),
           ts.factory.createReturnStatement(
             ts.factory.createCallExpression(
               ts.factory.createIdentifier("useMutation"),
@@ -215,10 +176,7 @@ function makeProperty(
                   ]
                 ),
                 ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
-                ts.factory.createTypeReferenceNode(
-                  ts.factory.createIdentifier("TODO"),
-                  undefined
-                ),
+                ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
               ],
               [
                 ts.factory.createArrowFunction(
@@ -253,37 +211,7 @@ function makeProperty(
                       : params.map((p) => p.name)
                   )
                 ),
-                ts.factory.createObjectLiteralExpression(
-                  [
-                    ts.factory.createPropertyAssignment(
-                      ts.factory.createIdentifier("onSuccess"),
-                      ts.factory.createArrowFunction(
-                        undefined,
-                        undefined,
-                        [
-                          ts.factory.createParameterDeclaration(
-                            undefined,
-                            undefined,
-                            undefined,
-                            ts.factory.createIdentifier("response"),
-                            undefined,
-                            undefined,
-                            undefined
-                          ),
-                        ],
-                        undefined,
-                        ts.factory.createToken(
-                          ts.SyntaxKind.EqualsGreaterThanToken
-                        ),
-                        ts.factory.createBlock(
-                          /*statements*/ onSuccessStatements,
-                          /*multiline*/ true
-                        )
-                      )
-                    ),
-                  ],
-                  true
-                ),
+                ts.factory.createIdentifier("options"),
               ]
             )
           ),
