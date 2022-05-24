@@ -67,7 +67,7 @@ function makeSource(data: ReturnType<typeof parse>) {
 
 export function generate(pathToOpenApiV3: string) {
   SwaggerParser.validate(pathToOpenApiV3, (err, api) => {
-    if (err) {
+    if (err || !api) {
       console.error(err);
       return;
     }

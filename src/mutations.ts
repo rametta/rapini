@@ -10,7 +10,7 @@ import {
 
 export function makeMutations(paths: OpenAPIV3.PathsObject) {
   const properties = Object.entries(paths).flatMap(([pattern, path]) =>
-    makeProperties(pattern, path)
+    makeProperties(pattern, path!)
   );
 
   const requestsParam = ts.factory.createParameterDeclaration(
@@ -132,7 +132,7 @@ function makeProperty(
     throw `Missing "operationId" from "${method}" request with pattern ${pattern}`;
   }
 
-  const identifier = `use${capitalizeFirstLetter(operation.operationId)}`;
+  const identifier = `use${capitalizeFirstLetter(operationId)}`;
   const params = createParams(operation);
 
   const hasRequestBody = !!operation.requestBody;
@@ -150,7 +150,7 @@ function makeProperty(
               ts.factory.createCallExpression(
                 ts.factory.createPropertyAccessExpression(
                   ts.factory.createIdentifier("queryIds"),
-                  ts.factory.createIdentifier(get.operationId)
+                  ts.factory.createIdentifier(get?.operationId ?? "TODO")
                 ),
                 undefined,
                 [ts.factory.createIdentifier("TODO")]
@@ -170,7 +170,7 @@ function makeProperty(
               ts.factory.createCallExpression(
                 ts.factory.createPropertyAccessExpression(
                   ts.factory.createIdentifier("queryIds"),
-                  ts.factory.createIdentifier(get.operationId)
+                  ts.factory.createIdentifier(get?.operationId ?? "TODO")
                 ),
                 undefined,
                 [ts.factory.createIdentifier("TODO")]
@@ -207,7 +207,7 @@ function makeProperty(
                         ts.factory.createTypeQueryNode(
                           ts.factory.createQualifiedName(
                             ts.factory.createIdentifier("requests"),
-                            ts.factory.createIdentifier(operation.operationId)
+                            ts.factory.createIdentifier(operationId)
                           )
                         ),
                       ]
@@ -242,7 +242,7 @@ function makeProperty(
                   ts.factory.createCallExpression(
                     ts.factory.createPropertyAccessExpression(
                       ts.factory.createIdentifier("requests"),
-                      ts.factory.createIdentifier(operation.operationId)
+                      ts.factory.createIdentifier(operationId)
                     ),
                     undefined,
                     hasRequestBody
@@ -295,6 +295,10 @@ function makeProperty(
 }
 
 function createParams(item: OpenAPIV3.OperationObject) {
+  if (!item.parameters) {
+    return [];
+  }
+
   const paramObjects = toParamObjects(item.parameters);
 
   return paramObjects

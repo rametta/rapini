@@ -4,7 +4,7 @@ import { toParamObjects, isSchemaObject, schemaObjectTypeToTS } from "./common";
 
 export function makeRequests(paths: OpenAPIV3.PathsObject) {
   const requests = Object.entries(paths).flatMap(([pattern, item]) =>
-    makeRequestsPropertyAssignment(pattern, item)
+    makeRequestsPropertyAssignment(pattern, item!)
   );
 
   return makeRequestsDeclaration(requests);
@@ -91,6 +91,9 @@ function isRequestBodyObject(
 }
 
 function createRequestParams(item: OpenAPIV3.OperationObject) {
+  if (!item.parameters) {
+    return [];
+  }
   const paramObjects = toParamObjects(item.parameters);
 
   const itemParamsDeclarations = paramObjects
@@ -120,7 +123,7 @@ function createRequestParams(item: OpenAPIV3.OperationObject) {
       isRequestBodyObject(item.requestBody) &&
       isSchemaObject(item.requestBody.content["application/json"].schema)
         ? ts.factory.createTypeReferenceNode(
-            item.requestBody.content["application/json"].schema.type
+            item.requestBody.content["application/json"]?.schema?.type ?? "TODO"
           )
         : undefined;
 
@@ -162,7 +165,7 @@ function makeRequest(
     ),
   ];
 
-  const paramObjects = toParamObjects(item.parameters);
+  const paramObjects = item.parameters ? toParamObjects(item.parameters) : [];
   const queryParamObjects = paramObjects.filter(
     (paramObject) => paramObject.in === "query"
   );
@@ -198,7 +201,7 @@ function makeRequest(
   }
 
   return ts.factory.createPropertyAssignment(
-    ts.factory.createIdentifier(item.operationId),
+    ts.factory.createIdentifier(item.operationId!),
     ts.factory.createArrowFunction(
       /*modifiers*/ undefined,
       /*typeParams*/ undefined,

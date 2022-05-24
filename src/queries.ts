@@ -9,8 +9,8 @@ import {
 
 export function makeQueries(paths: OpenAPIV3.PathsObject) {
   const properties = Object.entries(paths)
-    .filter(([_, item]) => !!item.get)
-    .map(([pattern, item]) => makeProperty(pattern, item.get));
+    .filter(([_, item]) => !!item?.get)
+    .map(([pattern, item]) => makeProperty(pattern, item!.get));
 
   const requestsParam = ts.factory.createParameterDeclaration(
     /*decorators*/ undefined,
@@ -75,7 +75,7 @@ export function makeQueries(paths: OpenAPIV3.PathsObject) {
 }
 
 function makeProperty(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
-  if (!get.operationId) {
+  if (!get?.operationId) {
     throw `Missing "operationId" from "get" request with pattern ${pattern}`;
   }
 
@@ -129,6 +129,9 @@ function makeProperty(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
 }
 
 function createParams(item: OpenAPIV3.OperationObject) {
+  if (!item.parameters) {
+    return [];
+  }
   const paramObjects = toParamObjects(item.parameters);
 
   return paramObjects

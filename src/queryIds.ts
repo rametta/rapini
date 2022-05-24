@@ -4,8 +4,8 @@ import { isSchemaObject, schemaObjectTypeToTS, toParamObjects } from "./common";
 
 export function makeQueryIds(paths: OpenAPIV3.PathsObject) {
   const queryIds = Object.entries(paths)
-    .filter(([_, item]) => !!item.get)
-    .map(([pattern, item]) => makeQueryId(pattern, item.get));
+    .filter(([_, item]) => !!item?.get)
+    .map(([pattern, item]) => makeQueryId(pattern, item!.get));
 
   return makeQueryIdsFunctionDeclaration(queryIds);
 }
@@ -43,7 +43,7 @@ function makeQueryIdsFunctionDeclaration(
 
 // queryIds's are only made for GET's
 function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
-  if (!get.operationId) {
+  if (!get?.operationId) {
     throw `Missing "operationId" from "get" request with pattern ${pattern}`;
   }
 
@@ -77,6 +77,9 @@ function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
 }
 
 function createParams(item: OpenAPIV3.OperationObject) {
+  if (!item.parameters) {
+    return [];
+  }
   const paramObjects = toParamObjects(item.parameters);
 
   return paramObjects

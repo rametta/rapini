@@ -18,15 +18,16 @@ export function isParameterObject(
 }
 
 export function isSchemaObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject | undefined
 ): param is OpenAPIV3.SchemaObject {
-  return "type" in param;
+  return param !== undefined && "type" in param;
 }
 
 export function schemaObjectTypeToTS(
-  objectType:
+  objectType?:
     | OpenAPIV3.ArraySchemaObjectType
     | OpenAPIV3.NonArraySchemaObjectType
+    | null
 ) {
   switch (objectType) {
     case "string":
