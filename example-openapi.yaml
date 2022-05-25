@@ -125,6 +125,12 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/Pet"
+    Animal:
+      properties:
+        home:
+          type: string
+        pet:
+          $ref: "#/components/schemas/Pet"
     Error:
       required:
         - code
