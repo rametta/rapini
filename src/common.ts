@@ -19,6 +19,12 @@ export function isSchemaObject(
   return param !== undefined && "type" in param;
 }
 
+export function isReferenceObject(
+  item: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject | undefined
+): item is OpenAPIV3.ReferenceObject {
+  return item !== undefined && "$ref" in item;
+}
+
 export function schemaObjectTypeToTS(
   objectType?:
     | OpenAPIV3.ArraySchemaObjectType
@@ -76,4 +82,17 @@ export function isRequestBodyObject(
   obj: OpenAPIV3.ReferenceObject | OpenAPIV3.RequestBodyObject
 ): obj is OpenAPIV3.RequestBodyObject {
   return "content" in obj;
+}
+
+/**
+ * Removes the path in the ref and just returns the last part, which is used as the Type name
+ * @param ref The ref in the OpenAPI file
+ * @returns The type name
+ */
+export function refToTypeName(ref: string) {
+  if (ref.startsWith("#/components/schemas/")) {
+    return ref.slice(21);
+  }
+
+  return ref;
 }

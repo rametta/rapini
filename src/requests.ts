@@ -1,15 +1,21 @@
 import ts from "typescript";
+import SwaggerParser from "swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
 import {
   toParamObjects,
   isSchemaObject,
   schemaObjectTypeToTS,
   normalizeOperationId,
+  isReferenceObject,
+  refToTypeName,
 } from "./common";
 
-export function makeRequests(paths: OpenAPIV3.PathsObject) {
+export function makeRequests(
+  paths: OpenAPIV3.PathsObject,
+  $refs: SwaggerParser.$Refs
+) {
   const requests = Object.entries(paths).flatMap(([pattern, item]) =>
-    makeRequestsPropertyAssignment(pattern, item!)
+    makeRequestsPropertyAssignment(pattern, item!, $refs)
   );
 
   return makeRequestsDeclaration(requests);
@@ -60,30 +66,31 @@ function makeRequestsDeclaration(
 
 function makeRequestsPropertyAssignment(
   pattern: string,
-  item: OpenAPIV3.PathItemObject
+  item: OpenAPIV3.PathItemObject,
+  $refs: SwaggerParser.$Refs
 ) {
   const requests: ts.PropertyAssignment[] = [];
 
   if (item.get) {
-    requests.push(makeRequest(pattern, "get", item.get));
+    requests.push(makeRequest(pattern, "get", item.get, $refs));
   }
   if (item.delete) {
-    requests.push(makeRequest(pattern, "delete", item.delete));
+    requests.push(makeRequest(pattern, "delete", item.delete, $refs));
   }
   if (item.post) {
-    requests.push(makeRequest(pattern, "post", item.post));
+    requests.push(makeRequest(pattern, "post", item.post, $refs));
   }
   if (item.put) {
-    requests.push(makeRequest(pattern, "put", item.put));
+    requests.push(makeRequest(pattern, "put", item.put, $refs));
   }
   if (item.patch) {
-    requests.push(makeRequest(pattern, "patch", item.patch));
+    requests.push(makeRequest(pattern, "patch", item.patch, $refs));
   }
   if (item.head) {
-    requests.push(makeRequest(pattern, "head", item.head));
+    requests.push(makeRequest(pattern, "head", item.head, $refs));
   }
   if (item.options) {
-    requests.push(makeRequest(pattern, "options", item.options));
+    requests.push(makeRequest(pattern, "options", item.options, $refs));
   }
 
   return requests;
@@ -147,15 +154,46 @@ function createRequestParams(item: OpenAPIV3.OperationObject) {
   return itemParamsDeclarations;
 }
 
+// TODO: Reuse something in types.ts
+function resolveType(schema?: OpenAPIV3.SchemaObject) {
+  return schema?.type ?? "unknown";
+}
+
+// TODO: reference a type for each response type. seperate by success (2xx) and error (4xx and 5xx)
+// TODO: don't hardcode to application/json, make something for each mime type
+function getResponseType(
+  item: OpenAPIV3.OperationObject,
+  $refs: SwaggerParser.$Refs
+) {
+  const res200OrRef = item.responses["200"];
+
+  const res200Obj = isReferenceObject(res200OrRef)
+    ? ($refs.get(res200OrRef.$ref) as OpenAPIV3.ResponseObject)
+    : res200OrRef;
+  const schemaOrRef = res200Obj?.content?.["application/json"].schema;
+  const typeName =
+    schemaOrRef && isReferenceObject(schemaOrRef)
+      ? refToTypeName(schemaOrRef.$ref)
+      : resolveType(schemaOrRef as OpenAPIV3.SchemaObject | undefined);
+
+  return ts.factory.createTypeReferenceNode(
+    /*typeName*/ ts.factory.createIdentifier(typeName),
+    /*typeArgs*/ undefined
+  );
+}
+
 function makeRequest(
   pattern: string,
   method: string,
-  item: OpenAPIV3.OperationObject
+  item: OpenAPIV3.OperationObject,
+  $refs: SwaggerParser.$Refs
 ) {
   const pathTemplateExpression = patternToPath(pattern);
   const arrowFuncParams = createRequestParams(item).map(
     (param) => param.arrowFuncParam
   );
+
+  const responseType = getResponseType(item, $refs);
 
   const axiosConfigFields = [
     ts.factory.createPropertyAssignment(
@@ -221,12 +259,7 @@ function makeRequest(
               /*expression*/ ts.factory.createIdentifier("axios"),
               /*name*/ ts.factory.createIdentifier("request")
             ),
-            /*typeArgs*/ [
-              ts.factory.createTypeReferenceNode(
-                /*typeName*/ ts.factory.createIdentifier("Pet"), // TODO: This type is not correct, just a placeholder
-                /*typeArgs*/ undefined
-              ),
-            ],
+            /*typeArgs*/ [responseType],
             /*args*/ [
               ts.factory.createObjectLiteralExpression(axiosConfigFields, true),
             ]

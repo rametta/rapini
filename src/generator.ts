@@ -13,20 +13,23 @@ function isOpenApiV3Document(doc: OpenAPI.Document): doc is OpenAPIV3.Document {
   return "openapi" in doc;
 }
 
-function parse(doc: OpenAPI.Document) {
+function parse(doc: OpenAPI.Document, $refs: SwaggerParser.$Refs) {
   if (isOpenApiV3Document(doc)) {
-    return parseOpenApiV3Doc(doc);
+    return parseOpenApiV3Doc(doc, $refs);
   }
 
   throw "OpenAPI Document version not supported";
 }
 
-function parseOpenApiV3Doc(doc: OpenAPIV3.Document) {
+function parseOpenApiV3Doc(
+  doc: OpenAPIV3.Document,
+  $refs: SwaggerParser.$Refs
+) {
   return {
     queryIds: makeQueryIds(doc.paths),
-    requests: makeRequests(doc.paths),
-    queries: makeQueries(doc.paths),
-    mutations: makeMutations(doc.paths),
+    requests: makeRequests(doc.paths, $refs),
+    queries: makeQueries(doc.paths, $refs),
+    mutations: makeMutations(doc.paths, $refs),
   };
 }
 
@@ -65,17 +68,12 @@ function makeSource(data: ReturnType<typeof parse>) {
   return result;
 }
 
-export function generate(pathToOpenApiV3: string) {
-  SwaggerParser.validate(pathToOpenApiV3, (err, api) => {
-    if (err || !api) {
-      console.error(err);
-      return;
-    }
+export async function generate(pathToOpenApiV3: string) {
+  const parser = new SwaggerParser();
+  const api = await parser.parse(pathToOpenApiV3);
 
-    console.log("API name: %s, Version: %s", api.info.title, api.info.version);
-    const data = parse(api);
-
-    const source = makeSource(data);
-    print(source);
-  });
+  console.log("API name: %s, Version: %s", api.info.title, api.info.version);
+  const data = parse(api, parser.$refs);
+  const source = makeSource(data);
+  print(source);
 }
