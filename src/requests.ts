@@ -1,5 +1,5 @@
 import ts from "typescript";
-import SwaggerParser from "swagger-parser";
+import type SwaggerParser from "swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
 import {
   toParamObjects,
@@ -102,11 +102,11 @@ function isRequestBodyObject(
   return "content" in obj;
 }
 
-function createRequestParams(item: OpenAPIV3.OperationObject) {
-  if (!item.parameters) {
-    return [];
-  }
-  const paramObjects = toParamObjects(item.parameters);
+function createRequestParams(
+  item: OpenAPIV3.OperationObject,
+  $refs: SwaggerParser.$Refs
+) {
+  const paramObjects = item.parameters ? toParamObjects(item.parameters) : [];
 
   const itemParamsDeclarations = paramObjects
     .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
@@ -130,13 +130,6 @@ function createRequestParams(item: OpenAPIV3.OperationObject) {
   if (item.requestBody) {
     const payload = ts.factory.createIdentifier("payload");
 
-    // TODO: This type is not correct, just a placeholder
-    const type =
-      isRequestBodyObject(item.requestBody) &&
-      isSchemaObject(item.requestBody.content["application/json"].schema)
-        ? ts.factory.createTypeReferenceNode("unknown")
-        : undefined;
-
     itemParamsDeclarations.unshift({
       name: payload,
       arrowFuncParam: ts.factory.createParameterDeclaration(
@@ -145,7 +138,7 @@ function createRequestParams(item: OpenAPIV3.OperationObject) {
         /*dotDotDotToken*/ undefined,
         /*name*/ payload,
         /*questionToken*/ undefined,
-        /*type*/ type,
+        /*type*/ makeRequestsType($refs, item.requestBody),
         /*initializer*/ undefined
       ),
     });
@@ -173,7 +166,7 @@ function statusCodeToType(statusCode: string): StatusType {
   return "default";
 }
 
-function makeResponse(mediaTypeObj: OpenAPIV3.MediaTypeObject) {
+function mediaType(mediaTypeObj: OpenAPIV3.MediaTypeObject) {
   if (!mediaTypeObj.schema) {
     return [];
   }
@@ -197,7 +190,7 @@ function makeResponses(
 
   const schemas = obj.content
     ? Object.values(obj.content).flatMap((mediaTypeObj) =>
-        makeResponse(mediaTypeObj)
+        mediaType(mediaTypeObj)
       )
     : undefined;
 
@@ -241,6 +234,36 @@ function getResponseType(
   return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
 }
 
+function makeRequestsType(
+  $refs: SwaggerParser.$Refs,
+  reqOrRef: OpenAPIV3.ReferenceObject | OpenAPIV3.RequestBodyObject
+) {
+  const reqBody = isRequestBodyObject(reqOrRef)
+    ? reqOrRef
+    : ($refs.get(reqOrRef.$ref) as OpenAPIV3.RequestBodyObject);
+
+  const schemas = reqBody.content
+    ? Object.values(reqBody.content).flatMap((mediaTypeObj) =>
+        mediaType(mediaTypeObj)
+      )
+    : undefined;
+
+  const uniqSchemas = [...new Set(schemas)];
+
+  if (uniqSchemas.length) {
+    const unions = uniqSchemas.map((str) =>
+      ts.factory.createTypeReferenceNode(
+        /*typeName*/ ts.factory.createIdentifier(str),
+        /*typeArgs*/ undefined
+      )
+    );
+
+    return ts.factory.createUnionTypeNode(unions);
+  }
+
+  return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+}
+
 function makeRequest(
   pattern: string,
   method: string,
@@ -248,7 +271,7 @@ function makeRequest(
   $refs: SwaggerParser.$Refs
 ) {
   const pathTemplateExpression = patternToPath(pattern);
-  const arrowFuncParams = createRequestParams(item).map(
+  const arrowFuncParams = createRequestParams(item, $refs).map(
     (param) => param.arrowFuncParam
   );
 
