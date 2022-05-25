@@ -117,6 +117,10 @@ components:
           enum:
             - cat
             - doge
+        nicknames:
+          type: array
+          items:
+            type: string
     Pets:
       type: array
       items:

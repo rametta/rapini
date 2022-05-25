@@ -5,7 +5,7 @@ function filterNonStringEnumValues(entry: unknown): entry is string {
   return typeof entry === "string";
 }
 
-function generateTsType(nullable: boolean, type: TypeNode) {
+function generateTsType(type: TypeNode, nullable?: boolean) {
   return nullable
     ? ts.factory.createUnionTypeNode([
         type,
@@ -15,13 +15,15 @@ function generateTsType(nullable: boolean, type: TypeNode) {
 }
 
 function schemaObjectTypeToTS(
-  objectType:
+  objectType?:
+    | OpenAPIV3.ArraySchemaObjectType
+    | OpenAPIV3.NonArraySchemaObjectType,
+  nullable?: boolean,
+  enumValues?: unknown[],
+  arrayType?:
     | OpenAPIV3.ArraySchemaObjectType
     | OpenAPIV3.NonArraySchemaObjectType
-    | undefined,
-  nullable: boolean = false,
-  enumValues: unknown[] | undefined
-) {
+): TypeNode {
   switch (objectType) {
     case "string":
       if (enumValues && enumValues.length > 0) {
@@ -39,34 +41,36 @@ function schemaObjectTypeToTS(
         return ts.factory.createUnionTypeNode(enums);
       }
       return generateTsType(
-        nullable,
-        ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+        nullable
       );
     case "integer":
     case "number":
       return generateTsType(
-        nullable,
-        ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
+        nullable
       );
     case "boolean":
       return generateTsType(
-        nullable,
-        ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword)
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword),
+        nullable
       );
     case "object":
       return generateTsType(
-        nullable,
-        ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
+        nullable
       );
     case "array":
       return generateTsType(
-        nullable,
         ts.factory.createArrayTypeNode(
-          ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
-        )
+          arrayType
+            ? schemaObjectTypeToTS(arrayType)
+            : ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword)
+        ),
+        nullable
       );
     default:
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
   }
 }
 
@@ -92,7 +96,7 @@ function filterNonSchemaObjectEntry(
   entry: [string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject]
 ): entry is [string, OpenAPIV3.SchemaObject] {
   const [_, value] = entry;
-  return isSchemaObject(value);
+  return isSchemaObject(value) || isArraySchemaObject(value);
 }
 
 function makeType(
@@ -104,6 +108,10 @@ function makeType(
   return Object.keys(properties).map((key) => {
     const item = properties[key];
     const isRequired = required.includes(key);
+    let arrayType;
+    if (isArraySchemaObject(item) && isPropertyTypeObject(item.items)) {
+      arrayType = item.items.type;
+    }
     return ts.factory.createPropertySignature(
       /*modifiers*/ undefined,
       /*name*/ ts.factory.createIdentifier(key),
@@ -111,7 +119,7 @@ function makeType(
         ? undefined
         : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
       /*type*/ isPropertyTypeObject(item)
-        ? schemaObjectTypeToTS(item.type, item.nullable, item.enum)
+        ? schemaObjectTypeToTS(item.type, item.nullable, item.enum, arrayType)
         : ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
     );
   });
@@ -152,4 +160,6 @@ export function makeTypes(doc: OpenAPIV3.Document) {
       );
     });
   }
+
+  return [];
 }
