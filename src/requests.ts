@@ -221,28 +221,24 @@ function getResponseType(
     ([statusCode, resOrRef]) => makeResponses($refs, statusCode, resOrRef)
   );
 
-  const successTypes: string[] = responses
+  const successTypes = responses
     .filter(({ statusType }) => statusType === "success")
     .flatMap(({ schemas }) => schemas);
-  const errorTypes = responses
-    .filter(({ statusType }) => statusType === "error")
-    .flatMap(({ schemas }) => schemas);
-  const defaultTypes = responses
-    .filter(({ statusType }) => statusType === "default")
-    .flatMap(({ schemas }) => schemas);
 
-  if (!successTypes.length) {
-    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+  const uniqSuccessTypes = [...new Set(successTypes)];
+
+  if (uniqSuccessTypes.length) {
+    const unions = uniqSuccessTypes.map((str) =>
+      ts.factory.createTypeReferenceNode(
+        /*typeName*/ ts.factory.createIdentifier(str),
+        /*typeArgs*/ undefined
+      )
+    );
+
+    return ts.factory.createUnionTypeNode(unions);
   }
 
-  const unions = successTypes.map((str) =>
-    ts.factory.createTypeReferenceNode(
-      /*typeName*/ ts.factory.createIdentifier(str),
-      /*typeArgs*/ undefined
-    )
-  );
-
-  return ts.factory.createUnionTypeNode(unions);
+  return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
 }
 
 function makeRequest(

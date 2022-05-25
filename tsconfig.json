@@ -2,7 +2,8 @@
   "compilerOptions": {
     "strict": true,
     "esModuleInterop": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "downlevelIteration": true
   },
   "include": ["src"]
 }

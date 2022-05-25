@@ -4,7 +4,7 @@
   "description": "Generate React Query and Axios code from OpenAPI spec files",
   "main": "dist/cli.js",
   "scripts": {
-    "build": "tsc src/cli.ts --module commonjs --moduleResolution node --allowSyntheticDefaultImports --esModuleInterop --outDir dist",
+    "build": "tsc src/cli.ts --module commonjs --moduleResolution node --allowSyntheticDefaultImports --esModuleInterop --downlevelIteration --outDir dist",
     "start": "chmod +x dist/cli.js && dist/cli.js example-openapi.yaml",
     "dev": "npm run build && npm run start",
     "test": "test"
