@@ -386,21 +386,11 @@ function shorthandOptionalObjectLiteralSpread(identifier: string) {
     ts.factory.createParenthesizedExpression(
       ts.factory.createConditionalExpression(
         /*condition*/ ts.factory.createBinaryExpression(
-          ts.factory.createBinaryExpression(
-            /*left*/ ts.factory.createIdentifier(identifier),
-            /*operator*/ ts.factory.createToken(
-              ts.SyntaxKind.ExclamationEqualsEqualsToken
-            ),
-            /*right*/ ts.factory.createNull()
+          /*left*/ ts.factory.createIdentifier(identifier),
+          /*operator*/ ts.factory.createToken(
+            ts.SyntaxKind.ExclamationEqualsEqualsToken
           ),
-          ts.factory.createToken(ts.SyntaxKind.AmpersandAmpersandToken),
-          ts.factory.createBinaryExpression(
-            /*left*/ ts.factory.createIdentifier(identifier),
-            /*operator*/ ts.factory.createToken(
-              ts.SyntaxKind.ExclamationEqualsEqualsToken
-            ),
-            /*right*/ ts.factory.createIdentifier("undefined")
-          )
+          /*right*/ ts.factory.createIdentifier("undefined")
         ),
         /*questionToken*/ ts.factory.createToken(ts.SyntaxKind.QuestionToken),
         /*whenTrue*/ ts.factory.createObjectLiteralExpression(
