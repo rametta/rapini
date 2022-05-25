@@ -86,7 +86,10 @@ function makeProperties(pattern: string, path: OpenAPIV3.PathItemObject) {
   return properties;
 }
 
-function optionsParameterDeclaration(requestIdentifier: string) {
+function optionsParameterDeclaration(
+  requestIdentifier: string,
+  hasRequestBody: boolean
+) {
   return ts.factory.createParameterDeclaration(
     /*decorators*/ undefined,
     /*modifiers*/ undefined,
@@ -116,7 +119,29 @@ function optionsParameterDeclaration(requestIdentifier: string) {
               ]
             ),
             ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
-            ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+            hasRequestBody
+              ? ts.factory.createIndexedAccessTypeNode(
+                  /*objectType*/ ts.factory.createTypeReferenceNode(
+                    /*typeName*/ ts.factory.createIdentifier("Parameters"),
+                    /*typeArguments*/ [
+                      ts.factory.createTypeQueryNode(
+                        /*expressionName*/ ts.factory.createQualifiedName(
+                          /*left*/ ts.factory.createIdentifier("requests"),
+                          /*right*/ ts.factory.createIdentifier(
+                            requestIdentifier
+                          )
+                        )
+                      ),
+                    ]
+                  ),
+                  /*indexType*/ ts.factory.createLiteralTypeNode(
+                    /*literal*/ ts.factory.createNumericLiteral(
+                      /*value*/ "0",
+                      /*numericLiteralFlags*/ undefined
+                    )
+                  )
+                )
+              : ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
             ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
           ]
         ),
@@ -165,7 +190,27 @@ function makeProperty(
         ]
       ),
       ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
-      ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+      hasRequestBody
+        ? ts.factory.createIndexedAccessTypeNode(
+            /*objectType*/ ts.factory.createTypeReferenceNode(
+              /*typeName*/ ts.factory.createIdentifier("Parameters"),
+              /*typeArguments*/ [
+                ts.factory.createTypeQueryNode(
+                  /*expressionName*/ ts.factory.createQualifiedName(
+                    /*left*/ ts.factory.createIdentifier("requests"),
+                    /*right*/ ts.factory.createIdentifier(normalizedOperationId)
+                  )
+                ),
+              ]
+            ),
+            /*indexType*/ ts.factory.createLiteralTypeNode(
+              /*literal*/ ts.factory.createNumericLiteral(
+                /*value*/ "0",
+                /*numericLiteralFlags*/ undefined
+              )
+            )
+          )
+        : ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
     ],
     /*args*/ [
       ts.factory.createArrowFunction(
@@ -213,7 +258,7 @@ function makeProperty(
       /*typeParameters*/ undefined,
       /*parameters*/ [
         ...params.map((p) => p.arrowFuncParam),
-        optionsParameterDeclaration(normalizedOperationId),
+        optionsParameterDeclaration(normalizedOperationId, hasRequestBody),
       ],
       /*type*/ undefined,
       /*equalsGreaterThanToken*/ ts.factory.createToken(
