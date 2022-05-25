@@ -159,27 +159,90 @@ function resolveType(schema?: OpenAPIV3.SchemaObject) {
   return schema?.type ?? "unknown";
 }
 
-// TODO: reference a type for each response type. seperate by success (2xx) and error (4xx and 5xx)
-// TODO: don't hardcode to application/json, make something for each mime type
+type StatusType = "success" | "error" | "default";
+
+function statusCodeToType(statusCode: string): StatusType {
+  if (statusCode.startsWith("2")) {
+    return "success";
+  }
+
+  if (statusCode.startsWith("4") || statusCode.startsWith("5")) {
+    return "error";
+  }
+
+  return "default";
+}
+
+function makeResponse(mediaTypeObj: OpenAPIV3.MediaTypeObject) {
+  if (!mediaTypeObj.schema) {
+    return [];
+  }
+
+  const schema = mediaTypeObj.schema;
+  const typeName = isReferenceObject(schema)
+    ? refToTypeName(schema.$ref)
+    : resolveType(schema);
+
+  return [typeName];
+}
+
+function makeResponses(
+  $refs: SwaggerParser.$Refs,
+  statusCode: string,
+  resOrRef: OpenAPIV3.ReferenceObject | OpenAPIV3.ResponseObject
+): [{ statusType: StatusType; schemas: string[] }] | [] {
+  const obj = isReferenceObject(resOrRef)
+    ? ($refs.get(resOrRef.$ref) as OpenAPIV3.ResponseObject)
+    : resOrRef;
+
+  const schemas = obj.content
+    ? Object.values(obj.content).flatMap((mediaTypeObj) =>
+        makeResponse(mediaTypeObj)
+      )
+    : undefined;
+
+  if (!schemas || !schemas.length) {
+    return [];
+  }
+
+  return [
+    {
+      statusType: statusCodeToType(statusCode),
+      schemas,
+    },
+  ];
+}
+
 function getResponseType(
   item: OpenAPIV3.OperationObject,
   $refs: SwaggerParser.$Refs
 ) {
-  const res200OrRef = item.responses["200"];
-
-  const res200Obj = isReferenceObject(res200OrRef)
-    ? ($refs.get(res200OrRef.$ref) as OpenAPIV3.ResponseObject)
-    : res200OrRef;
-  const schemaOrRef = res200Obj?.content?.["application/json"].schema;
-  const typeName =
-    schemaOrRef && isReferenceObject(schemaOrRef)
-      ? refToTypeName(schemaOrRef.$ref)
-      : resolveType(schemaOrRef as OpenAPIV3.SchemaObject | undefined);
-
-  return ts.factory.createTypeReferenceNode(
-    /*typeName*/ ts.factory.createIdentifier(typeName),
-    /*typeArgs*/ undefined
+  const responses = Object.entries(item.responses).flatMap(
+    ([statusCode, resOrRef]) => makeResponses($refs, statusCode, resOrRef)
   );
+
+  const successTypes: string[] = responses
+    .filter(({ statusType }) => statusType === "success")
+    .flatMap(({ schemas }) => schemas);
+  const errorTypes = responses
+    .filter(({ statusType }) => statusType === "error")
+    .flatMap(({ schemas }) => schemas);
+  const defaultTypes = responses
+    .filter(({ statusType }) => statusType === "default")
+    .flatMap(({ schemas }) => schemas);
+
+  if (!successTypes.length) {
+    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+  }
+
+  const unions = successTypes.map((str) =>
+    ts.factory.createTypeReferenceNode(
+      /*typeName*/ ts.factory.createIdentifier(str),
+      /*typeArgs*/ undefined
+    )
+  );
+
+  return ts.factory.createUnionTypeNode(unions);
 }
 
 function makeRequest(
