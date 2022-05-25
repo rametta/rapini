@@ -44,6 +44,15 @@ paths:
       operationId: createPets
       tags:
         - pets
+      requestBody:
+        description: Create a new pet
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewPet"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/NewPet"
       responses:
         201:
           description: Null response
@@ -71,6 +80,15 @@ paths:
           description: Expected response to a valid request
           content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/Pets"
+        201:
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pets"
+            application/xml:
               schema:
                 $ref: "#/components/schemas/Pets"
         default:
@@ -106,4 +124,10 @@ components:
           type: integer
           format: int32
         message:
+          type: string
+    NewPet:
+      required:
+        - name
+      properties:
+        name:
           type: string
