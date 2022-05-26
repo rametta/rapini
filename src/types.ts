@@ -78,7 +78,7 @@ function schemaObjectTypeToTS(
 function isSchemaObject(
   param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
 ): param is OpenAPIV3.SchemaObject {
-  return "properties" in param || "type" in param;
+  return "properties" in param;
 }
 
 function isPropertyTypeObject(
@@ -105,11 +105,10 @@ function makeType(
     let type;
     let arrayType;
 
-    if (isArraySchemaObject(item) && isPropertyTypeObject(item.items)) {
+    if (isPropertyTypeObject(item) && !isArraySchemaObject(item)) {
+      type = schemaObjectTypeToTS(item.type, item.nullable, item.enum);
+    } else if (isArraySchemaObject(item) && isPropertyTypeObject(item.items)) {
       arrayType = item.items.type;
-    }
-
-    if (isPropertyTypeObject(item)) {
       type = schemaObjectTypeToTS(
         item.type,
         item.nullable,
