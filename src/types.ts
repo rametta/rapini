@@ -93,6 +93,18 @@ function isArraySchemaObject(
   return "items" in param;
 }
 
+function isAllOfObject(
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): param is OpenAPIV3.SchemaObject {
+  return "allOf" in param;
+}
+
+function isOneOfObject(
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): param is OpenAPIV3.SchemaObject {
+  return "oneOf" in param;
+}
+
 function makeType(
   properties: {
     [name: string]: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject;
@@ -135,6 +147,28 @@ function makeType(
 function generateProperties(
   item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 ): TypeNode {
+  if (isAllOfObject(item) && item.allOf) {
+    return ts.factory.createIntersectionTypeNode(
+      item.allOf.map((e) => {
+        if (isReferenceObject(e)) {
+          return ts.factory.createTypeReferenceNode(refToTypeName(e.$ref));
+        }
+        return generateProperties(e);
+      })
+    );
+  }
+
+  if (isOneOfObject(item) && item.oneOf) {
+    return ts.factory.createUnionTypeNode(
+      item.oneOf.map((e) => {
+        if (isReferenceObject(e)) {
+          return ts.factory.createTypeReferenceNode(refToTypeName(e.$ref));
+        }
+        return generateProperties(e);
+      })
+    );
+  }
+
   if (isArraySchemaObject(item) && isReferenceObject(item.items)) {
     const typeName = refToTypeName(item.items.$ref);
     return ts.factory.createArrayTypeNode(

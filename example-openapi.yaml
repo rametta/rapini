@@ -160,6 +160,26 @@ components:
           type: string
         pet:
           $ref: "#/components/schemas/Pet"
+    Cat:
+      allOf:
+        - $ref: "#/components/schemas/Pet"
+        - type: object
+          # all other properties specific to a `Cat`
+          properties:
+            name:
+              type: string
+    Dog:
+      allOf:
+        - $ref: "#/components/schemas/Pet"
+        - type: object
+          # all other properties specific to a `Dog`
+          properties:
+            bark:
+              type: string
+    MyResponseType:
+      oneOf:
+        - $ref: "#/components/schemas/Cat"
+        - $ref: "#/components/schemas/Dog"
     Error:
       required:
         - code
