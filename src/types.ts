@@ -99,10 +99,10 @@ function isAllOfObject(
   return "allOf" in param;
 }
 
-function isOneOfObject(
+function isOneOfOrAnyOfObject(
   param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
 ): param is OpenAPIV3.SchemaObject {
-  return "oneOf" in param;
+  return "oneOf" in param || "anyOf" in param;
 }
 
 function makeType(
@@ -158,15 +158,18 @@ function generateProperties(
     );
   }
 
-  if (isOneOfObject(item) && item.oneOf) {
-    return ts.factory.createUnionTypeNode(
-      item.oneOf.map((e) => {
-        if (isReferenceObject(e)) {
-          return ts.factory.createTypeReferenceNode(refToTypeName(e.$ref));
-        }
-        return generateProperties(e);
-      })
-    );
+  if (isOneOfOrAnyOfObject(item)) {
+    const items = item.oneOf || item.anyOf;
+    if (items) {
+      return ts.factory.createUnionTypeNode(
+        items.map((e) => {
+          if (isReferenceObject(e)) {
+            return ts.factory.createTypeReferenceNode(refToTypeName(e.$ref));
+          }
+          return generateProperties(e);
+        })
+      );
+    }
   }
 
   if (isArraySchemaObject(item) && isReferenceObject(item.items)) {

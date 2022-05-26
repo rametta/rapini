@@ -180,6 +180,10 @@ components:
       oneOf:
         - $ref: "#/components/schemas/Cat"
         - $ref: "#/components/schemas/Dog"
+    MyResponseTypeTwo:
+      anyOf:
+        - $ref: "#/components/schemas/Cat"
+        - $ref: "#/components/schemas/Dog"
     Error:
       required:
         - code
