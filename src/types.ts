@@ -2,6 +2,36 @@ import { OpenAPIV3 } from "openapi-types";
 import ts, { PropertySignature, TypeNode } from "typescript";
 import { isReferenceObject, refToTypeName } from "./common";
 
+function isSchemaObject(
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): param is OpenAPIV3.SchemaObject {
+  return "properties" in param;
+}
+
+function isPropertyTypeObject(
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): param is OpenAPIV3.SchemaObject {
+  return "type" in param;
+}
+
+function isArraySchemaObject(
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): param is OpenAPIV3.ArraySchemaObject {
+  return "items" in param;
+}
+
+function isAllOfObject(
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): param is OpenAPIV3.SchemaObject {
+  return "allOf" in param;
+}
+
+function isOneOfOrAnyOfObject(
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): param is OpenAPIV3.SchemaObject {
+  return "oneOf" in param || "anyOf" in param;
+}
+
 function filterNonStringEnumValues(entry: unknown): entry is string {
   return typeof entry === "string";
 }
@@ -73,36 +103,6 @@ function schemaObjectTypeToTS(
     default:
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
   }
-}
-
-function isSchemaObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-): param is OpenAPIV3.SchemaObject {
-  return "properties" in param;
-}
-
-function isPropertyTypeObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-): param is OpenAPIV3.SchemaObject {
-  return "type" in param;
-}
-
-function isArraySchemaObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-): param is OpenAPIV3.ArraySchemaObject {
-  return "items" in param;
-}
-
-function isAllOfObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-): param is OpenAPIV3.SchemaObject {
-  return "allOf" in param;
-}
-
-function isOneOfOrAnyOfObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-): param is OpenAPIV3.SchemaObject {
-  return "oneOf" in param || "anyOf" in param;
 }
 
 function makeType(
