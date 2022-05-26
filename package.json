@@ -1,22 +1,46 @@
 {
-  "name": "openapi-rq-axios",
-  "version": "1.0.0",
-  "description": "Generate React Query and Axios code from OpenAPI spec files",
+  "name": "rapini",
+  "version": "0.0.1",
+  "description": "Generate React Query hooks, Axios requests and Typescript types from OpenAPI files",
   "main": "dist/cli.js",
   "scripts": {
-    "build": "tsc src/cli.ts --module commonjs --moduleResolution node --allowSyntheticDefaultImports --esModuleInterop --downlevelIteration --outDir dist",
+    "build": "tsc --project tsconfig.json",
     "start": "chmod +x dist/cli.js && dist/cli.js example-openapi.yaml",
     "dev": "npm run build && npm run start",
-    "test": "test"
+    "test": "jest",
+    "deploy": "npm run build && npm publish"
   },
   "author": "Jason Rametta",
   "license": "Apache-2.0",
   "dependencies": {
     "axios": "^0.27.2",
-    "swagger-parser": "^10.0.3"
+    "swagger-parser": "^10.0.3",
+    "typescript": "^4.7.2"
   },
   "devDependencies": {
+    "@types/jest": "^27.5.1",
     "@types/node": "^17.0.34",
-    "typescript": "^4.6.4"
-  }
+    "jest": "^28.1.0",
+    "ts-jest": "^28.0.3"
+  },
+  "repository": "https://github.com/rametta/rapini.git",
+  "bugs": {
+    "url": "https://github.com/rametta/rapini/issues"
+  },
+  "homepage": "https://github.com/rametta/rapini",
+  "keywords": [
+    "codegen",
+    "react-query",
+    "react",
+    "query",
+    "axios",
+    "openapi",
+    "swagger",
+    "open",
+    "api",
+    "code",
+    "generation",
+    "typescript",
+    "types"
+  ]
 }
