@@ -99,6 +99,16 @@ paths:
                 $ref: "#/components/schemas/Error"
 components:
   schemas:
+    RandomThing:
+      required:
+        - id
+        - something
+      properties:
+        id:
+          type: integer
+          format: int64
+        something:
+          type: string
     Pet:
       required:
         - id
@@ -121,6 +131,8 @@ components:
           type: array
           items:
             type: string
+        random:
+          $ref: "#/components/schemas/RandomThing"
     Pets:
       type: array
       items:
