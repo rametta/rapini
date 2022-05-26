@@ -1,3 +1,6 @@
+[![npm](https://img.shields.io/npm/v/rapini.svg)](http://npm.im/rapini)
+[![License](https://img.shields.io/github/license/rametta/rapini)](https://opensource.org/licenses/Apache-2.0)
+
 # :leafy_green: Rapini - OpenAPI to React Query & Axios
 
 Rapini is a tool that generates [React Query](https://react-query.tanstack.com/), [Axios](https://axios-http.com/) and [Typescript](https://www.typescriptlang.org/) types, based on an [OpenAPI](https://www.openapis.org/) spec file.
