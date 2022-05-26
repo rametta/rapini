@@ -10,8 +10,6 @@ The generated code is packaged conveniently so that it can be published as a pac
 
 - :bicyclist: Generates axios calls for every endpoint, with typed payload.
 - :golfing: Generates custom react hooks that use React Query's useQuery and useMutation hooks for each axios call.
-  - Every `GET` request get's it own custom useQuery hook
-  - Every `POST`, `PUT`, `PATCH`, `DELETE` request get their own custom useMutation hook
 - :rowboat: Generates query keys for every hook.
 - :weight_lifting: Generates strong typescript types for all inputs, outputs, and options.
 
@@ -26,16 +24,28 @@ npm i -g rapini
 ## Usage
 
 ```sh
-rapini path/to/openapi.yaml --outdir dist
+rapini -p path/to/openapi.yaml
 ```
 
-This will generate the React Query code based on an OpenAPI file at `path/to/openapi.yaml` and output it in folder `dist`. The outputted code will be packaged in a way to just publish it as your own NPM package and then import it in your React project.
+This will generate the React Query code based on an OpenAPI file at `path/to/openapi.yaml`. The outputted code will be packaged in a way to just publish it as your own NPM package and then import it in your React project.
+
+## CLI Options
+
+```
+Options:
+  -V, --version                     output the version number
+  -p, --path <path>                 Path to OpenAPI file
+  -n, --name [name]                 Name to use for the generated package (default: "rapini-generated-package")
+  -pv, --package-version [version]  Semver version to use for the generated package (default: "1.0.0")
+  -o, --outputDir [directory]       Directory to output the generated package (default: "rapini-generated-package")
+  -h, --help                        display help for command
+```
 
 ## Example Usage
 
 Let's say you have an OpenAPI file that looks like [this one](./example-openapi.yaml).
 
-Once you run the CLI tool to generate the React Query code, you can then run `npm publish` with your own package name, then import and use it like this:
+Once you run the CLI tool to generate the React Query code, you can then `cd` into the generated directory, run `npm install && npm run build` then `npm publish` with your own package name to publish it to your own registry, then import and use it like this:
 
 ```tsx
 import { initialize } from "your-custom-package";
