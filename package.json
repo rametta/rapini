@@ -1,11 +1,11 @@
 {
   "name": "rapini",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Generate React Query hooks, Axios requests and Typescript types from OpenAPI files",
-  "main": "dist/cli.js",
+  "bin": "dist/cli.js",
   "scripts": {
     "build": "tsc --project tsconfig.json",
-    "start": "chmod +x dist/cli.js && dist/cli.js example-openapi.yaml",
+    "start": "chmod +x dist/cli.js && dist/cli.js -p example-openapi.yaml",
     "dev": "npm run build && npm run start",
     "test": "jest",
     "deploy": "npm run build && npm publish"
@@ -14,6 +14,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "axios": "^0.27.2",
+    "commander": "^9.2.0",
     "swagger-parser": "^10.0.3",
     "typescript": "^4.7.2"
   },

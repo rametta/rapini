@@ -1,12 +1,38 @@
 #!/usr/bin/env node
 import { generate } from "./generator";
+import { Command } from "commander";
 
-const [, , ...args] = process.argv;
+export type CLIOptions = {
+  name: string;
+  packageVersion: string;
+  outputDir: string;
+  path: string;
+};
 
-if (!args[0]) {
-  throw "Missing path to openapi file";
-}
+const program = new Command();
 
-console.log(`Generating package using OpenApi file ${args[0]}`);
+program
+  .version("1.0.0")
+  .description("Generate a package based on OpenAPI")
+  .requiredOption("-p, --path <path>", "Path to OpenAPI file")
+  .option(
+    "-n, --name [name]",
+    "Name to use for the generated package",
+    "rapini-generated-package"
+  )
+  .option(
+    "-pv, --package-version [version]",
+    "Semver version to use for the generated package",
+    "1.0.0"
+  )
+  .option(
+    "-o, --outputDir [directory]",
+    "Directory to output the generated package",
+    "rapini-generated-package"
+  )
+  .parse();
 
-generate(args[0]);
+const options = program.opts<CLIOptions>();
+
+console.log(`Generating package using OpenApi file ${options.path}`);
+generate(options);

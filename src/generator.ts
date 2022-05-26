@@ -8,6 +8,7 @@ import { makeRequests } from "./requests";
 import { makeQueries } from "./queries";
 import { makeInitialize } from "./initialize";
 import { makeMutations } from "./mutations";
+import { CLIOptions } from "./cli";
 
 function isOpenApiV3Document(doc: OpenAPI.Document): doc is OpenAPIV3.Document {
   return "openapi" in doc;
@@ -68,12 +69,12 @@ function makeSource(data: ReturnType<typeof parse>) {
   return result;
 }
 
-export async function generate(pathToOpenApiV3: string) {
+export async function generate(options: CLIOptions) {
   const parser = new SwaggerParser();
-  const api = await parser.parse(pathToOpenApiV3);
+  const api = await parser.parse(options.path);
 
   console.log("API name: %s, Version: %s", api.info.title, api.info.version);
   const data = parse(api, parser.$refs);
   const source = makeSource(data);
-  print(source);
+  print(source, options);
 }
