@@ -108,7 +108,24 @@ components:
           type: integer
           format: int64
         something:
-          type: string
+          properties:
+            hello:
+              properties:
+                one:
+                  type: string
+                two:
+                  type: integer
+                  format: int64
+            world:
+              type: string
+            bla:
+              type: array
+              items:
+                properties:
+                  prop:
+                    type: string
+                  erty:
+                    type: string
     Pet:
       required:
         - id

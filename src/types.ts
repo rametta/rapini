@@ -78,7 +78,7 @@ function schemaObjectTypeToTS(
 function isSchemaObject(
   param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
 ): param is OpenAPIV3.SchemaObject {
-  return "properties" in param;
+  return "properties" in param || "type" in param;
 }
 
 function isPropertyTypeObject(
@@ -102,17 +102,24 @@ function makeType(
   return Object.keys(properties).map((key) => {
     const item = properties[key];
     const isRequired = required.includes(key);
+    let type;
     let arrayType;
+
     if (isArraySchemaObject(item) && isPropertyTypeObject(item.items)) {
       arrayType = item.items.type;
     }
 
-    let type = isPropertyTypeObject(item)
-      ? schemaObjectTypeToTS(item.type, item.nullable, item.enum, arrayType)
-      : ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
-
-    if (isReferenceObject(item)) {
+    if (isPropertyTypeObject(item)) {
+      type = schemaObjectTypeToTS(
+        item.type,
+        item.nullable,
+        item.enum,
+        arrayType
+      );
+    } else if (isReferenceObject(item)) {
       type = ts.factory.createTypeReferenceNode(refToTypeName(item.$ref));
+    } else {
+      type = generateProperties(item);
     }
 
     return ts.factory.createPropertySignature(
@@ -134,7 +141,9 @@ function generateProperties(
     return ts.factory.createArrayTypeNode(
       ts.factory.createTypeReferenceNode(typeName)
     );
-  } else if (
+  }
+
+  if (
     isArraySchemaObject(item) &&
     isSchemaObject(item.items) &&
     item.items.properties
@@ -144,7 +153,9 @@ function generateProperties(
         makeType(item.items.properties, item.items.required ?? [])
       )
     );
-  } else if (isSchemaObject(item)) {
+  }
+
+  if (isSchemaObject(item)) {
     return ts.factory.createTypeLiteralNode(
       makeType(item.properties ?? {}, item.required ?? [])
     );
@@ -158,7 +169,7 @@ export function makeTypes(doc: OpenAPIV3.Document) {
   if (schemas) {
     return Object.entries(schemas).map(([typeName, item]) => {
       return ts.factory.createTypeAliasDeclaration(
-        /*decoratos*/ undefined,
+        /*decorators*/ undefined,
         /*modifiers*/ [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
         /*name*/ ts.factory.createIdentifier(typeName),
         /*typeParameters*/ undefined,
