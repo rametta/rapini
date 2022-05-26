@@ -194,9 +194,3 @@ components:
           format: int32
         message:
           type: string
-    NewPet:
-      required:
-        - name
-      properties:
-        name:
-          type: string
