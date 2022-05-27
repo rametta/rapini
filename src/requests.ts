@@ -3,11 +3,9 @@ import type SwaggerParser from "swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
 import {
   toParamObjects,
-  isSchemaObject,
-  schemaObjectTypeToTS,
+  schemaObjectOrRefType,
   normalizeOperationId,
   isReferenceObject,
-  refToTypeName,
 } from "./common";
 
 export function makeRequests(
@@ -120,9 +118,7 @@ function createRequestParams(
         /*questionToken*/ param.required
           ? undefined
           : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-        /*type*/ schemaObjectTypeToTS(
-          isSchemaObject(param.schema) ? param.schema.type : null
-        ),
+        /*type*/ schemaObjectOrRefType(param.schema).node,
         /*initializer*/ undefined
       ),
     }));
@@ -147,11 +143,6 @@ function createRequestParams(
   return itemParamsDeclarations;
 }
 
-// TODO: Reuse something in types.ts
-function resolveType(schema?: OpenAPIV3.SchemaObject) {
-  return schema?.type ?? "unknown";
-}
-
 type StatusType = "success" | "error" | "default";
 
 function statusCodeToType(statusCode: string): StatusType {
@@ -171,10 +162,7 @@ function mediaType(mediaTypeObj: OpenAPIV3.MediaTypeObject) {
     return [];
   }
 
-  const schema = mediaTypeObj.schema;
-  const typeName = isReferenceObject(schema)
-    ? refToTypeName(schema.$ref)
-    : resolveType(schema);
+  const typeName = schemaObjectOrRefType(mediaTypeObj.schema);
 
   return [typeName];
 }
@@ -183,7 +171,14 @@ function makeResponses(
   $refs: SwaggerParser.$Refs,
   statusCode: string,
   resOrRef: OpenAPIV3.ReferenceObject | OpenAPIV3.ResponseObject
-): [{ statusType: StatusType; schemas: string[] }] | [] {
+):
+  | [
+      {
+        statusType: StatusType;
+        schemas: ReturnType<typeof schemaObjectOrRefType>[];
+      }
+    ]
+  | [] {
   const obj = isReferenceObject(resOrRef)
     ? ($refs.get(resOrRef.$ref) as OpenAPIV3.ResponseObject)
     : resOrRef;
@@ -192,9 +187,9 @@ function makeResponses(
     ? Object.values(obj.content).flatMap((mediaTypeObj) =>
         mediaType(mediaTypeObj)
       )
-    : undefined;
+    : [];
 
-  if (!schemas || !schemas.length) {
+  if (!schemas.length) {
     return [];
   }
 
@@ -218,17 +213,15 @@ function getResponseType(
     .filter(({ statusType }) => statusType === "success")
     .flatMap(({ schemas }) => schemas);
 
-  const uniqSuccessTypes = [...new Set(successTypes)];
+  const uniqSuccessTypes = successTypes.reduce(
+    (acc, node) => (acc.find((n) => n.id === node.id) ? acc : acc.concat(node)),
+    [] as ReturnType<typeof schemaObjectOrRefType>[]
+  );
 
   if (uniqSuccessTypes.length) {
-    const unions = uniqSuccessTypes.map((str) =>
-      ts.factory.createTypeReferenceNode(
-        /*typeName*/ ts.factory.createIdentifier(str),
-        /*typeArgs*/ undefined
-      )
+    return ts.factory.createUnionTypeNode(
+      uniqSuccessTypes.map((item) => item.node)
     );
-
-    return ts.factory.createUnionTypeNode(unions);
   }
 
   return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
@@ -248,17 +241,14 @@ function makeRequestsType(
       )
     : undefined;
 
-  const uniqSchemas = [...new Set(schemas)];
-
-  if (uniqSchemas.length) {
-    const unions = uniqSchemas.map((str) =>
-      ts.factory.createTypeReferenceNode(
-        /*typeName*/ ts.factory.createIdentifier(str),
-        /*typeArgs*/ undefined
-      )
+  if (schemas?.length) {
+    const uniqSchema = schemas.reduce(
+      (acc, node) =>
+        acc.find((n) => n.id === node.id) ? acc : acc.concat(node),
+      [] as ReturnType<typeof schemaObjectOrRefType>[]
     );
 
-    return ts.factory.createUnionTypeNode(unions);
+    return ts.factory.createUnionTypeNode(uniqSchema.map((item) => item.node));
   }
 
   return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);

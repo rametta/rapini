@@ -14,24 +14,51 @@ export function isParameterObject(
 }
 
 export function isSchemaObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject | undefined
+  param?: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
 ): param is OpenAPIV3.SchemaObject {
   return param !== undefined && "type" in param;
 }
 
 export function isReferenceObject(
-  item: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject | undefined
+  item?: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
 ): item is OpenAPIV3.ReferenceObject {
   return item !== undefined && "$ref" in item;
 }
 
-export function schemaObjectTypeToTS(
-  objectType?:
-    | OpenAPIV3.ArraySchemaObjectType
-    | OpenAPIV3.NonArraySchemaObjectType
-    | null
+const unknown = ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+
+export function schemaObjectOrRefType(
+  schema?: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
+): { node: ts.TypeNode; id: string } {
+  if (isSchemaObject(schema)) {
+    return schemaObjectType(schema);
+  }
+
+  if (isReferenceObject(schema)) {
+    return referenceType(schema);
+  }
+
+  return { node: unknown, id: "unknown" };
+}
+
+function schemaObjectType(
+  schema: OpenAPIV3.SchemaObject
+): ReturnType<typeof schemaObjectOrRefType> {
+  if (schema.type === "array") {
+    return arrayType(schema.items);
+  }
+
+  if (schema.type === "object") {
+    return objectType(schema);
+  }
+
+  return { node: primitiveType(schema.type), id: "unknown" };
+}
+
+function primitiveType(
+  type?: Omit<OpenAPIV3.NonArraySchemaObjectType, "object">
 ) {
-  switch (objectType) {
+  switch (type) {
     case "string":
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword);
     case "integer":
@@ -39,17 +66,43 @@ export function schemaObjectTypeToTS(
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword);
     case "boolean":
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword);
-    case "object":
-      // TODO: This type is not correct, just a placeholder. Never use `any`
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
-    case "array":
-      return ts.factory.createArrayTypeNode(
-        // TODO: This type is not correct, just a placeholder. Never use `any`
-        ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)
-      );
     default:
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+      return unknown;
   }
+}
+
+function objectType(
+  objectSchemaObject: OpenAPIV3.NonArraySchemaObject
+): ReturnType<typeof schemaObjectOrRefType> {
+  // TODO: This type is not correct, just a placeholder. Never use `any`
+  // Replace with something defined in types.ts
+  return {
+    node: ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
+    id: "object", // stringify type maybe here
+  };
+}
+
+function referenceType(
+  item: OpenAPIV3.ReferenceObject
+): ReturnType<typeof schemaObjectOrRefType> {
+  const name = refToTypeName(item.$ref);
+  return {
+    node: ts.factory.createTypeReferenceNode(ts.factory.createIdentifier(name)),
+    id: name,
+  };
+}
+
+function arrayType(
+  items: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
+): ReturnType<typeof schemaObjectOrRefType> {
+  const type = isReferenceObject(items)
+    ? referenceType(items)
+    : schemaObjectType(items);
+
+  return {
+    node: ts.factory.createArrayTypeNode(type.node),
+    id: type.id + "[]",
+  };
 }
 
 export function capitalizeFirstLetter(str: string) {
@@ -95,4 +148,29 @@ export function refToTypeName(ref: string) {
   }
 
   return ref;
+}
+
+export function createParams(item: OpenAPIV3.OperationObject) {
+  if (!item.parameters) {
+    return [];
+  }
+
+  const paramObjects = toParamObjects(item.parameters);
+
+  return paramObjects
+    .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
+    .map((param) => ({
+      name: ts.factory.createIdentifier(param.name),
+      arrowFuncParam: ts.factory.createParameterDeclaration(
+        /*decorators*/ undefined,
+        /*modifiers*/ undefined,
+        /*dotDotDotToken*/ undefined,
+        /*name*/ ts.factory.createIdentifier(param.name),
+        /*questionToken*/ param.required
+          ? undefined
+          : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+        /*type*/ schemaObjectOrRefType(param.schema).node,
+        /*initializer*/ undefined
+      ),
+    }));
 }

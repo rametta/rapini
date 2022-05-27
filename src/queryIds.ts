@@ -1,11 +1,6 @@
 import ts from "typescript";
 import type { OpenAPIV3 } from "openapi-types";
-import {
-  isSchemaObject,
-  normalizeOperationId,
-  schemaObjectTypeToTS,
-  toParamObjects,
-} from "./common";
+import { normalizeOperationId, createParams } from "./common";
 
 export function makeQueryIds(paths: OpenAPIV3.PathsObject) {
   const queryIds = Object.entries(paths)
@@ -80,30 +75,4 @@ function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
       )
     )
   );
-}
-
-function createParams(item: OpenAPIV3.OperationObject) {
-  if (!item.parameters) {
-    return [];
-  }
-  const paramObjects = toParamObjects(item.parameters);
-
-  return paramObjects
-    .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
-    .map((param) => ({
-      name: ts.factory.createIdentifier(param.name),
-      arrowFuncParam: ts.factory.createParameterDeclaration(
-        /*decorators*/ undefined,
-        /*modifiers*/ undefined,
-        /*dotDotDotToken*/ undefined,
-        /*name*/ ts.factory.createIdentifier(param.name),
-        /*questionToken*/ param.required
-          ? undefined
-          : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-        /*type*/ schemaObjectTypeToTS(
-          isSchemaObject(param.schema) ? param.schema.type : null
-        ),
-        /*initializer*/ undefined
-      ),
-    }));
 }
