@@ -7,6 +7,8 @@ export type CLIOptions = {
   packageVersion: string;
   outputDir: string;
   path: string;
+  baseUrl: string;
+  replacer: string[];
 };
 
 const program = new Command();
@@ -26,9 +28,14 @@ program
     "1.0.0"
   )
   .option(
-    "-o, --outputDir [directory]",
+    "-o, --output-dir [directory]",
     "Directory to output the generated package",
     "rapini-generated-package"
+  )
+  .option("-b, --base-url [url]", "Prefix every request with this url")
+  .option(
+    "-r, --replacer [oldString] [newString...]",
+    "Replace part(s) of any route's path with simple string replacements. Ex: `-r /api/v1 /api/v2` would replace the v1 with v2 in every route"
   )
   .parse();
 

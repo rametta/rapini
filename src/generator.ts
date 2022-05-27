@@ -14,9 +14,13 @@ function isOpenApiV3Document(doc: OpenAPI.Document): doc is OpenAPIV3.Document {
   return "openapi" in doc;
 }
 
-function parse(doc: OpenAPI.Document, $refs: SwaggerParser.$Refs) {
+function parse(
+  doc: OpenAPI.Document,
+  $refs: SwaggerParser.$Refs,
+  options: CLIOptions
+) {
   if (isOpenApiV3Document(doc)) {
-    return parseOpenApiV3Doc(doc, $refs);
+    return parseOpenApiV3Doc(doc, $refs, options);
   }
 
   throw "OpenAPI Document version not supported";
@@ -24,11 +28,12 @@ function parse(doc: OpenAPI.Document, $refs: SwaggerParser.$Refs) {
 
 function parseOpenApiV3Doc(
   doc: OpenAPIV3.Document,
-  $refs: SwaggerParser.$Refs
+  $refs: SwaggerParser.$Refs,
+  options: CLIOptions
 ) {
   return {
     queryIds: makeQueryIds(doc.paths),
-    requests: makeRequests(doc.paths, $refs),
+    requests: makeRequests(doc.paths, $refs, options),
     queries: makeQueries(doc.paths, $refs),
     mutations: makeMutations(doc.paths, $refs),
   };
@@ -74,7 +79,7 @@ export async function generate(options: CLIOptions) {
   const api = await parser.parse(options.path);
 
   console.log("API name: %s, Version: %s", api.info.title, api.info.version);
-  const data = parse(api, parser.$refs);
+  const data = parse(api, parser.$refs, options);
   const source = makeSource(data);
   print(source, options);
 }

@@ -7,13 +7,15 @@ import {
   normalizeOperationId,
   isReferenceObject,
 } from "./common";
+import type { CLIOptions } from "./cli";
 
 export function makeRequests(
   paths: OpenAPIV3.PathsObject,
-  $refs: SwaggerParser.$Refs
+  $refs: SwaggerParser.$Refs,
+  options: CLIOptions
 ) {
   const requests = Object.entries(paths).flatMap(([pattern, item]) =>
-    makeRequestsPropertyAssignment(pattern, item!, $refs)
+    makeRequestsPropertyAssignment(pattern, item!, $refs, options)
   );
 
   return makeRequestsDeclaration(requests);
@@ -65,30 +67,33 @@ function makeRequestsDeclaration(
 function makeRequestsPropertyAssignment(
   pattern: string,
   item: OpenAPIV3.PathItemObject,
-  $refs: SwaggerParser.$Refs
+  $refs: SwaggerParser.$Refs,
+  options: CLIOptions
 ) {
   const requests: ts.PropertyAssignment[] = [];
 
   if (item.get) {
-    requests.push(makeRequest(pattern, "get", item.get, $refs));
+    requests.push(makeRequest(pattern, "get", item.get, $refs, options));
   }
   if (item.delete) {
-    requests.push(makeRequest(pattern, "delete", item.delete, $refs));
+    requests.push(makeRequest(pattern, "delete", item.delete, $refs, options));
   }
   if (item.post) {
-    requests.push(makeRequest(pattern, "post", item.post, $refs));
+    requests.push(makeRequest(pattern, "post", item.post, $refs, options));
   }
   if (item.put) {
-    requests.push(makeRequest(pattern, "put", item.put, $refs));
+    requests.push(makeRequest(pattern, "put", item.put, $refs, options));
   }
   if (item.patch) {
-    requests.push(makeRequest(pattern, "patch", item.patch, $refs));
+    requests.push(makeRequest(pattern, "patch", item.patch, $refs, options));
   }
   if (item.head) {
-    requests.push(makeRequest(pattern, "head", item.head, $refs));
+    requests.push(makeRequest(pattern, "head", item.head, $refs, options));
   }
   if (item.options) {
-    requests.push(makeRequest(pattern, "options", item.options, $refs));
+    requests.push(
+      makeRequest(pattern, "options", item.options, $refs, options)
+    );
   }
 
   return requests;
@@ -258,9 +263,14 @@ function makeRequest(
   pattern: string,
   method: string,
   item: OpenAPIV3.OperationObject,
-  $refs: SwaggerParser.$Refs
+  $refs: SwaggerParser.$Refs,
+  options: CLIOptions
 ) {
-  const pathTemplateExpression = patternToPath(pattern);
+  const pathTemplateExpression = patternToPath(
+    pattern,
+    options.baseUrl,
+    options.replacer
+  );
   const arrowFuncParams = createRequestParams(item, $refs).map(
     (param) => param.arrowFuncParam
   );
@@ -370,7 +380,7 @@ function makeRequest(
 }
 
 // Optionally spreads a field if not null
-// Ex: ...(identifier !== null && identifier !== undefined ? { identifier } : undefined)
+// Ex: ...(identifier !== undefined ? { identifier } : undefined)
 function shorthandOptionalObjectLiteralSpread(identifier: string) {
   return ts.factory.createSpreadAssignment(
     ts.factory.createParenthesizedExpression(
@@ -406,28 +416,31 @@ const patternRegex = /({.+?})/;
 // Match all braces, like { or }
 const bracesRegex = /{|}/g;
 
-function patternToPath(pattern: string) {
-  const splits = pattern.split(patternRegex);
+export function patternToPath(
+  pattern: string,
+  baseUrl: string,
+  replacers: string[]
+) {
+  const replacedPattern = replacers?.length
+    ? replacePattern(pattern, replacers)
+    : pattern;
+  const splits = replacedPattern.split(patternRegex);
   const [head, ...tail] = splits;
 
+  const headWithBase = baseUrl ? baseUrl + head : head;
   if (tail.length === 0) {
     return ts.factory.createNoSubstitutionTemplateLiteral(
-      /*text*/ head,
-      /*rawText*/ head
+      /*text*/ headWithBase,
+      /*rawText*/ headWithBase
     );
   }
 
-  const chunks: string[][] = [];
-  const chunkSize = 2;
-  for (let i = 0; i < tail.length; i += chunkSize) {
-    const chunk = tail.slice(i, i + chunkSize);
-    chunks.push(chunk);
-  }
-
   const headTemplate = ts.factory.createTemplateHead(
-    /*text*/ head,
-    /*rawText*/ head
+    /*text*/ headWithBase,
+    /*rawText*/ headWithBase
   );
+
+  const chunks: string[][] = chunker(tail, 2);
 
   const middleTemplates = chunks.map(([name, path], index) =>
     ts.factory.createTemplateSpan(
@@ -439,4 +452,23 @@ function patternToPath(pattern: string) {
   );
 
   return ts.factory.createTemplateExpression(headTemplate, middleTemplates);
+}
+
+export function chunker<T>(arr: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = [];
+
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    const chunk = arr.slice(i, i + chunkSize);
+    chunks.push(chunk);
+  }
+
+  return chunks;
+}
+
+export function replacePattern(pattern: string, replacers: string[]) {
+  const chunks = chunker(replacers, 2);
+  return chunks.reduce(
+    (acc, [oldStr, newStr]) => acc.replace(new RegExp(oldStr, "g"), newStr),
+    pattern
+  );
 }

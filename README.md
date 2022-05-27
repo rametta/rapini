@@ -33,12 +33,14 @@ This will generate the React Query code based on an OpenAPI file at `path/to/ope
 
 ```
 Options:
-  -V, --version                     output the version number
-  -p, --path <path>                 Path to OpenAPI file
-  -n, --name [name]                 Name to use for the generated package (default: "rapini-generated-package")
-  -pv, --package-version [version]  Semver version to use for the generated package (default: "1.0.0")
-  -o, --outputDir [directory]       Directory to output the generated package (default: "rapini-generated-package")
-  -h, --help                        display help for command
+  -V, --version                              output the version number
+  -p, --path <path>                          Path to OpenAPI file
+  -n, --name [name]                          Name to use for the generated package (default: "rapini-generated-package")
+  -pv, --package-version [version]           Semver version to use for the generated package (default: "1.0.0")
+  -o, --output-dir [directory]               Directory to output the generated package (default: "rapini-generated-package")
+  -b, --base-url [url]                       Prefix every request with this url
+  -r, --replacer [oldString] [newString...]  Replace part(s) of any route's path with simple string replacements. Ex: `-r /api/v1 /api/v2` would replace the v1 with v2 in every route
+  -h, --help                                 display help for command
 ```
 
 ## Example Usage
