@@ -49,10 +49,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NewPet"
+              $ref: "#/components/schemas/Pet"
           text/json:
             schema:
-              $ref: "#/components/schemas/NewPet"
+              $ref: "#/components/schemas/Pet"
       responses:
         201:
           description: Null response
