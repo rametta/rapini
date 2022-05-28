@@ -141,13 +141,20 @@ components:
           nullable: true
         petType:
           type: string
+          nullable: true
           enum:
             - cat
             - doge
         nicknames:
           type: array
           items:
-            type: string
+            properties:
+              name:
+                type: string
+              thing:
+                type: array
+                items:
+                  type: string
         random:
           $ref: "#/components/schemas/RandomThing"
     Pets:
@@ -176,6 +183,12 @@ components:
           properties:
             bark:
               type: string
+            fur:
+              type: array
+              items:
+                type: array
+                items:
+                  type: string
     MyResponseType:
       oneOf:
         - $ref: "#/components/schemas/Cat"

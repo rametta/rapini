@@ -4,7 +4,7 @@ import { isReferenceObject, refToTypeName } from "./common";
 
 function isSchemaObject(
   param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-): param is OpenAPIV3.SchemaObject {
+): param is OpenAPIV3.BaseSchemaObject {
   return "properties" in param;
 }
 
@@ -36,7 +36,7 @@ function filterNonStringEnumValues(entry: unknown): entry is string {
   return typeof entry === "string";
 }
 
-function generateTsType(type: TypeNode, nullable?: boolean) {
+function generateTsTypeWithNullable(type: TypeNode, nullable?: boolean) {
   return nullable
     ? ts.factory.createUnionTypeNode([
         type,
@@ -45,59 +45,72 @@ function generateTsType(type: TypeNode, nullable?: boolean) {
     : type;
 }
 
+function schemaObjectTypeToArrayType(
+  item: OpenAPIV3.SchemaObject,
+  nullable?: boolean,
+  arrayType?:
+    | OpenAPIV3.NonArraySchemaObjectType
+    | OpenAPIV3.ArraySchemaObjectType
+): TypeNode {
+  if (
+    arrayType === "array" &&
+    isArraySchemaObject(item) &&
+    isPropertyTypeObject(item.items)
+  ) {
+    return ts.factory.createArrayTypeNode(
+      schemaObjectTypeToArrayType(
+        item.items,
+        item.items.nullable,
+        item.items.type
+      )
+    );
+  } else {
+    return generateTsTypeWithNullable(
+      ts.factory.createArrayTypeNode(schemaObjectTypeToTS(arrayType)),
+      nullable
+    );
+  }
+}
+
+function schemaObjectTypeToEnumType(enumValues: string[], nullable?: boolean) {
+  const enums = enumValues
+    .filter(filterNonStringEnumValues)
+    .map((value) =>
+      ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(value))
+    );
+
+  return generateTsTypeWithNullable(
+    ts.factory.createUnionTypeNode(enums),
+    nullable
+  );
+}
+
 function schemaObjectTypeToTS(
   objectType?:
-    | OpenAPIV3.ArraySchemaObjectType
-    | OpenAPIV3.NonArraySchemaObjectType,
-  nullable?: boolean,
-  enumValues?: unknown[],
-  arrayType?:
-    | OpenAPIV3.ArraySchemaObjectType
     | OpenAPIV3.NonArraySchemaObjectType
+    | OpenAPIV3.ArraySchemaObjectType,
+  nullable?: boolean
 ): TypeNode {
   switch (objectType) {
     case "string":
-      if (enumValues && enumValues.length > 0) {
-        const enums = enumValues
-          .filter(filterNonStringEnumValues)
-          .map((value) =>
-            ts.factory.createLiteralTypeNode(
-              ts.factory.createStringLiteral(value)
-            )
-          );
-
-        if (nullable) {
-          enums.push(ts.factory.createLiteralTypeNode(ts.factory.createNull()));
-        }
-        return ts.factory.createUnionTypeNode(enums);
-      }
-      return generateTsType(
+      return generateTsTypeWithNullable(
         ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
         nullable
       );
     case "integer":
     case "number":
-      return generateTsType(
+      return generateTsTypeWithNullable(
         ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
         nullable
       );
     case "boolean":
-      return generateTsType(
+      return generateTsTypeWithNullable(
         ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword),
         nullable
       );
     case "object":
-      return generateTsType(
+      return generateTsTypeWithNullable(
         ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
-        nullable
-      );
-    case "array":
-      return generateTsType(
-        ts.factory.createArrayTypeNode(
-          arrayType
-            ? schemaObjectTypeToTS(arrayType)
-            : ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword)
-        ),
         nullable
       );
     default:
@@ -115,18 +128,14 @@ function makeType(
     const item = properties[key];
     const isRequired = required.includes(key);
     let type;
-    let arrayType;
 
     if (isPropertyTypeObject(item) && !isArraySchemaObject(item)) {
-      type = schemaObjectTypeToTS(item.type, item.nullable, item.enum);
+      type = item.enum
+        ? schemaObjectTypeToEnumType(item.enum, item.nullable)
+        : schemaObjectTypeToTS(item.type, item.nullable);
     } else if (isArraySchemaObject(item) && isPropertyTypeObject(item.items)) {
-      arrayType = item.items.type;
-      type = schemaObjectTypeToTS(
-        item.type,
-        item.nullable,
-        item.enum,
-        arrayType
-      );
+      const arrayType = item.items.type;
+      type = schemaObjectTypeToArrayType(item.items, item.nullable, arrayType);
     } else if (isReferenceObject(item)) {
       type = ts.factory.createTypeReferenceNode(refToTypeName(item.$ref));
     } else {
@@ -149,12 +158,11 @@ function generateProperties(
 ): TypeNode {
   if (isAllOfObject(item) && item.allOf) {
     return ts.factory.createIntersectionTypeNode(
-      item.allOf.map((e) => {
-        if (isReferenceObject(e)) {
-          return ts.factory.createTypeReferenceNode(refToTypeName(e.$ref));
-        }
-        return generateProperties(e);
-      })
+      item.allOf.map((allOfItem) =>
+        isReferenceObject(allOfItem)
+          ? ts.factory.createTypeReferenceNode(refToTypeName(allOfItem.$ref))
+          : generateProperties(allOfItem)
+      )
     );
   }
 
@@ -162,12 +170,13 @@ function generateProperties(
     const items = item.oneOf || item.anyOf;
     if (items) {
       return ts.factory.createUnionTypeNode(
-        items.map((e) => {
-          if (isReferenceObject(e)) {
-            return ts.factory.createTypeReferenceNode(refToTypeName(e.$ref));
-          }
-          return generateProperties(e);
-        })
+        items.map((oneOrAnyItem) =>
+          isReferenceObject(oneOrAnyItem)
+            ? ts.factory.createTypeReferenceNode(
+                refToTypeName(oneOrAnyItem.$ref)
+              )
+            : generateProperties(oneOrAnyItem)
+        )
       );
     }
   }
@@ -201,7 +210,7 @@ function generateProperties(
 }
 
 export function makeTypes(doc: OpenAPIV3.Document) {
-  const schemas = doc?.components?.schemas;
+  const schemas = doc.components?.schemas;
   if (schemas) {
     return Object.entries(schemas).map(([typeName, item]) => {
       return ts.factory.createTypeAliasDeclaration(
