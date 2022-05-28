@@ -3,7 +3,7 @@
 
 # :leafy_green: Rapini - OpenAPI to React Query & Axios
 
-Rapini is a tool that generates [React Query](https://react-query.tanstack.com/), [Axios](https://axios-http.com/) and [Typescript](https://www.typescriptlang.org/) types, based on an [OpenAPI](https://www.openapis.org/) spec file.
+Rapini is a tool that generates [React Query](https://react-query.tanstack.com/) hooks, [Axios](https://axios-http.com/) requests and [Typescript](https://www.typescriptlang.org/) types, based on an [OpenAPI](https://www.openapis.org/) spec file.
 The generated code is packaged conveniently so that it can be published as a package on any NPM registry.
 
 ## Features
