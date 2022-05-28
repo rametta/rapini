@@ -8,6 +8,7 @@ import { makeRequests } from "./requests";
 import { makeQueries } from "./queries";
 import { makeInitialize } from "./initialize";
 import { makeMutations } from "./mutations";
+import { makeTypes } from "./types";
 import { CLIOptions } from "./cli";
 
 function isOpenApiV3Document(doc: OpenAPI.Document): doc is OpenAPIV3.Document {
@@ -36,6 +37,7 @@ function parseOpenApiV3Doc(
     requests: makeRequests(doc.paths, $refs, options),
     queries: makeQueries(doc.paths, $refs),
     mutations: makeMutations(doc.paths, $refs),
+    types: makeTypes(doc),
   };
 }
 
@@ -43,7 +45,7 @@ function makeSourceFile(data: ReturnType<typeof parse>) {
   return ts.factory.createSourceFile(
     /*statements*/ [
       ...makeImports(),
-      // ADD TYPES HERE
+      ...data.types,
       makeInitialize(),
       data.queryIds,
       data.requests,
