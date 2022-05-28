@@ -1,12 +1,6 @@
 import { OpenAPIV3 } from "openapi-types";
-import ts, { PropertySignature, TypeNode } from "typescript";
+import ts from "typescript";
 import { isReferenceObject, refToTypeName } from "./common";
-
-function isPropertyTypeObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-): param is OpenAPIV3.SchemaObject {
-  return "type" in param;
-}
 
 function isArraySchemaObject(
   param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
@@ -26,136 +20,133 @@ function isOneOfOrAnyOfObject(
   return "oneOf" in param || "anyOf" in param;
 }
 
-function filterNonStringEnumValues(entry: unknown): entry is string {
-  return typeof entry === "string";
-}
-
-function generateTsTypeWithNullable(type: TypeNode, nullable?: boolean) {
-  return nullable
-    ? ts.factory.createUnionTypeNode([
-        type,
-        ts.factory.createLiteralTypeNode(ts.factory.createNull()),
-      ])
-    : type;
-}
-
 function schemaObjectTypeToArrayType(
-  item: OpenAPIV3.SchemaObject,
-  nullable?: boolean,
-  arrayType?:
-    | OpenAPIV3.NonArraySchemaObjectType
-    | OpenAPIV3.ArraySchemaObjectType
-): TypeNode {
-  if (
-    arrayType === "array" &&
-    isArraySchemaObject(item) &&
-    isPropertyTypeObject(item.items)
-  ) {
-    return ts.factory.createArrayTypeNode(
-      schemaObjectTypeToArrayType(
-        item.items,
-        item.items.nullable,
-        item.items.type
-      )
-    );
-  } else {
-    return generateTsTypeWithNullable(
-      ts.factory.createArrayTypeNode(schemaObjectTypeToTS(arrayType)),
-      nullable
-    );
-  }
+  item: OpenAPIV3.NonArraySchemaObject
+): ts.TypeNode {
+  return appendNullToUnion(nonArraySchemaObjectTypeToTs(item), item.nullable);
 }
 
 function schemaObjectTypeToEnumType(enumValues: string[], nullable?: boolean) {
-  const enums = enumValues
-    .filter(filterNonStringEnumValues)
-    .map((value) =>
-      ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(value))
-    );
+  const enums = enumValues.map((value) =>
+    ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(value))
+  );
 
-  return generateTsTypeWithNullable(
-    ts.factory.createUnionTypeNode(enums),
+  return appendNullToUnion(
+    ts.factory.createUnionTypeNode(/*types*/ enums),
     nullable
   );
 }
 
-function schemaObjectTypeToTS(
-  objectType?:
-    | OpenAPIV3.NonArraySchemaObjectType
-    | OpenAPIV3.ArraySchemaObjectType,
-  nullable?: boolean
-): TypeNode {
-  switch (objectType) {
-    case "string":
-      return generateTsTypeWithNullable(
+function nonArraySchemaObjectTypeToTs(
+  item: OpenAPIV3.NonArraySchemaObject
+): ts.TypeNode {
+  switch (item.type) {
+    case "string": {
+      if (item.enum) {
+        return schemaObjectTypeToEnumType(item.enum, item.nullable);
+      }
+      return appendNullToUnion(
         ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
-        nullable
+        item.nullable
       );
+    }
     case "integer":
     case "number":
-      return generateTsTypeWithNullable(
+      return appendNullToUnion(
         ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
-        nullable
+        item.nullable
       );
     case "boolean":
-      return generateTsTypeWithNullable(
+      return appendNullToUnion(
         ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword),
-        nullable
+        item.nullable
       );
-    case "object":
-      return generateTsTypeWithNullable(
-        ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
-        nullable
+    case "object": {
+      return appendNullToUnion(
+        createLiteralNodeFromProperties(item),
+        item.nullable
       );
+    }
     default:
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
   }
 }
 
-function makeType(
-  properties: {
-    [name: string]: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject;
-  },
-  required: string[]
-): PropertySignature[] {
-  return Object.keys(properties).map((key) => {
-    const item = properties[key];
-    const isRequired = required.includes(key);
-    let type;
-
-    if (isPropertyTypeObject(item) && !isArraySchemaObject(item)) {
-      type = item.enum
-        ? schemaObjectTypeToEnumType(item.enum, item.nullable)
-        : schemaObjectTypeToTS(item.type, item.nullable);
-    } else if (isArraySchemaObject(item) && isPropertyTypeObject(item.items)) {
-      const arrayType = item.items.type;
-      type = schemaObjectTypeToArrayType(item.items, item.nullable, arrayType);
-    } else if (isReferenceObject(item)) {
-      type = ts.factory.createTypeReferenceNode(refToTypeName(item.$ref));
-    } else {
-      type = generateProperties(item);
-    }
-
-    return ts.factory.createPropertySignature(
-      /*modifiers*/ undefined,
-      /*name*/ ts.factory.createIdentifier(key),
-      /*questionTOken*/ isRequired
-        ? undefined
-        : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-      /*type*/ type
+function resolveArray(item: OpenAPIV3.ArraySchemaObject): ts.TypeNode {
+  if (isReferenceObject(item.items)) {
+    return appendNullToUnion(
+      ts.factory.createArrayTypeNode(createTypeRefFromRef(item.items)),
+      item.nullable
     );
-  });
+  }
+
+  if (item.items.properties) {
+    return ts.factory.createArrayTypeNode(
+      createLiteralNodeFromProperties(item.items)
+    );
+  }
+
+  return ts.factory.createArrayTypeNode(
+    isArraySchemaObject(item.items)
+      ? resolveArray(item.items)
+      : schemaObjectTypeToArrayType(item.items)
+  );
 }
 
-function generateProperties(
-  item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
-): TypeNode {
+function resolveType(item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject) {
+  if (isReferenceObject(item)) {
+    return ts.factory.createTypeReferenceNode(refToTypeName(item.$ref));
+  }
+
+  if (isArraySchemaObject(item)) {
+    return resolveArray(item);
+  }
+
+  return item.type
+    ? nonArraySchemaObjectTypeToTs(item)
+    : createTypeAliasDeclarationType(item);
+}
+
+function createPropertySignature(
+  item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
+  name: string,
+  required: boolean
+) {
+  return ts.factory.createPropertySignature(
+    /*modifiers*/ undefined,
+    /*name*/ ts.factory.createIdentifier(name),
+    /*questionToken*/ required
+      ? undefined
+      : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+    /*type*/ resolveType(item)
+  );
+}
+
+function createPropertySignatures(
+  item: OpenAPIV3.SchemaObject
+): ts.PropertySignature[] {
+  if (!item.properties) {
+    return [];
+  }
+
+  return Object.entries(item.properties).map(([name, prop]) =>
+    createPropertySignature(prop, name, item.required?.includes(name) ?? false)
+  );
+}
+
+function createTypeRefFromRef(item: OpenAPIV3.ReferenceObject) {
+  return ts.factory.createTypeReferenceNode(refToTypeName(item.$ref));
+}
+
+function createTypeAliasDeclarationTypeWithSchemaObject(
+  item: OpenAPIV3.SchemaObject
+): ts.TypeNode {
   if (isAllOfObject(item) && item.allOf) {
     return ts.factory.createIntersectionTypeNode(
       item.allOf.map((allOfItem) =>
         isReferenceObject(allOfItem)
-          ? ts.factory.createTypeReferenceNode(refToTypeName(allOfItem.$ref))
-          : generateProperties(allOfItem)
+          ? createTypeRefFromRef(allOfItem)
+          : createTypeAliasDeclarationTypeWithSchemaObject(allOfItem)
       )
     );
   }
@@ -166,56 +157,65 @@ function generateProperties(
       return ts.factory.createUnionTypeNode(
         items.map((oneOrAnyItem) =>
           isReferenceObject(oneOrAnyItem)
-            ? ts.factory.createTypeReferenceNode(
-                refToTypeName(oneOrAnyItem.$ref)
-              )
-            : generateProperties(oneOrAnyItem)
+            ? createTypeRefFromRef(oneOrAnyItem)
+            : createTypeAliasDeclarationTypeWithSchemaObject(oneOrAnyItem)
         )
       );
     }
   }
 
-  if (isArraySchemaObject(item) && isReferenceObject(item.items)) {
-    const typeName = refToTypeName(item.items.$ref);
+  if (isArraySchemaObject(item)) {
     return ts.factory.createArrayTypeNode(
-      ts.factory.createTypeReferenceNode(typeName)
+      isReferenceObject(item.items)
+        ? createTypeRefFromRef(item.items)
+        : createLiteralNodeFromProperties(item.items)
     );
   }
 
-  if (
-    isArraySchemaObject(item) &&
-    !isReferenceObject(item.items) &&
-    item.items.properties
-  ) {
-    return ts.factory.createArrayTypeNode(
-      ts.factory.createTypeLiteralNode(
-        makeType(item.items.properties, item.items.required ?? [])
+  if (item.properties) {
+    return createLiteralNodeFromProperties(item);
+  }
+
+  return nonArraySchemaObjectTypeToTs(item);
+}
+
+function appendNullToUnion(type: ts.TypeNode, nullable?: boolean) {
+  return nullable
+    ? ts.factory.createUnionTypeNode(
+        /*types*/ [
+          type,
+          ts.factory.createLiteralTypeNode(ts.factory.createNull()),
+        ]
       )
-    );
-  }
+    : type;
+}
 
-  if (!isReferenceObject(item)) {
-    return ts.factory.createTypeLiteralNode(
-      makeType(item.properties ?? {}, item.required ?? [])
-    );
-  }
+export function createLiteralNodeFromProperties(item: OpenAPIV3.SchemaObject) {
+  return ts.factory.createTypeLiteralNode(createPropertySignatures(item));
+}
 
-  return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+function createTypeAliasDeclarationType(
+  item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
+): ts.TypeNode {
+  return isReferenceObject(item)
+    ? createTypeRefFromRef(item)
+    : createTypeAliasDeclarationTypeWithSchemaObject(item);
 }
 
 export function makeTypes(doc: OpenAPIV3.Document) {
   const schemas = doc.components?.schemas;
-  if (schemas) {
-    return Object.entries(schemas).map(([typeName, item]) => {
-      return ts.factory.createTypeAliasDeclaration(
-        /*decorators*/ undefined,
-        /*modifiers*/ [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-        /*name*/ ts.factory.createIdentifier(typeName),
-        /*typeParameters*/ undefined,
-        /*type*/ generateProperties(item)
-      );
-    });
+
+  if (!schemas) {
+    return [];
   }
 
-  return [];
+  return Object.entries(schemas).map(([schemaName, item]) => {
+    return ts.factory.createTypeAliasDeclaration(
+      /*decorators*/ undefined,
+      /*modifiers*/ [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+      /*name*/ ts.factory.createIdentifier(schemaName),
+      /*typeParameters*/ undefined,
+      /*type*/ createTypeAliasDeclarationType(item)
+    );
+  });
 }

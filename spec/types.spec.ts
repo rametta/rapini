@@ -20,7 +20,7 @@ export type Pet = {
     id: number;
     name: string;
     tag?: string | null;
-    petType?: "cat" | "doge";
+    petType?: ("cat" | "doge") | null;
     nicknames?: string[];
     random?: RandomThing;
 };
@@ -110,6 +110,7 @@ describe("makeTypes", () => {
               petType: {
                 type: "string",
                 enum: ["cat", "doge"],
+                nullable: true,
               },
               nicknames: {
                 type: "array",

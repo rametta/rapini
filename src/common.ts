@@ -1,5 +1,6 @@
 import ts from "typescript";
 import type { OpenAPIV3 } from "openapi-types";
+import { createLiteralNodeFromProperties } from "./types";
 
 export function toParamObjects(
   params: (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[]
@@ -13,12 +14,6 @@ export function isParameterObject(
   return "name" in param;
 }
 
-export function isSchemaObject(
-  param?: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-): param is OpenAPIV3.SchemaObject {
-  return param !== undefined && "type" in param;
-}
-
 export function isReferenceObject(
   item?: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
 ): item is OpenAPIV3.ReferenceObject {
@@ -30,15 +25,15 @@ const unknown = ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
 export function schemaObjectOrRefType(
   schema?: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 ): { node: ts.TypeNode; id: string } {
-  if (isSchemaObject(schema)) {
-    return schemaObjectType(schema);
+  if (!schema) {
+    return { node: unknown, id: "unknown" };
   }
 
   if (isReferenceObject(schema)) {
     return referenceType(schema);
   }
 
-  return { node: unknown, id: "unknown" };
+  return schemaObjectType(schema);
 }
 
 function schemaObjectType(
@@ -72,12 +67,10 @@ function primitiveType(
 }
 
 function objectType(
-  objectSchemaObject: OpenAPIV3.NonArraySchemaObject
+  item: OpenAPIV3.NonArraySchemaObject
 ): ReturnType<typeof schemaObjectOrRefType> {
-  // TODO: This type is not correct, just a placeholder. Never use `any`
-  // Replace with something defined in types.ts
   return {
-    node: ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
+    node: createLiteralNodeFromProperties(item),
     id: "object", // stringify type maybe here
   };
 }
