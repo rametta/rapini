@@ -2,12 +2,6 @@ import { OpenAPIV3 } from "openapi-types";
 import ts, { PropertySignature, TypeNode } from "typescript";
 import { isReferenceObject, refToTypeName } from "./common";
 
-function isSchemaObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-): param is OpenAPIV3.BaseSchemaObject {
-  return "properties" in param;
-}
-
 function isPropertyTypeObject(
   param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
 ): param is OpenAPIV3.SchemaObject {
@@ -190,7 +184,7 @@ function generateProperties(
 
   if (
     isArraySchemaObject(item) &&
-    isSchemaObject(item.items) &&
+    !isReferenceObject(item.items) &&
     item.items.properties
   ) {
     return ts.factory.createArrayTypeNode(
@@ -200,7 +194,7 @@ function generateProperties(
     );
   }
 
-  if (isSchemaObject(item)) {
+  if (!isReferenceObject(item)) {
     return ts.factory.createTypeLiteralNode(
       makeType(item.properties ?? {}, item.required ?? [])
     );
