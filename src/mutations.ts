@@ -305,7 +305,7 @@ function makeProperty(
     ),
     config: ts.factory.createPropertySignature(
       undefined,
-      ts.factory.createIdentifier("useCreatePets"),
+      ts.factory.createIdentifier(identifier),
       undefined,
       ts.factory.createFunctionTypeNode(
         undefined,
@@ -356,30 +356,36 @@ function makeProperty(
                   ]
                 ),
                 ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
-                ts.factory.createIndexedAccessTypeNode(
-                  ts.factory.createTypeReferenceNode(
-                    ts.factory.createIdentifier("Parameters"),
-                    [
-                      ts.factory.createIndexedAccessTypeNode(
-                        ts.factory.createTypeReferenceNode(
-                          ts.factory.createIdentifier("ReturnType"),
-                          [
-                            ts.factory.createTypeQueryNode(
-                              ts.factory.createIdentifier("makeRequests"),
-                              undefined
+                hasRequestBody
+                  ? ts.factory.createIndexedAccessTypeNode(
+                      ts.factory.createTypeReferenceNode(
+                        ts.factory.createIdentifier("Parameters"),
+                        [
+                          ts.factory.createIndexedAccessTypeNode(
+                            ts.factory.createTypeReferenceNode(
+                              ts.factory.createIdentifier("ReturnType"),
+                              [
+                                ts.factory.createTypeQueryNode(
+                                  ts.factory.createIdentifier("makeRequests"),
+                                  undefined
+                                ),
+                              ]
                             ),
-                          ]
-                        ),
-                        ts.factory.createLiteralTypeNode(
-                          ts.factory.createStringLiteral(normalizedOperationId)
-                        )
+                            ts.factory.createLiteralTypeNode(
+                              ts.factory.createStringLiteral(
+                                normalizedOperationId
+                              )
+                            )
+                          ),
+                        ]
                       ),
-                    ]
-                  ),
-                  ts.factory.createLiteralTypeNode(
-                    ts.factory.createNumericLiteral("0")
-                  )
-                ),
+                      ts.factory.createLiteralTypeNode(
+                        ts.factory.createNumericLiteral("0")
+                      )
+                    )
+                  : ts.factory.createKeywordTypeNode(
+                      ts.SyntaxKind.UnknownKeyword
+                    ),
                 ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
               ]
             ),
