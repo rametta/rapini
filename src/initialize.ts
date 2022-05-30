@@ -68,7 +68,14 @@ export function makeInitialize() {
           /*initializer*/ ts.factory.createCallExpression(
             /*expression*/ ts.factory.createIdentifier("makeMutations"),
             /*typeArgs*/ undefined,
-            /*args*/ [ts.factory.createIdentifier("requests")]
+            /*args*/ [
+              ts.factory.createIdentifier("requests"),
+              ts.factory.createPropertyAccessChain(
+                ts.factory.createIdentifier("config"),
+                ts.factory.createToken(ts.SyntaxKind.QuestionDotToken),
+                ts.factory.createIdentifier("mutations")
+              ),
+            ]
           )
         ),
       ],
@@ -82,7 +89,7 @@ export function makeInitialize() {
     returnStatement,
   ];
 
-  const parameter = ts.factory.createParameterDeclaration(
+  const axiosParameter = ts.factory.createParameterDeclaration(
     /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*dotDotDotToken*/ undefined,
@@ -95,13 +102,26 @@ export function makeInitialize() {
     /*initilizer*/ undefined
   );
 
+  const configParameter = ts.factory.createParameterDeclaration(
+    /*decorators*/ undefined,
+    /*modifiers*/ undefined,
+    /*dotDotDotToken*/ undefined,
+    /*name*/ ts.factory.createIdentifier("config"),
+    /*questionToken*/ ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+    /*type*/ ts.factory.createTypeReferenceNode(
+      /*typeName*/ ts.factory.createIdentifier("Config"),
+      /*typeArgs*/ undefined
+    ),
+    /*initilizer*/ undefined
+  );
+
   return ts.factory.createFunctionDeclaration(
     /*decorators*/ undefined,
     /*modifiers*/ [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
     /*asteriskToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("initialize"),
     /*typeParameters*/ undefined,
-    /*parameters*/ [parameter],
+    /*parameters*/ [axiosParameter, configParameter],
     /*returnType*/ undefined,
     /*body*/ ts.factory.createBlock(bodyStatements, /*multiline*/ true)
   );

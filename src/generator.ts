@@ -9,6 +9,8 @@ import { makeQueries } from "./queries";
 import { makeInitialize } from "./initialize";
 import { makeMutations } from "./mutations";
 import { makeTypes } from "./types";
+import { makeRapiniMutation } from "./rapini-mutation";
+import { makeConfigType } from "./config";
 import { CLIOptions } from "./cli";
 
 function isOpenApiV3Document(doc: OpenAPI.Document): doc is OpenAPIV3.Document {
@@ -46,11 +48,13 @@ function makeSourceFile(data: ReturnType<typeof parse>) {
     /*statements*/ [
       ...makeImports(),
       ...data.types,
+      makeConfigType(),
       makeInitialize(),
+      makeRapiniMutation(),
       data.queryIds,
       data.requests,
       data.queries,
-      data.mutations,
+      ...data.mutations,
     ],
     /*endOfFileToken*/ ts.factory.createToken(ts.SyntaxKind.EndOfFileToken),
     /*flags*/ ts.NodeFlags.None
