@@ -32,38 +32,68 @@ export function makeMutations(
     /*initializer*/ undefined
   );
 
-  return ts.factory.createFunctionDeclaration(
+  const configParam = ts.factory.createParameterDeclaration(
     /*decorators*/ undefined,
     /*modifiers*/ undefined,
-    /*asteriskToken*/ undefined,
-    /*name*/ ts.factory.createIdentifier("makeMutations"),
-    /*typeParameters*/ undefined,
-    /*parameters*/ [requestsParam],
-    /*type*/ undefined,
-    /*body*/ ts.factory.createBlock(
-      [
-        ts.factory.createReturnStatement(
-          ts.factory.createAsExpression(
-            /*expression*/ ts.factory.createObjectLiteralExpression(
-              properties,
-              /*multiline*/ true
-            ),
-            /*type*/ ts.factory.createTypeReferenceNode(
-              /*typeName*/ ts.factory.createIdentifier("const"),
-              /*typeArgs*/ undefined
-            )
-          )
-        ),
-      ],
-      /*multiline*/ true
-    )
+    /*dotDotDotToken*/ undefined,
+    /*name*/ ts.factory.createIdentifier("config"),
+    /*questionToken*/ ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+    /*type*/ ts.factory.createIndexedAccessTypeNode(
+      /*objectType*/ ts.factory.createTypeReferenceNode(
+        /*typeName*/ ts.factory.createIdentifier("Config"),
+        /*typeArgs*/ undefined
+      ),
+      /*indexType*/ ts.factory.createLiteralTypeNode(
+        ts.factory.createStringLiteral("mutations")
+      )
+    ),
+    /*initializer*/ undefined
   );
+
+  return [
+    ts.factory.createTypeAliasDeclaration(
+      /*decorators*/ undefined,
+      /*modifiers*/ undefined,
+      /*name*/ ts.factory.createIdentifier("MutationConfigs"),
+      /*typeParameters*/ undefined,
+      /*type*/ ts.factory.createTypeLiteralNode(properties.map((p) => p.config))
+    ),
+    ts.factory.createFunctionDeclaration(
+      /*decorators*/ undefined,
+      /*modifiers*/ undefined,
+      /*asteriskToken*/ undefined,
+      /*name*/ ts.factory.createIdentifier("makeMutations"),
+      /*typeParameters*/ undefined,
+      /*parameters*/ [requestsParam, configParam],
+      /*type*/ undefined,
+      /*body*/ ts.factory.createBlock(
+        [
+          ts.factory.createReturnStatement(
+            ts.factory.createAsExpression(
+              /*expression*/ ts.factory.createObjectLiteralExpression(
+                properties.map((p) => p.property),
+                /*multiline*/ true
+              ),
+              /*type*/ ts.factory.createTypeReferenceNode(
+                /*typeName*/ ts.factory.createIdentifier("const"),
+                /*typeArgs*/ undefined
+              )
+            )
+          ),
+        ],
+        /*multiline*/ true
+      )
+    ),
+  ];
 }
 
 // Every path can have multiple mutations, like POST/PUT/PATCH/DELETE etc
 // And if there's a GET too then we should invalidate that cache
 function makeProperties(pattern: string, path: OpenAPIV3.PathItemObject) {
-  const properties: ts.PropertyAssignment[] = [];
+  const properties: {
+    property: ts.PropertyAssignment;
+    config: ts.TypeElement;
+  }[] = [];
 
   if (path.post) {
     properties.push(makeProperty(pattern, path.post, "post"));
@@ -156,7 +186,7 @@ function makeProperty(
   pattern: string,
   operation: OpenAPIV3.OperationObject,
   method: string
-) {
+): { property: ts.PropertyAssignment; config: ts.TypeElement } {
   const operationId = operation.operationId;
   if (!operationId) {
     throw `Missing "operationId" from "${method}" request with pattern ${pattern}`;
@@ -169,7 +199,7 @@ function makeProperty(
   const hasRequestBody = !!operation.requestBody;
 
   const body = /*expression*/ ts.factory.createCallExpression(
-    /*expression*/ ts.factory.createIdentifier("useMutation"),
+    /*expression*/ ts.factory.createIdentifier("useRapiniMutation"),
     /*typeArguments*/ [
       ts.factory.createTypeReferenceNode(
         /*typeName*/ ts.factory.createIdentifier("Awaited"),
@@ -245,24 +275,128 @@ function makeProperty(
             : params.map((p) => p.name)
         )
       ),
+      ts.factory.createPropertyAccessChain(
+        /*expression*/ ts.factory.createIdentifier("config"),
+        /*questionDotToken*/ ts.factory.createToken(
+          ts.SyntaxKind.QuestionDotToken
+        ),
+        /*name*/ ts.factory.createIdentifier(identifier)
+      ),
       ts.factory.createIdentifier("options"),
     ]
   );
 
-  return ts.factory.createPropertyAssignment(
-    /*name*/ ts.factory.createIdentifier(identifier),
-    /*initializer*/ ts.factory.createArrowFunction(
-      /*modifiers*/ undefined,
-      /*typeParameters*/ undefined,
-      /*parameters*/ [
-        ...params.map((p) => p.arrowFuncParam),
-        optionsParameterDeclaration(normalizedOperationId, hasRequestBody),
-      ],
-      /*type*/ undefined,
-      /*equalsGreaterThanToken*/ ts.factory.createToken(
-        ts.SyntaxKind.EqualsGreaterThanToken
-      ),
-      /*body*/ body
-    )
-  );
+  return {
+    property: ts.factory.createPropertyAssignment(
+      /*name*/ ts.factory.createIdentifier(identifier),
+      /*initializer*/ ts.factory.createArrowFunction(
+        /*modifiers*/ undefined,
+        /*typeParameters*/ undefined,
+        /*parameters*/ [
+          ...params.map((p) => p.arrowFuncParam),
+          optionsParameterDeclaration(normalizedOperationId, hasRequestBody),
+        ],
+        /*type*/ undefined,
+        /*equalsGreaterThanToken*/ ts.factory.createToken(
+          ts.SyntaxKind.EqualsGreaterThanToken
+        ),
+        /*body*/ body
+      )
+    ),
+    config: ts.factory.createPropertySignature(
+      undefined,
+      ts.factory.createIdentifier("useCreatePets"),
+      undefined,
+      ts.factory.createFunctionTypeNode(
+        undefined,
+        [
+          ts.factory.createParameterDeclaration(
+            undefined,
+            undefined,
+            undefined,
+            ts.factory.createIdentifier("queryClient"),
+            undefined,
+            ts.factory.createTypeReferenceNode(
+              ts.factory.createIdentifier("QueryClient"),
+              undefined
+            ),
+            undefined
+          ),
+        ],
+        ts.factory.createTypeReferenceNode(
+          ts.factory.createIdentifier("Pick"),
+          [
+            ts.factory.createTypeReferenceNode(
+              ts.factory.createIdentifier("UseMutationOptions"),
+              [
+                ts.factory.createTypeReferenceNode(
+                  ts.factory.createIdentifier("Awaited"),
+                  [
+                    ts.factory.createTypeReferenceNode(
+                      ts.factory.createIdentifier("ReturnType"),
+                      [
+                        ts.factory.createIndexedAccessTypeNode(
+                          ts.factory.createTypeReferenceNode(
+                            ts.factory.createIdentifier("ReturnType"),
+                            [
+                              ts.factory.createTypeQueryNode(
+                                ts.factory.createIdentifier("makeRequests"),
+                                undefined
+                              ),
+                            ]
+                          ),
+                          ts.factory.createLiteralTypeNode(
+                            ts.factory.createStringLiteral(
+                              normalizedOperationId
+                            )
+                          )
+                        ),
+                      ]
+                    ),
+                  ]
+                ),
+                ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+                ts.factory.createIndexedAccessTypeNode(
+                  ts.factory.createTypeReferenceNode(
+                    ts.factory.createIdentifier("Parameters"),
+                    [
+                      ts.factory.createIndexedAccessTypeNode(
+                        ts.factory.createTypeReferenceNode(
+                          ts.factory.createIdentifier("ReturnType"),
+                          [
+                            ts.factory.createTypeQueryNode(
+                              ts.factory.createIdentifier("makeRequests"),
+                              undefined
+                            ),
+                          ]
+                        ),
+                        ts.factory.createLiteralTypeNode(
+                          ts.factory.createStringLiteral(normalizedOperationId)
+                        )
+                      ),
+                    ]
+                  ),
+                  ts.factory.createLiteralTypeNode(
+                    ts.factory.createNumericLiteral("0")
+                  )
+                ),
+                ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+              ]
+            ),
+            ts.factory.createUnionTypeNode([
+              ts.factory.createLiteralTypeNode(
+                ts.factory.createStringLiteral("onSuccess")
+              ),
+              ts.factory.createLiteralTypeNode(
+                ts.factory.createStringLiteral("onSettled")
+              ),
+              ts.factory.createLiteralTypeNode(
+                ts.factory.createStringLiteral("onError")
+              ),
+            ]),
+          ]
+        )
+      )
+    ),
+  };
 }

@@ -76,11 +76,31 @@ const MyComponent = () => {
 You must call `initialize(axiosInstance)` with your custom axios instance. The return value from the `initialize` will give you an object with everything you need, here is the return value with examples:
 
 ```ts
-const config = initialize(axiosInstance);
-config.queries; // { usePets, usePetById } ...
-config.mutations; // { useUpdatePet, useDeletePet } ...
-config.queryIds; // { pets: () => ['pets'] } ...
-config.requests; // { pets: () => axios.get<Pet[]>(...) } ...
+const rapini = initialize(axiosInstance);
+rapini.queries; // { usePets, usePetById } ...
+rapini.mutations; // { useUpdatePet, useDeletePet } ...
+rapini.queryIds; // { pets: () => ['pets'] } ...
+rapini.requests; // { pets: () => axios.get<Pet[]>(...) } ...
+```
+
+### With Global Config
+
+There may be times when you want extra functionality hooked into each hook's callbacks. You can do this normally by passing `options` to each hook, but if you want something more global - a config can be provided to the `initialize` function.
+
+```ts
+import { initialize, type Config } from "your-custom-package";
+import type { QueryClient } from "react-query";
+
+const config: Config = {
+  mutations: {
+    useCreatePet: (queryClient: QueryClient) => ({
+      onSuccess: () => showSuccessNotification(),
+      onError: () => showErrorNotification(),
+    }),
+  },
+};
+
+const rapini = initialize(axiosInstance, config);
 ```
 
 ## Important Notes

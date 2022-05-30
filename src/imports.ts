@@ -36,6 +36,16 @@ function makeImportReactQueryDeclartion() {
         /*name*/ ts.factory.createIdentifier("useMutation")
       ),
       ts.factory.createImportSpecifier(
+        /*typeOnly*/ false,
+        /*propertyName*/ undefined,
+        /*name*/ ts.factory.createIdentifier("useQueryClient")
+      ),
+      ts.factory.createImportSpecifier(
+        /*typeOnly*/ true,
+        /*propertyName*/ undefined,
+        /*name*/ ts.factory.createIdentifier("QueryClient")
+      ),
+      ts.factory.createImportSpecifier(
         /*typeOnly*/ true,
         /*propertyName*/ undefined,
         /*name*/ ts.factory.createIdentifier("UseMutationOptions")
@@ -44,6 +54,16 @@ function makeImportReactQueryDeclartion() {
         /*typeOnly*/ true,
         /*propertyName*/ undefined,
         /*name*/ ts.factory.createIdentifier("UseQueryOptions")
+      ),
+      ts.factory.createImportSpecifier(
+        /*typeOnly*/ true,
+        /*propertyName*/ undefined,
+        /*name*/ ts.factory.createIdentifier("MutationFunction")
+      ),
+      ts.factory.createImportSpecifier(
+        /*typeOnly*/ true,
+        /*propertyName*/ undefined,
+        /*name*/ ts.factory.createIdentifier("UseMutationResult")
       ),
     ])
   );
