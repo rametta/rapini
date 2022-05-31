@@ -18,9 +18,9 @@ function printPackageJson(options: CLIOptions) {
     "scripts": {
       "build": "tsc index.ts --declaration --skipLibCheck --outDir dist"
     },
-    "dependencies": {
-      "axios": "^0.27.2",
-      "react-query": "^3.39.0"
+    "peerDependencies": {
+      "axios": "0.27.x",
+      "react-query": "3.x.x"
     },
     "devDependencies": {
       "@types/node": "^17.0.34",
