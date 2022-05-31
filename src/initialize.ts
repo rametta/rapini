@@ -33,7 +33,16 @@ export function makeInitialize() {
           /*initializer*/ ts.factory.createCallExpression(
             /*expression*/ ts.factory.createIdentifier("makeRequests"),
             /*typeArgs*/ undefined,
-            /*args*/ [axios]
+            /*args*/ [
+              axios,
+              ts.factory.createPropertyAccessChain(
+                /*expression*/ ts.factory.createIdentifier("config"),
+                /*questionDotToken*/ ts.factory.createToken(
+                  ts.SyntaxKind.QuestionDotToken
+                ),
+                /*name*/ ts.factory.createIdentifier("axios")
+              ),
+            ]
           )
         ),
       ],

@@ -58,6 +58,18 @@ function makeRequestsDeclaration(
         ),
         /*initializer*/ undefined
       ),
+      ts.factory.createParameterDeclaration(
+        /*decorators*/ undefined,
+        /*modifiers*/ undefined,
+        /*dotDotDotToken*/ undefined,
+        /*name*/ ts.factory.createIdentifier("config"),
+        /*questionToken*/ ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+        /*type*/ ts.factory.createTypeReferenceNode(
+          /*typeName*/ ts.factory.createIdentifier("AxiosConfig"),
+          /*typeArguments*/ undefined
+        ),
+        /*initializer*/ undefined
+      ),
     ],
     /*type*/ undefined,
     /*body*/ ts.factory.createBlock(bodyStatements, /*multiline*/ true)
@@ -308,6 +320,16 @@ function makeRequest(
         /*initializer*/ ts.factory.createObjectLiteralExpression(
           /*properties*/ queryParamProperties,
           /*multiline*/ true
+        )
+      ),
+      ts.factory.createPropertyAssignment(
+        /*name*/ ts.factory.createIdentifier("paramsSerializer"),
+        /*initializer*/ ts.factory.createPropertyAccessChain(
+          /*expression*/ ts.factory.createIdentifier("config"),
+          /*questionDotToken*/ ts.factory.createToken(
+            ts.SyntaxKind.QuestionDotToken
+          ),
+          /*name*/ ts.factory.createIdentifier("paramsSerializer")
         )
       )
     );

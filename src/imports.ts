@@ -13,6 +13,11 @@ function makeImportAxiosInstanceTypeDeclaration() {
           /*propertyName*/ undefined,
           /*name*/ ts.factory.createIdentifier("AxiosInstance")
         ),
+        ts.factory.createImportSpecifier(
+          /*isTypeOnly*/ false,
+          /*propertyName*/ undefined,
+          /*name*/ ts.factory.createIdentifier("AxiosRequestConfig")
+        ),
       ])
     ),
     /*moduleSpecifier*/ ts.factory.createStringLiteral("axios"),

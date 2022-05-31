@@ -10,7 +10,7 @@ import { makeInitialize } from "./initialize";
 import { makeMutations } from "./mutations";
 import { makeTypes } from "./types";
 import { makeRapiniMutation } from "./rapini-mutation";
-import { makeConfigType } from "./config";
+import { makeConfigTypes } from "./config";
 import { CLIOptions } from "./cli";
 
 function isOpenApiV3Document(doc: OpenAPI.Document): doc is OpenAPIV3.Document {
@@ -48,7 +48,7 @@ function makeSourceFile(data: ReturnType<typeof parse>) {
     /*statements*/ [
       ...makeImports(),
       ...data.types,
-      makeConfigType(),
+      ...makeConfigTypes(),
       makeInitialize(),
       makeRapiniMutation(),
       data.queryIds,

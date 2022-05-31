@@ -1,8 +1,8 @@
 import { makeImports } from "../src/imports";
 import { compile } from "./test.utils";
 
-const expected = `import type { AxiosInstance } from "axios";
-import { useQuery, useMutation, type UseMutationOptions, type UseQueryOptions } from "react-query";
+const expected = `import type { AxiosInstance, AxiosRequestConfig } from "axios";
+import { useQuery, useMutation, useQueryClient, type QueryClient, type UseMutationOptions, type UseQueryOptions, type MutationFunction, type UseMutationResult } from "react-query";
 `;
 
 describe("makeImports", () => {
