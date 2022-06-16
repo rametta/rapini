@@ -153,6 +153,7 @@ export function createParams(item: OpenAPIV3.OperationObject) {
   return paramObjects
     .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
     .map((param) => ({
+      required: param.required ?? false,
       name: ts.factory.createIdentifier(param.name),
       arrowFuncParam: ts.factory.createParameterDeclaration(
         /*decorators*/ undefined,

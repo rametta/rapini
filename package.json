@@ -1,6 +1,6 @@
 {
   "name": "rapini",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Generate React Query hooks, Axios requests and Typescript types from OpenAPI files",
   "bin": "dist/cli.js",
   "scripts": {

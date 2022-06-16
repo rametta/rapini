@@ -306,7 +306,7 @@ function makeProperty(
     config: ts.factory.createPropertySignature(
       undefined,
       ts.factory.createIdentifier(identifier),
-      undefined,
+      ts.factory.createToken(ts.SyntaxKind.QuestionToken),
       ts.factory.createFunctionTypeNode(
         undefined,
         [

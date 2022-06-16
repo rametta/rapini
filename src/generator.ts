@@ -51,7 +51,7 @@ function makeSourceFile(data: ReturnType<typeof parse>) {
       ...makeConfigTypes(),
       makeInitialize(),
       makeRapiniMutation(),
-      data.queryIds,
+      ...data.queryIds,
       data.requests,
       data.queries,
       ...data.mutations,
