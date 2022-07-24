@@ -47,23 +47,68 @@ function schemaObjectType(
     return objectType(schema);
   }
 
-  return { node: primitiveType(schema.type), id: "unknown" };
+  return { node: nonArraySchemaObjectTypeToTs(schema), id: "unknown" };
 }
 
-function primitiveType(
-  type?: Omit<OpenAPIV3.NonArraySchemaObjectType, "object">
-) {
-  switch (type) {
-    case "string":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword);
+export function nonArraySchemaObjectTypeToTs(
+  item: OpenAPIV3.NonArraySchemaObject
+): ts.TypeNode {
+  if (!item.type) {
+    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+  }
+
+  switch (item.type) {
+    case "string": {
+      if (item.enum) {
+        return schemaObjectTypeToEnumType(item.enum, item.nullable);
+      }
+      return appendNullToUnion(
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+        item.nullable
+      );
+    }
     case "integer":
     case "number":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword);
+      return appendNullToUnion(
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
+        item.nullable
+      );
     case "boolean":
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword);
+      return appendNullToUnion(
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword),
+        item.nullable
+      );
+    case "object": {
+      return appendNullToUnion(
+        createLiteralNodeFromProperties(item),
+        item.nullable
+      );
+    }
     default:
-      return unknown;
+      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
   }
+}
+
+function schemaObjectTypeToEnumType(enumValues: string[], nullable?: boolean) {
+  const enums = enumValues.map((value) =>
+    ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(value))
+  );
+
+  return appendNullToUnion(
+    ts.factory.createUnionTypeNode(/*types*/ enums),
+    nullable
+  );
+}
+
+export function appendNullToUnion(type: ts.TypeNode, nullable?: boolean) {
+  return nullable
+    ? ts.factory.createUnionTypeNode(
+        /*types*/ [
+          type,
+          ts.factory.createLiteralTypeNode(ts.factory.createNull()),
+        ]
+      )
+    : type;
 }
 
 function objectType(
