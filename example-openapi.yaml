@@ -237,8 +237,8 @@ components:
       type: object
       additionalProperties:
         $ref: "#/components/schemas/User"
-    # MyDictionaryComplex ---> { [key: string]: { code: number; text: string } }
-    MyDictionaryComplex:
+    # MyDictionaryValue ---> { [key: string]: { code?: number; text?: string } }
+    MyDictionaryValue:
       type: object
       additionalProperties:
         type: object

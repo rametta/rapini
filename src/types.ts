@@ -40,6 +40,10 @@ function schemaObjectTypeToEnumType(enumValues: string[], nullable?: boolean) {
 function nonArraySchemaObjectTypeToTs(
   item: OpenAPIV3.NonArraySchemaObject
 ): ts.TypeNode {
+  if (!item.type) {
+    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+  }
+
   switch (item.type) {
     case "string": {
       if (item.enum) {
@@ -168,8 +172,12 @@ function createTypeAliasDeclarationTypeWithSchemaObject(
     return ts.factory.createArrayTypeNode(
       isReferenceObject(item.items)
         ? createTypeRefFromRef(item.items)
-        : createLiteralNodeFromProperties(item.items)
+        : createTypeAliasDeclarationTypeWithSchemaObject(item.items)
     );
+  }
+
+  if (item.additionalProperties) {
+    return createDictionaryType(item);
   }
 
   if (item.properties) {
@@ -192,6 +200,48 @@ function appendNullToUnion(type: ts.TypeNode, nullable?: boolean) {
 
 export function createLiteralNodeFromProperties(item: OpenAPIV3.SchemaObject) {
   return ts.factory.createTypeLiteralNode(createPropertySignatures(item));
+}
+
+function resolveAdditionalPropertiesType(
+  additionalProperties: OpenAPIV3.SchemaObject["additionalProperties"]
+) {
+  if (!additionalProperties) {
+    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+  }
+
+  if (typeof additionalProperties === "boolean") {
+    if (additionalProperties === true) {
+      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+    }
+
+    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+  }
+
+  return createTypeAliasDeclarationType(additionalProperties);
+}
+
+// Dictionaries look like: { [key: string]: any }
+function createDictionaryType(item: OpenAPIV3.SchemaObject) {
+  return ts.factory.createTypeLiteralNode([
+    ts.factory.createIndexSignature(
+      /*decorators*/ undefined,
+      /*modifiers*/ undefined,
+      /*params*/ [
+        ts.factory.createParameterDeclaration(
+          /*decorators*/ undefined,
+          /*modifiers*/ undefined,
+          /*dotDotDotToken*/ undefined,
+          /*name*/ ts.factory.createIdentifier("key"),
+          /*questionToken*/ undefined,
+          /*type*/ ts.factory.createKeywordTypeNode(
+            ts.SyntaxKind.StringKeyword
+          ),
+          /*initializer*/ undefined
+        ),
+      ],
+      /*type*/ resolveAdditionalPropertiesType(item.additionalProperties)
+    ),
+  ]);
 }
 
 function createTypeAliasDeclarationType(
