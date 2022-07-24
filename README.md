@@ -1,5 +1,6 @@
 [![npm](https://img.shields.io/npm/v/rapini.svg)](http://npm.im/rapini)
 [![License](https://img.shields.io/github/license/rametta/rapini)](https://opensource.org/licenses/Apache-2.0)
+[![PR Test](https://github.com/rametta/rapini/actions/workflows/test.yml/badge.svg)](https://github.com/rametta/rapini/actions/workflows/test.yml)
 
 # :leafy_green: Rapini - OpenAPI to React Query & Axios
 
