@@ -216,3 +216,34 @@ components:
         username:
           type: string
           description: The user name.
+    # MyDictionary ---> { [key: string]: string }
+    MyDictionary:
+      type: object
+      additionalProperties:
+        type: string
+    # MyDictionaryAny ---> { [key: string]: any }
+    MyDictionaryAny:
+      type: object
+      additionalProperties: true # can also be `additionalProperties: {}`
+    # MyDictionaryStringArray ---> { [key: string]: string[] }
+    MyDictionaryStringArray:
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          type: string
+    # MyDictionaryRef ---> { [key: string]: User }
+    MyDictionaryRef:
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/User"
+    # MyDictionaryValue ---> { [key: string]: { code?: number; text?: string } }
+    MyDictionaryValue:
+      type: object
+      additionalProperties:
+        type: object
+        properties:
+          code:
+            type: integer
+          text:
+            type: string

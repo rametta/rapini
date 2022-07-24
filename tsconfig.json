@@ -7,7 +7,8 @@
     "esModuleInterop": true,
     "noImplicitAny": true,
     "downlevelIteration": true,
+    "lib": ["ESNext"],
     "outDir": "dist"
   },
-  "files": ["src/cli.ts"]
+  "include": ["src/**/*.ts"]
 }

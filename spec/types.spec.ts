@@ -41,6 +41,27 @@ export type Error = {
     code: number;
     message: string;
 };
+export type MyDictionary = {
+    [key: string]: string;
+};
+export type MyDictionaryAny = {
+    [key: string]: any;
+};
+export type MyDictionaryAny2 = {
+    [key: string]: any;
+};
+export type MyDictionaryStringArray = {
+    [key: string]: string[];
+};
+export type MyDictionaryRef = {
+    [key: string]: Cat;
+};
+export type MyDictionaryValue = {
+    [key: string]: {
+        code?: number;
+        text?: string;
+    };
+};
 `;
 
 describe("makeTypes", () => {
@@ -199,6 +220,49 @@ describe("makeTypes", () => {
               },
               message: {
                 type: "string",
+              },
+            },
+          },
+          MyDictionary: {
+            type: "object",
+            additionalProperties: {
+              type: "string",
+            },
+          },
+          MyDictionaryAny: {
+            type: "object",
+            additionalProperties: true,
+          },
+          MyDictionaryAny2: {
+            type: "object",
+            additionalProperties: {},
+          },
+          MyDictionaryStringArray: {
+            type: "object",
+            additionalProperties: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+          },
+          MyDictionaryRef: {
+            type: "object",
+            additionalProperties: {
+              $ref: "#/components/schemas/Cat",
+            },
+          },
+          MyDictionaryValue: {
+            type: "object",
+            additionalProperties: {
+              type: "object",
+              properties: {
+                code: {
+                  type: "integer",
+                },
+                text: {
+                  type: "string",
+                },
               },
             },
           },
