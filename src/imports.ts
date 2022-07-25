@@ -70,6 +70,11 @@ function makeImportReactQueryDeclartion() {
         /*propertyName*/ undefined,
         /*name*/ ts.factory.createIdentifier("UseMutationResult")
       ),
+      ts.factory.createImportSpecifier(
+        /*typeOnly*/ true,
+        /*propertyName*/ undefined,
+        /*name*/ ts.factory.createIdentifier("UseQueryResult")
+      ),
     ])
   );
 
