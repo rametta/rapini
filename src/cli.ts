@@ -14,7 +14,7 @@ export type CLIOptions = {
 const program = new Command();
 
 program
-  .version("1.6.0")
+  .version("1.7.0")
   .description("Generate a package based on OpenAPI")
   .requiredOption("-p, --path <path>", "Path to OpenAPI file")
   .option(

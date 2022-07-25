@@ -62,6 +62,13 @@ export type MyDictionaryValue = {
         text?: string;
     };
 };
+export type MyDictionaryValueNested = {
+    field?: {
+        [key: string]: {
+            nested?: boolean;
+        };
+    };
+};
 `;
 
 describe("makeTypes", () => {
@@ -262,6 +269,22 @@ describe("makeTypes", () => {
                 },
                 text: {
                   type: "string",
+                },
+              },
+            },
+          },
+          MyDictionaryValueNested: {
+            type: "object",
+            properties: {
+              field: {
+                type: "object",
+                additionalProperties: {
+                  type: "object",
+                  properties: {
+                    nested: {
+                      type: "boolean",
+                    },
+                  },
                 },
               },
             },

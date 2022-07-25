@@ -1,11 +1,13 @@
 import ts from "typescript";
 
+export const RAPINI_MUTATION_ID = "useRapiniMutation";
+
 export function makeRapiniMutation() {
   return ts.factory.createFunctionDeclaration(
     undefined,
     undefined,
     undefined,
-    ts.factory.createIdentifier("useRapiniMutation"),
+    ts.factory.createIdentifier(RAPINI_MUTATION_ID),
     [
       ts.factory.createTypeParameterDeclaration(
         undefined,
@@ -305,7 +307,7 @@ export function makeRapiniMutation() {
                             undefined,
                             undefined,
                             ts.factory.createIdentifier("context"),
-                            undefined,
+                            ts.factory.createToken(ts.SyntaxKind.QuestionToken),
                             ts.factory.createTypeReferenceNode(
                               ts.factory.createIdentifier("TContext"),
                               undefined

@@ -1,6 +1,6 @@
 {
   "name": "rapini",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Generate React Query hooks, Axios requests and Typescript types from OpenAPI files",
   "bin": "dist/cli.js",
   "scripts": {
@@ -8,6 +8,7 @@
     "start": "chmod +x dist/cli.js && dist/cli.js -p example-openapi.yaml",
     "dev": "npm run build && npm run start",
     "test": "jest",
+    "test:watch": "jest --watch",
     "deploy": "npm run build && npm publish"
   },
   "author": "Jason Rametta",

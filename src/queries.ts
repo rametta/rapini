@@ -9,7 +9,7 @@ import {
 
 export function makeQueries(
   paths: OpenAPIV3.PathsObject,
-  $refs: SwaggerParser.$Refs
+  $refs?: SwaggerParser.$Refs
 ) {
   const properties = Object.entries(paths)
     .filter(([_, item]) => !!item?.get)
@@ -96,7 +96,29 @@ function makeProperty(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
         ...params.map((p) => p.arrowFuncParam),
         optionsParameterDeclaration(normalizedOperationId),
       ],
-      /*type*/ undefined,
+      /*type*/ ts.factory.createTypeReferenceNode(
+        ts.factory.createIdentifier("UseQueryResult"),
+        [
+          ts.factory.createTypeReferenceNode(
+            ts.factory.createIdentifier("Awaited"),
+            [
+              ts.factory.createTypeReferenceNode(
+                ts.factory.createIdentifier("ReturnType"),
+                [
+                  ts.factory.createTypeQueryNode(
+                    ts.factory.createQualifiedName(
+                      ts.factory.createIdentifier("requests"),
+                      ts.factory.createIdentifier(normalizedOperationId)
+                    ),
+                    undefined
+                  ),
+                ]
+              ),
+            ]
+          ),
+          ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+        ]
+      ),
       /*equalsGreaterThanToken*/ ts.factory.createToken(
         ts.SyntaxKind.EqualsGreaterThanToken
       ),
