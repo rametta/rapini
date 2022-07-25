@@ -9,7 +9,7 @@ import {
 
 export function makeQueries(
   paths: OpenAPIV3.PathsObject,
-  $refs: SwaggerParser.$Refs
+  $refs?: SwaggerParser.$Refs
 ) {
   const properties = Object.entries(paths)
     .filter(([_, item]) => !!item?.get)

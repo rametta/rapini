@@ -10,7 +10,7 @@ import { RAPINI_MUTATION_ID } from "./rapini-mutation";
 
 export function makeMutations(
   paths: OpenAPIV3.PathsObject,
-  $refs: SwaggerParser.$Refs
+  $refs?: SwaggerParser.$Refs
 ) {
   const properties = Object.entries(paths).flatMap(([pattern, path]) =>
     makeProperties(pattern, path!)
