@@ -2,29 +2,15 @@ import { OpenAPIV3 } from "openapi-types";
 import ts from "typescript";
 import {
   appendNullToUnion,
+  createDictionaryType,
+  createTypeRefFromRef,
+  isAllOfObject,
+  isArraySchemaObject,
+  isOneOfOrAnyOfObject,
   isReferenceObject,
   nonArraySchemaObjectTypeToTs,
-  refToTypeName,
   sanitizeTypeName,
 } from "./common";
-
-function isArraySchemaObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-): param is OpenAPIV3.ArraySchemaObject {
-  return "items" in param;
-}
-
-function isAllOfObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-): param is OpenAPIV3.SchemaObject {
-  return "allOf" in param;
-}
-
-function isOneOfOrAnyOfObject(
-  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
-): param is OpenAPIV3.SchemaObject {
-  return "oneOf" in param || "anyOf" in param;
-}
 
 function schemaObjectTypeToArrayType(
   item: OpenAPIV3.NonArraySchemaObject
@@ -55,7 +41,7 @@ function resolveArray(item: OpenAPIV3.ArraySchemaObject): ts.TypeNode {
 
 function resolveType(item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject) {
   if (isReferenceObject(item)) {
-    return ts.factory.createTypeReferenceNode(refToTypeName(item.$ref));
+    return createTypeRefFromRef(item);
   }
 
   if (isArraySchemaObject(item)) {
@@ -92,10 +78,6 @@ function createPropertySignatures(
   return Object.entries(item.properties).map(([name, prop]) =>
     createPropertySignature(prop, name, item.required?.includes(name) ?? false)
   );
-}
-
-function createTypeRefFromRef(item: OpenAPIV3.ReferenceObject) {
-  return ts.factory.createTypeReferenceNode(refToTypeName(item.$ref));
 }
 
 function createTypeAliasDeclarationTypeWithSchemaObject(
@@ -145,48 +127,6 @@ function createTypeAliasDeclarationTypeWithSchemaObject(
 
 export function createLiteralNodeFromProperties(item: OpenAPIV3.SchemaObject) {
   return ts.factory.createTypeLiteralNode(createPropertySignatures(item));
-}
-
-function resolveAdditionalPropertiesType(
-  additionalProperties: OpenAPIV3.SchemaObject["additionalProperties"]
-) {
-  if (!additionalProperties) {
-    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
-  }
-
-  if (typeof additionalProperties === "boolean") {
-    if (additionalProperties === true) {
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
-    }
-
-    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
-  }
-
-  return createTypeAliasDeclarationType(additionalProperties);
-}
-
-// Dictionaries look like: { [key: string]: any }
-function createDictionaryType(item: OpenAPIV3.SchemaObject) {
-  return ts.factory.createTypeLiteralNode([
-    ts.factory.createIndexSignature(
-      /*decorators*/ undefined,
-      /*modifiers*/ undefined,
-      /*params*/ [
-        ts.factory.createParameterDeclaration(
-          /*decorators*/ undefined,
-          /*modifiers*/ undefined,
-          /*dotDotDotToken*/ undefined,
-          /*name*/ ts.factory.createIdentifier("key"),
-          /*questionToken*/ undefined,
-          /*type*/ ts.factory.createKeywordTypeNode(
-            ts.SyntaxKind.StringKeyword
-          ),
-          /*initializer*/ undefined
-        ),
-      ],
-      /*type*/ resolveAdditionalPropertiesType(item.additionalProperties)
-    ),
-  ]);
 }
 
 function createTypeAliasDeclarationType(

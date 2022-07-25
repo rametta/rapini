@@ -20,6 +20,24 @@ export function isReferenceObject(
   return item !== undefined && "$ref" in item;
 }
 
+export function isArraySchemaObject(
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): param is OpenAPIV3.ArraySchemaObject {
+  return "items" in param;
+}
+
+export function isAllOfObject(
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): param is OpenAPIV3.SchemaObject {
+  return "allOf" in param;
+}
+
+export function isOneOfOrAnyOfObject(
+  param: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): param is OpenAPIV3.SchemaObject {
+  return "oneOf" in param || "anyOf" in param;
+}
+
 const unknown = ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
 
 export function schemaObjectOrRefType(
@@ -48,6 +66,105 @@ function schemaObjectType(
   }
 
   return { node: nonArraySchemaObjectTypeToTs(schema), id: "unknown" };
+}
+
+export function createTypeAliasDeclarationTypeWithSchemaObject(
+  item: OpenAPIV3.SchemaObject
+): ts.TypeNode {
+  if (isAllOfObject(item) && item.allOf) {
+    return ts.factory.createIntersectionTypeNode(
+      item.allOf.map((allOfItem) =>
+        isReferenceObject(allOfItem)
+          ? createTypeRefFromRef(allOfItem)
+          : createTypeAliasDeclarationTypeWithSchemaObject(allOfItem)
+      )
+    );
+  }
+
+  if (isOneOfOrAnyOfObject(item)) {
+    const items = item.oneOf || item.anyOf;
+    if (items) {
+      return ts.factory.createUnionTypeNode(
+        items.map((oneOrAnyItem) =>
+          isReferenceObject(oneOrAnyItem)
+            ? createTypeRefFromRef(oneOrAnyItem)
+            : createTypeAliasDeclarationTypeWithSchemaObject(oneOrAnyItem)
+        )
+      );
+    }
+  }
+
+  if (isArraySchemaObject(item)) {
+    return ts.factory.createArrayTypeNode(
+      isReferenceObject(item.items)
+        ? createTypeRefFromRef(item.items)
+        : createTypeAliasDeclarationTypeWithSchemaObject(item.items)
+    );
+  }
+
+  if (item.additionalProperties) {
+    return createDictionaryType(item);
+  }
+
+  if (item.properties) {
+    return createLiteralNodeFromProperties(item);
+  }
+
+  return nonArraySchemaObjectTypeToTs(item);
+}
+
+export function createTypeRefFromRef(item: OpenAPIV3.ReferenceObject) {
+  return ts.factory.createTypeReferenceNode(refToTypeName(item.$ref));
+}
+
+function createTypeAliasDeclarationType(
+  item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
+): ts.TypeNode {
+  return isReferenceObject(item)
+    ? createTypeRefFromRef(item)
+    : createTypeAliasDeclarationTypeWithSchemaObject(item);
+}
+
+function resolveAdditionalPropertiesType(
+  additionalProperties: OpenAPIV3.SchemaObject["additionalProperties"]
+) {
+  if (!additionalProperties) {
+    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+  }
+
+  if (typeof additionalProperties === "boolean") {
+    if (additionalProperties === true) {
+      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+    }
+
+    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+  }
+
+  return createTypeAliasDeclarationType(additionalProperties);
+}
+
+// Dictionaries look like: { [key: string]: any }
+export function createDictionaryType(item: OpenAPIV3.SchemaObject) {
+  return ts.factory.createTypeLiteralNode([
+    ts.factory.createIndexSignature(
+      /*decorators*/ undefined,
+      /*modifiers*/ undefined,
+      /*params*/ [
+        ts.factory.createParameterDeclaration(
+          /*decorators*/ undefined,
+          /*modifiers*/ undefined,
+          /*dotDotDotToken*/ undefined,
+          /*name*/ ts.factory.createIdentifier("key"),
+          /*questionToken*/ undefined,
+          /*type*/ ts.factory.createKeywordTypeNode(
+            ts.SyntaxKind.StringKeyword
+          ),
+          /*initializer*/ undefined
+        ),
+      ],
+      /*type*/ resolveAdditionalPropertiesType(item.additionalProperties)
+    ),
+  ]);
 }
 
 export function nonArraySchemaObjectTypeToTs(
@@ -79,6 +196,10 @@ export function nonArraySchemaObjectTypeToTs(
         item.nullable
       );
     case "object": {
+      if (item.additionalProperties) {
+        return createDictionaryType(item);
+      }
+
       return appendNullToUnion(
         createLiteralNodeFromProperties(item),
         item.nullable
