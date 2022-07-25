@@ -175,6 +175,17 @@ export function isRequestBodyObject(
   return "content" in obj;
 }
 
+// Replaces dots/hyphens/underscores with nothing
+// and capitalizes every items first letter
+export function sanitizeTypeName(name: string) {
+  return name
+    .split(".")
+    .flatMap((x) => x.split("-"))
+    .flatMap((x) => x.split("_"))
+    .map(capitalizeFirstLetter)
+    .join("");
+}
+
 /**
  * Removes the path in the ref and just returns the last part, which is used as the Type name
  * @param ref The ref in the OpenAPI file
@@ -182,7 +193,8 @@ export function isRequestBodyObject(
  */
 export function refToTypeName(ref: string) {
   if (ref.startsWith("#/components/schemas/")) {
-    return ref.slice(21);
+    const name = ref.slice(21);
+    return sanitizeTypeName(name);
   }
 
   return ref;

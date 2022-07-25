@@ -5,6 +5,7 @@ import {
   isReferenceObject,
   nonArraySchemaObjectTypeToTs,
   refToTypeName,
+  sanitizeTypeName,
 } from "./common";
 
 function isArraySchemaObject(
@@ -207,7 +208,7 @@ export function makeTypes(doc: OpenAPIV3.Document) {
     return ts.factory.createTypeAliasDeclaration(
       /*decorators*/ undefined,
       /*modifiers*/ [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-      /*name*/ ts.factory.createIdentifier(schemaName),
+      /*name*/ ts.factory.createIdentifier(sanitizeTypeName(schemaName)),
       /*typeParameters*/ undefined,
       /*type*/ createTypeAliasDeclarationType(item)
     );

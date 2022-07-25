@@ -43,11 +43,15 @@ describe("normalizeOperationId", () => {
 
 describe("refToTypeName", () => {
   it.each`
-    str                                | expected
-    ${""}                              | ${""}
-    ${"#/components/schemas/MySchema"} | ${"MySchema"}
-    ${"#/components/schemas/Pet"}      | ${"Pet"}
-    ${"#/components/responses/MyRes"}  | ${"#/components/responses/MyRes"}
+    str                                        | expected
+    ${""}                                      | ${""}
+    ${"#/components/schemas/MySchema"}         | ${"MySchema"}
+    ${"#/components/schemas/Pet"}              | ${"Pet"}
+    ${"#/components/responses/MyRes"}          | ${"#/components/responses/MyRes"}
+    ${"#/components/schemas/MyRes.Hello"}      | ${"MyResHello"}
+    ${"#/components/schemas/MyRes.Hello.Test"} | ${"MyResHelloTest"}
+    ${"#/components/schemas/MyRes-Hello"}      | ${"MyResHello"}
+    ${"#/components/schemas/myRes.hello-test"} | ${"MyResHelloTest"}
   `("refToTypeName($str) -> $expected", ({ str, expected }) => {
     expect(refToTypeName(str)).toBe(expected);
   });
