@@ -6,6 +6,7 @@ import {
   normalizeOperationId,
   createParams,
 } from "./common";
+import { RAPINI_MUTATION_ID } from "./rapini-mutation";
 
 export function makeMutations(
   paths: OpenAPIV3.PathsObject,
@@ -199,7 +200,7 @@ function makeProperty(
   const hasRequestBody = !!operation.requestBody;
 
   const body = /*expression*/ ts.factory.createCallExpression(
-    /*expression*/ ts.factory.createIdentifier("useRapiniMutation"),
+    /*expression*/ ts.factory.createIdentifier(RAPINI_MUTATION_ID),
     /*typeArguments*/ [
       ts.factory.createTypeReferenceNode(
         /*typeName*/ ts.factory.createIdentifier("Awaited"),
