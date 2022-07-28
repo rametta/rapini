@@ -82,7 +82,7 @@ function makeImportReactQueryDeclartion() {
     /*decorators*/ undefined,
     /*modifers*/ undefined,
     /*importClause*/ importClause,
-    /*moduleSpecifier*/ ts.factory.createStringLiteral("react-query"),
+    /*moduleSpecifier*/ ts.factory.createStringLiteral("@tanstack/react-query"),
     /*assertClause*/ undefined
   );
 }

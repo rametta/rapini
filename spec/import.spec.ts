@@ -2,7 +2,7 @@ import { makeImports } from "../src/imports";
 import { compile } from "./test.utils";
 
 const expected = `import type { AxiosInstance, AxiosRequestConfig } from "axios";
-import { useQuery, useMutation, useQueryClient, type QueryClient, type UseMutationOptions, type UseQueryOptions, type MutationFunction, type UseMutationResult, type UseQueryResult } from "react-query";
+import { useQuery, useMutation, useQueryClient, type QueryClient, type UseMutationOptions, type UseQueryOptions, type MutationFunction, type UseMutationResult, type UseQueryResult } from "@tanstack/react-query";
 `;
 
 describe("makeImports", () => {

@@ -308,10 +308,13 @@ export function makeRapiniMutation() {
                             undefined,
                             ts.factory.createIdentifier("context"),
                             ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-                            ts.factory.createTypeReferenceNode(
-                              ts.factory.createIdentifier("TContext"),
-                              undefined
-                            ),
+                              ts.factory.createUnionTypeNode([
+                                  ts.factory.createTypeReferenceNode(
+                                      ts.factory.createIdentifier("TContext"),
+                                      undefined
+                                  ),
+                                  ts.factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword)
+                              ]),
                             undefined
                           ),
                         ],
@@ -397,7 +400,7 @@ export function makeRapiniMutation() {
                             ts.factory.createIdentifier("context"),
                             ts.factory.createToken(ts.SyntaxKind.QuestionToken),
                             ts.factory.createTypeReferenceNode(
-                              ts.factory.createIdentifier("TContext"),
+                              ts.factory.createIdentifier("TContext | undefined"),
                               undefined
                             ),
                             undefined
