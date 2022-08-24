@@ -346,3 +346,20 @@ export function createParams(item: OpenAPIV3.OperationObject) {
       ),
     }));
 }
+
+// Combines path and item parameters into a single unique array.
+// A unique parameter is defined by a combination of a name and location.
+// Item parameters override path parameters with the same name and location.
+export function combineUniqueParams(
+  pathParams: (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[],
+  itemParams: (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[]
+) {
+  const paramKey = (p: OpenAPIV3.ParameterObject) => `${p.name}-${p.in}`;
+  const itemParamIds = new Set(
+    toParamObjects(itemParams).map((p) => paramKey(p))
+  );
+  return [
+    ...itemParams,
+    ...toParamObjects(pathParams).filter((p) => !itemParamIds.has(paramKey(p))),
+  ];
+}

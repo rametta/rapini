@@ -1,5 +1,6 @@
 import {
   capitalizeFirstLetter,
+  combineUniqueParams,
   lowercaseFirstLetter,
   normalizeOperationId,
   refToTypeName,
@@ -55,4 +56,20 @@ describe("refToTypeName", () => {
   `("refToTypeName($str) -> $expected", ({ str, expected }) => {
     expect(refToTypeName(str)).toBe(expected);
   });
+});
+
+describe("combineUniqueParams", () => {
+  it.each`
+    pathParams                      | queryParams                                                | expected
+    ${[]}                           | ${[]}                                                      | ${[]}
+    ${[]}                           | ${[{ name: "a", in: "query" }]}                            | ${[{ name: "a", in: "query" }]}
+    ${[{ name: "a", in: "path" }]}  | ${[]}                                                      | ${[{ name: "a", in: "path" }]}
+    ${[{ name: "a", in: "path" }]}  | ${[{ name: "a", in: "query" }]}                            | ${[{ name: "a", in: "query" }, { name: "a", in: "path" }]}
+    ${[{ name: "a", in: "query" }]} | ${[{ name: "a", in: "query" }, { name: "b", in: "path" }]} | ${[{ name: "a", in: "query" }, { name: "b", in: "path" }]}
+  `(
+    "combineUniqueParams($pathParams, $queryParams) -> $expected",
+    ({ pathParams, queryParams, expected }) => {
+      expect(combineUniqueParams(pathParams, queryParams)).toEqual(expected);
+    }
+  );
 });

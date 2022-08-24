@@ -97,6 +97,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /pets/{petId}/photos:
+    parameters:
+      - name: petId
+        in: path
+        required: true
+        description: The id of the pet
+        schema:
+          type: string
+    post:
+      operationId: postPetPhoto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Photo"
+      responses:
+        200:
+          description: 200RESPONSE
+    get:
+      operationId: listPetPhotos
+      responses:
+        200:
+          description: Pet photos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Photos"
 components:
   schemas:
     RandomThing:
@@ -189,6 +217,19 @@ components:
                 type: array
                 items:
                   type: string
+    Photo:
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          format: int64
+        date:
+          type: string
+    Photos:
+      type: array
+      items:
+        $ref: "#/components/schemas/Photo"
     MyResponseType:
       oneOf:
         - $ref: "#/components/schemas/Cat"
