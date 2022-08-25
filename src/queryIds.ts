@@ -7,7 +7,9 @@ const NULL_IF_UNDEFINED_FN_NAME = "nullIfUndefined";
 export function makeQueryIds(paths: OpenAPIV3.PathsObject) {
   const queryIds = Object.entries(paths)
     .filter(([_, item]) => !!item?.get)
-    .map(([pattern, item]) => makeQueryId(pattern, item!.get));
+    .map(([pattern, item]) =>
+      makeQueryId(pattern, item!.get, item!.parameters)
+    );
 
   return [
     makeNullIfUndefinedFunctionDeclaration(),
@@ -105,13 +107,17 @@ function makeQueryIdsFunctionDeclaration(
 }
 
 // queryIds's are only made for GET's
-function makeQueryId(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
+function makeQueryId(
+  pattern: string,
+  get: OpenAPIV3.PathItemObject["get"],
+  pathParams: OpenAPIV3.PathItemObject["parameters"]
+) {
   if (!get?.operationId) {
     throw `Missing "operationId" from "get" request with pattern ${pattern}`;
   }
 
   const normalizedOperationId = normalizeOperationId(get.operationId);
-  const params = createParams(get);
+  const params = createParams(get, pathParams);
 
   return ts.factory.createPropertyAssignment(
     /*name*/ ts.factory.createIdentifier(normalizedOperationId),

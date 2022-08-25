@@ -8,7 +8,8 @@ const expected = `function nullIfUndefined<T>(value: T): T | null {
 function makeQueryIds() {
     return {
         getPets: () => ["getPets"] as const,
-        getPet: (petId: string) => ["getPet", petId] as const
+        getPet: (petId: string) => ["getPet", petId] as const,
+        getPetPhotos: (petId: string) => ["getPetPhotos", petId] as const
     } as const;
 }
 `;
@@ -77,6 +78,58 @@ describe("makeQueryIds", () => {
                 },
               },
             ],
+            responses: {
+              default: {
+                description: "anything",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        "/pets/{petId}/photos": {
+          parameters: [
+            {
+              name: "petId",
+              in: "path",
+              required: true,
+              schema: {
+                type: "string",
+              },
+            },
+          ],
+          get: {
+            operationId: "getPetPhotos",
+            responses: {
+              default: {
+                description: "anything",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          post: {
+            operationId: "addPetPhoto",
+            requestBody: {
+              description: "anything",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "",
+                  },
+                },
+              },
+            },
             responses: {
               default: {
                 description: "anything",

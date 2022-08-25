@@ -2,10 +2,10 @@ import ts from "typescript";
 import type SwaggerParser from "swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
 import {
-  toParamObjects,
   schemaObjectOrRefType,
   normalizeOperationId,
   isReferenceObject,
+  combineUniqueParams,
 } from "./common";
 import type { CLIOptions } from "./cli";
 
@@ -83,28 +83,41 @@ function makeRequestsPropertyAssignment(
   options: CLIOptions
 ) {
   const requests: ts.PropertyAssignment[] = [];
+  const pathParams = item.parameters;
 
   if (item.get) {
-    requests.push(makeRequest(pattern, "get", item.get, $refs, options));
+    requests.push(
+      makeRequest(pattern, "get", item.get, $refs, options, pathParams)
+    );
   }
   if (item.delete) {
-    requests.push(makeRequest(pattern, "delete", item.delete, $refs, options));
+    requests.push(
+      makeRequest(pattern, "delete", item.delete, $refs, options, pathParams)
+    );
   }
   if (item.post) {
-    requests.push(makeRequest(pattern, "post", item.post, $refs, options));
+    requests.push(
+      makeRequest(pattern, "post", item.post, $refs, options, pathParams)
+    );
   }
   if (item.put) {
-    requests.push(makeRequest(pattern, "put", item.put, $refs, options));
+    requests.push(
+      makeRequest(pattern, "put", item.put, $refs, options, pathParams)
+    );
   }
   if (item.patch) {
-    requests.push(makeRequest(pattern, "patch", item.patch, $refs, options));
+    requests.push(
+      makeRequest(pattern, "patch", item.patch, $refs, options, pathParams)
+    );
   }
   if (item.head) {
-    requests.push(makeRequest(pattern, "head", item.head, $refs, options));
+    requests.push(
+      makeRequest(pattern, "head", item.head, $refs, options, pathParams)
+    );
   }
   if (item.options) {
     requests.push(
-      makeRequest(pattern, "options", item.options, $refs, options)
+      makeRequest(pattern, "options", item.options, $refs, options, pathParams)
     );
   }
 
@@ -119,10 +132,9 @@ function isRequestBodyObject(
 
 function createRequestParams(
   item: OpenAPIV3.OperationObject,
+  paramObjects: OpenAPIV3.ParameterObject[],
   $refs: SwaggerParser.$Refs
 ) {
-  const paramObjects = item.parameters ? toParamObjects(item.parameters) : [];
-
   const itemParamsDeclarations = paramObjects
     .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
     .map((param) => ({
@@ -276,14 +288,17 @@ function makeRequest(
   method: string,
   item: OpenAPIV3.OperationObject,
   $refs: SwaggerParser.$Refs,
-  options: CLIOptions
+  options: CLIOptions,
+  pathParams?: OpenAPIV3.PathItemObject["parameters"]
 ) {
   const pathTemplateExpression = patternToPath(
     pattern,
     options.baseUrl,
     options.replacer
   );
-  const arrowFuncParams = createRequestParams(item, $refs).map(
+
+  const paramObjects = combineUniqueParams(pathParams, item.parameters);
+  const arrowFuncParams = createRequestParams(item, paramObjects, $refs).map(
     (param) => param.arrowFuncParam
   );
 
@@ -300,7 +315,6 @@ function makeRequest(
     ),
   ];
 
-  const paramObjects = item.parameters ? toParamObjects(item.parameters) : [];
   const queryParamObjects = paramObjects.filter(
     (paramObject) => paramObject.in === "query"
   );

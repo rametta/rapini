@@ -321,13 +321,15 @@ export function refToTypeName(ref: string) {
   return ref;
 }
 
-export function createParams(item: OpenAPIV3.OperationObject) {
-  if (!item.parameters) {
+export function createParams(
+  item: OpenAPIV3.OperationObject,
+  pathParams: OpenAPIV3.PathItemObject["parameters"]
+) {
+  if (!item.parameters && !pathParams) {
     return [];
   }
 
-  const paramObjects = toParamObjects(item.parameters);
-
+  const paramObjects = combineUniqueParams(pathParams, item.parameters);
   return paramObjects
     .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
     .map((param) => ({
@@ -345,4 +347,25 @@ export function createParams(item: OpenAPIV3.OperationObject) {
         /*initializer*/ undefined
       ),
     }));
+}
+
+// Combines path and item parameters into a single unique array.
+// A unique parameter is defined by a combination of a name and location.
+// Item parameters override path parameters with the same name and location.
+export function combineUniqueParams(
+  pathParams: (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[] = [],
+  itemParams: (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[] = []
+) {
+  if (!pathParams.length) {
+    return toParamObjects(itemParams);
+  } else if (!itemParams.length) {
+    return toParamObjects(pathParams);
+  }
+
+  const paramKey = (p: OpenAPIV3.ParameterObject) => `${p.name}-${p.in}`;
+  const itemParamIds = new Set(toParamObjects(itemParams).map(paramKey));
+  return [
+    ...toParamObjects(itemParams),
+    ...toParamObjects(pathParams).filter((p) => !itemParamIds.has(paramKey(p))),
+  ];
 }

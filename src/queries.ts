@@ -13,7 +13,9 @@ export function makeQueries(
 ) {
   const properties = Object.entries(paths)
     .filter(([_, item]) => !!item?.get)
-    .map(([pattern, item]) => makeProperty(pattern, item!.get));
+    .map(([pattern, item]) =>
+      makeProperty(pattern, item!.get, item!.parameters)
+    );
 
   const requestsParam = ts.factory.createParameterDeclaration(
     /*decorators*/ undefined,
@@ -77,7 +79,11 @@ export function makeQueries(
   );
 }
 
-function makeProperty(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
+function makeProperty(
+  pattern: string,
+  get: OpenAPIV3.PathItemObject["get"],
+  pathParams: OpenAPIV3.PathItemObject["parameters"]
+) {
   if (!get?.operationId) {
     throw `Missing "operationId" from "get" request with pattern ${pattern}`;
   }
@@ -85,7 +91,7 @@ function makeProperty(pattern: string, get: OpenAPIV3.PathItemObject["get"]) {
   const normalizedOperationId = normalizeOperationId(get.operationId);
   const identifierName = `use${capitalizeFirstLetter(normalizedOperationId)}`;
 
-  const params = createParams(get);
+  const params = createParams(get, pathParams);
 
   return ts.factory.createPropertyAssignment(
     /*name*/ ts.factory.createIdentifier(identifierName),

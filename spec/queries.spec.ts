@@ -5,7 +5,8 @@ import { compile } from "./test.utils";
 const expected = `function makeQueries(requests: ReturnType<typeof makeRequests>, queryIds: ReturnType<typeof makeQueryIds>) {
     return {
         useGetPets: (options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPets>>, unknown, Awaited<ReturnType<typeof requests.getPets>>, ReturnType<(typeof queryIds)["getPets"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPets>>, unknown> => useQuery(queryIds.getPets(), () => requests.getPets(), options),
-        useGetPet: (petId: string, options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPet>>, unknown, Awaited<ReturnType<typeof requests.getPet>>, ReturnType<(typeof queryIds)["getPet"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPet>>, unknown> => useQuery(queryIds.getPet(petId), () => requests.getPet(petId), options)
+        useGetPet: (petId: string, options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPet>>, unknown, Awaited<ReturnType<typeof requests.getPet>>, ReturnType<(typeof queryIds)["getPet"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPet>>, unknown> => useQuery(queryIds.getPet(petId), () => requests.getPet(petId), options),
+        useGetPetPhotos: (petId: string, options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPetPhotos>>, unknown, Awaited<ReturnType<typeof requests.getPetPhotos>>, ReturnType<(typeof queryIds)["getPetPhotos"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPetPhotos>>, unknown> => useQuery(queryIds.getPetPhotos(petId), () => requests.getPetPhotos(petId), options)
     } as const;
 }
 `;
@@ -74,6 +75,58 @@ describe("makeQueries", () => {
                 },
               },
             ],
+            responses: {
+              default: {
+                description: "anything",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        "/pets/{petId}/photos": {
+          parameters: [
+            {
+              name: "petId",
+              in: "path",
+              required: true,
+              schema: {
+                type: "string",
+              },
+            },
+          ],
+          get: {
+            operationId: "getPetPhotos",
+            responses: {
+              default: {
+                description: "anything",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          post: {
+            operationId: "addPetPhoto",
+            requestBody: {
+              description: "anything",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "",
+                  },
+                },
+              },
+            },
             responses: {
               default: {
                 description: "anything",

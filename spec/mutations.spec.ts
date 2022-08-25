@@ -4,10 +4,12 @@ import { compile } from "./test.utils";
 
 const expected = `type MutationConfigs = {
     useCreatePet?: (queryClient: QueryClient) => Pick<UseMutationOptions<Awaited<ReturnType<ReturnType<typeof makeRequests>["createPet"]>>, unknown, Parameters<ReturnType<typeof makeRequests>["createPet"]>[0], unknown>, "onSuccess" | "onSettled" | "onError">;
+    useAddPetPhoto?: (queryClient: QueryClient) => Pick<UseMutationOptions<Awaited<ReturnType<ReturnType<typeof makeRequests>["addPetPhoto"]>>, unknown, Parameters<ReturnType<typeof makeRequests>["addPetPhoto"]>[0], unknown>, "onSuccess" | "onSettled" | "onError">;
 };
 function makeMutations(requests: ReturnType<typeof makeRequests>, config?: Config["mutations"]) {
     return {
-        useCreatePet: (options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof requests.createPet>>, unknown, Parameters<typeof requests.createPet>[0], unknown>, "mutationFn">) => useRapiniMutation<Awaited<ReturnType<typeof requests.createPet>>, unknown, Parameters<typeof requests.createPet>[0]>(payload => requests.createPet(payload), config?.useCreatePet, options)
+        useCreatePet: (options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof requests.createPet>>, unknown, Parameters<typeof requests.createPet>[0], unknown>, "mutationFn">) => useRapiniMutation<Awaited<ReturnType<typeof requests.createPet>>, unknown, Parameters<typeof requests.createPet>[0]>(payload => requests.createPet(payload), config?.useCreatePet, options),
+        useAddPetPhoto: (petId: string, options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof requests.addPetPhoto>>, unknown, Parameters<typeof requests.addPetPhoto>[0], unknown>, "mutationFn">) => useRapiniMutation<Awaited<ReturnType<typeof requests.addPetPhoto>>, unknown, Parameters<typeof requests.addPetPhoto>[0]>(payload => requests.addPetPhoto(payload, petId), config?.useAddPetPhoto, options)
     } as const;
 }
 `;
@@ -76,6 +78,58 @@ describe("makeMutations", () => {
                 },
               },
             ],
+            responses: {
+              default: {
+                description: "anything",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        "/pets/{petId}/photos": {
+          parameters: [
+            {
+              name: "petId",
+              in: "path",
+              required: true,
+              schema: {
+                type: "string",
+              },
+            },
+          ],
+          get: {
+            operationId: "getPetPhotos",
+            responses: {
+              default: {
+                description: "anything",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          post: {
+            operationId: "addPetPhoto",
+            requestBody: {
+              description: "anything",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "",
+                  },
+                },
+              },
+            },
             responses: {
               default: {
                 description: "anything",
