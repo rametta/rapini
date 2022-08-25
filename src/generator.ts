@@ -82,7 +82,7 @@ function makeSource(data: ReturnType<typeof parse>) {
 
 export async function generate(options: CLIOptions) {
   const parser = new SwaggerParser();
-  const api = await parser.parse(options.path);
+  const api = await parser.bundle(options.path);
 
   console.log("API name: %s, Version: %s", api.info.title, api.info.version);
   const data = parse(api, parser.$refs, options);
