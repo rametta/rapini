@@ -2,7 +2,6 @@ import ts from "typescript";
 import type SwaggerParser from "swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
 import {
-  toParamObjects,
   schemaObjectOrRefType,
   normalizeOperationId,
   isReferenceObject,
@@ -133,10 +132,9 @@ function isRequestBodyObject(
 
 function createRequestParams(
   item: OpenAPIV3.OperationObject,
+  paramObjects: OpenAPIV3.ParameterObject[],
   $refs: SwaggerParser.$Refs
 ) {
-  const paramObjects = item.parameters ? toParamObjects(item.parameters) : [];
-
   const itemParamsDeclarations = paramObjects
     .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
     .map((param) => ({
@@ -299,12 +297,8 @@ function makeRequest(
     options.replacer
   );
 
-  const parameters = combineUniqueParams(
-    pathParams || [],
-    item.parameters || []
-  );
-  item.parameters = parameters;
-  const arrowFuncParams = createRequestParams(item, $refs).map(
+  const paramObjects = combineUniqueParams(pathParams, item.parameters);
+  const arrowFuncParams = createRequestParams(item, paramObjects, $refs).map(
     (param) => param.arrowFuncParam
   );
 
@@ -321,7 +315,6 @@ function makeRequest(
     ),
   ];
 
-  const paramObjects = item.parameters ? toParamObjects(item.parameters) : [];
   const queryParamObjects = paramObjects.filter(
     (paramObject) => paramObject.in === "query"
   );

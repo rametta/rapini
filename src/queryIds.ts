@@ -1,10 +1,6 @@
 import ts from "typescript";
 import type { OpenAPIV3 } from "openapi-types";
-import {
-  normalizeOperationId,
-  createParams,
-  combineUniqueParams,
-} from "./common";
+import { normalizeOperationId, createParams } from "./common";
 
 const NULL_IF_UNDEFINED_FN_NAME = "nullIfUndefined";
 
@@ -120,13 +116,8 @@ function makeQueryId(
     throw `Missing "operationId" from "get" request with pattern ${pattern}`;
   }
 
-  const parameters = combineUniqueParams(
-    pathParams || [],
-    get.parameters || []
-  );
-  get.parameters = parameters;
   const normalizedOperationId = normalizeOperationId(get.operationId);
-  const params = createParams(get);
+  const params = createParams(get, pathParams);
 
   return ts.factory.createPropertyAssignment(
     /*name*/ ts.factory.createIdentifier(normalizedOperationId),

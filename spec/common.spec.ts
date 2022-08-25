@@ -69,7 +69,9 @@ describe("combineUniqueParams", () => {
   `(
     "combineUniqueParams($pathParams, $queryParams) -> $expected",
     ({ pathParams, queryParams, expected }) => {
-      expect(combineUniqueParams(pathParams, queryParams)).toEqual(expected);
+      expect(combineUniqueParams(pathParams, queryParams)).toStrictEqual(
+        expected
+      );
     }
   );
 });

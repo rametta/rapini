@@ -95,21 +95,22 @@ function makeProperties(pattern: string, path: OpenAPIV3.PathItemObject) {
     property: ts.PropertyAssignment;
     config: ts.TypeElement;
   }[] = [];
+  const pathParams = path.parameters;
 
   if (path.post) {
-    properties.push(makeProperty(pattern, path.post, "post"));
+    properties.push(makeProperty(pattern, path.post, "post", pathParams));
   }
 
   if (path.put) {
-    properties.push(makeProperty(pattern, path.put, "put"));
+    properties.push(makeProperty(pattern, path.put, "put", pathParams));
   }
 
   if (path.patch) {
-    properties.push(makeProperty(pattern, path.patch, "patch"));
+    properties.push(makeProperty(pattern, path.patch, "patch", pathParams));
   }
 
   if (path.delete) {
-    properties.push(makeProperty(pattern, path.delete, "delete"));
+    properties.push(makeProperty(pattern, path.delete, "delete", pathParams));
   }
 
   return properties;
@@ -186,7 +187,8 @@ function optionsParameterDeclaration(
 function makeProperty(
   pattern: string,
   operation: OpenAPIV3.OperationObject,
-  method: string
+  method: string,
+  pathParams?: OpenAPIV3.PathItemObject["parameters"]
 ): { property: ts.PropertyAssignment; config: ts.TypeElement } {
   const operationId = operation.operationId;
   if (!operationId) {
@@ -195,7 +197,7 @@ function makeProperty(
   const normalizedOperationId = normalizeOperationId(operationId);
 
   const identifier = `use${capitalizeFirstLetter(normalizedOperationId)}`;
-  const params = createParams(operation);
+  const params = createParams(operation, pathParams);
 
   const hasRequestBody = !!operation.requestBody;
 
