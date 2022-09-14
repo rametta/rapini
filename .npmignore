@@ -4,3 +4,5 @@ spec
 src
 example-openapi.yaml
 jest.config.js
+.github/workflows/test.yml
+tsconfig.json
