@@ -9,6 +9,7 @@ export type CLIOptions = {
   path: string;
   baseUrl: string;
   replacer: string[];
+  reactQueryV4: boolean;
 };
 
 const program = new Command();
@@ -36,6 +37,11 @@ program
   .option(
     "-r, --replacer [oldString] [newString...]",
     "Replace part(s) of any route's path with simple string replacements. Ex: `-r /api/v1 /api/v2` would replace the v1 with v2 in every route"
+  )
+  .option(
+    "-rq-v4, --react-query-v4",
+    "Use React Query V4 aka '@tanstack/react-query'",
+    false
   )
   .parse();
 

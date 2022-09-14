@@ -1,4 +1,5 @@
 import ts from "typescript";
+import { CLIOptions } from "./cli";
 
 function makeImportAxiosInstanceTypeDeclaration() {
   return ts.factory.createImportDeclaration(
@@ -25,7 +26,7 @@ function makeImportAxiosInstanceTypeDeclaration() {
   );
 }
 
-function makeImportReactQueryDeclartion() {
+function makeImportReactQueryDeclartion(isV4: boolean) {
   const importClause = ts.factory.createImportClause(
     /*typeOnly*/ false,
     /*name*/ undefined,
@@ -82,14 +83,16 @@ function makeImportReactQueryDeclartion() {
     /*decorators*/ undefined,
     /*modifers*/ undefined,
     /*importClause*/ importClause,
-    /*moduleSpecifier*/ ts.factory.createStringLiteral("react-query"),
+    /*moduleSpecifier*/ ts.factory.createStringLiteral(
+      isV4 ? "@tanstack/react-query" : "react-query"
+    ),
     /*assertClause*/ undefined
   );
 }
 
-export function makeImports() {
+export function makeImports(options: CLIOptions) {
   return [
     makeImportAxiosInstanceTypeDeclaration(),
-    makeImportReactQueryDeclartion(),
+    makeImportReactQueryDeclartion(options.reactQueryV4),
   ];
 }
