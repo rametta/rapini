@@ -20,7 +20,11 @@ function printPackageJson(options: CLIOptions) {
     },
     "peerDependencies": {
       "axios": "0.27.x",
-      "react-query": "3.x.x"
+      ${
+        options.reactQueryV4
+          ? `"@tanstack/react-query": "4.x.x"`
+          : `"react-query": "3.x.x"`
+      }
     },
     "devDependencies": {
       "@types/node": "^17.0.34",

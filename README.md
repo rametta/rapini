@@ -41,6 +41,7 @@ Options:
   -o, --output-dir [directory]               Directory to output the generated package (default: "rapini-generated-package")
   -b, --base-url [url]                       Prefix every request with this url
   -r, --replacer [oldString] [newString...]  Replace part(s) of any route's path with simple string replacements. Ex: `-r /api/v1 /api/v2` would replace the v1 with v2 in every route
+  -rq-v4, --react-query-v4                   Use React Query V4 aka '@tanstack/react-query' (default: false)
   -h, --help                                 display help for command
 ```
 

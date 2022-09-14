@@ -35,6 +35,7 @@ function parseOpenApiV3Doc(
   options: CLIOptions
 ) {
   return {
+    imports: makeImports(options),
     queryIds: makeQueryIds(doc.paths),
     requests: makeRequests(doc.paths, $refs, options),
     queries: makeQueries(doc.paths, $refs),
@@ -46,7 +47,7 @@ function parseOpenApiV3Doc(
 function makeSourceFile(data: ReturnType<typeof parse>) {
   return ts.factory.createSourceFile(
     /*statements*/ [
-      ...makeImports(),
+      ...data.imports,
       ...data.types,
       ...makeConfigTypes(),
       makeInitialize(),
