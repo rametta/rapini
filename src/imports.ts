@@ -26,7 +26,7 @@ function makeImportAxiosInstanceTypeDeclaration() {
   );
 }
 
-function makeImportReactQueryDeclartion(isV4: boolean) {
+function makeImportReactQueryDeclaration(isV4: boolean) {
   const importClause = ts.factory.createImportClause(
     /*typeOnly*/ false,
     /*name*/ undefined,
@@ -93,6 +93,6 @@ function makeImportReactQueryDeclartion(isV4: boolean) {
 export function makeImports(options: CLIOptions) {
   return [
     makeImportAxiosInstanceTypeDeclaration(),
-    makeImportReactQueryDeclartion(options.reactQueryV4),
+    makeImportReactQueryDeclaration(options.reactQueryV4),
   ];
 }
