@@ -5,7 +5,7 @@ import {
   capitalizeFirstLetter,
   normalizeOperationId,
   createParams,
-} from "./common";
+} from "../common/util";
 import { RAPINI_MUTATION_ID } from "./rapini-mutation";
 
 export function makeMutations(

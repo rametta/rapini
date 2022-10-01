@@ -1,6 +1,10 @@
 import ts from "typescript";
-import { chunker, replacePattern, patternToPath } from "../src/requests";
-import { compile } from "./test.utils";
+import {
+  chunker,
+  replacePattern,
+  patternToPath,
+} from "../../src/common/requests";
+import { compile } from "../test.utils";
 
 describe("chunker", () => {
   it.each`

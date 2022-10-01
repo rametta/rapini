@@ -1,21 +1,18 @@
 import type { OpenAPIV3 } from "openapi-types";
-import { makeMutations } from "../src/mutations";
-import { compile } from "./test.utils";
+import { makeQueries } from "../../src/react-query/queries";
+import { compile } from "../test.utils";
 
-const expected = `type MutationConfigs = {
-    useCreatePet?: (queryClient: QueryClient) => Pick<UseMutationOptions<Awaited<ReturnType<ReturnType<typeof makeRequests>["createPet"]>>, unknown, Parameters<ReturnType<typeof makeRequests>["createPet"]>[0], unknown>, "onSuccess" | "onSettled" | "onError">;
-    useAddPetPhoto?: (queryClient: QueryClient) => Pick<UseMutationOptions<Awaited<ReturnType<ReturnType<typeof makeRequests>["addPetPhoto"]>>, unknown, Parameters<ReturnType<typeof makeRequests>["addPetPhoto"]>[0], unknown>, "onSuccess" | "onSettled" | "onError">;
-};
-function makeMutations(requests: ReturnType<typeof makeRequests>, config?: Config["mutations"]) {
+const expected = `function makeQueries(requests: ReturnType<typeof makeRequests>, queryIds: ReturnType<typeof makeQueryIds>) {
     return {
-        useCreatePet: (options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof requests.createPet>>, unknown, Parameters<typeof requests.createPet>[0], unknown>, "mutationFn">) => useRapiniMutation<Awaited<ReturnType<typeof requests.createPet>>, unknown, Parameters<typeof requests.createPet>[0]>(payload => requests.createPet(payload), config?.useCreatePet, options),
-        useAddPetPhoto: (petId: string, options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof requests.addPetPhoto>>, unknown, Parameters<typeof requests.addPetPhoto>[0], unknown>, "mutationFn">) => useRapiniMutation<Awaited<ReturnType<typeof requests.addPetPhoto>>, unknown, Parameters<typeof requests.addPetPhoto>[0]>(payload => requests.addPetPhoto(payload, petId), config?.useAddPetPhoto, options)
+        useGetPets: (options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPets>>, unknown, Awaited<ReturnType<typeof requests.getPets>>, ReturnType<(typeof queryIds)["getPets"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPets>>, unknown> => useQuery(queryIds.getPets(), () => requests.getPets(), options),
+        useGetPet: (petId: string, options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPet>>, unknown, Awaited<ReturnType<typeof requests.getPet>>, ReturnType<(typeof queryIds)["getPet"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPet>>, unknown> => useQuery(queryIds.getPet(petId), () => requests.getPet(petId), options),
+        useGetPetPhotos: (petId: string, options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPetPhotos>>, unknown, Awaited<ReturnType<typeof requests.getPetPhotos>>, ReturnType<(typeof queryIds)["getPetPhotos"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPetPhotos>>, unknown> => useQuery(queryIds.getPetPhotos(petId), () => requests.getPetPhotos(petId), options)
     } as const;
 }
 `;
 
-describe("makeMutations", () => {
-  it("generates mutations for every non-GET path", () => {
+describe("makeQueries", () => {
+  it("generates queries for every GET path", () => {
     const doc: OpenAPIV3.Document = {
       openapi: "3.0.0",
       info: {
@@ -147,7 +144,7 @@ describe("makeMutations", () => {
       },
     };
 
-    const str = compile(makeMutations(doc.paths));
+    const str = compile([makeQueries(doc.paths)]);
     expect(str).toBe(expected);
   });
 });

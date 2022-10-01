@@ -3,15 +3,15 @@ import type { OpenAPI, OpenAPIV3 } from "openapi-types";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import { print } from "./print";
 import { makeImports } from "./imports";
-import { makeQueryIds } from "./queryIds";
-import { makeRequests } from "./requests";
+import { makeQueryIds } from "../common/queryIds";
+import { makeRequests } from "../common/requests";
 import { makeQueries } from "./queries";
 import { makeInitialize } from "./initialize";
 import { makeMutations } from "./mutations";
-import { makeTypes } from "./types";
+import { makeTypes } from "../common/types";
 import { makeRapiniMutation } from "./rapini-mutation";
 import { makeConfigTypes } from "./config";
-import { CLIOptions } from "./cli";
+import { CLIOptions } from "../cli";
 
 function isOpenApiV3Document(doc: OpenAPI.Document): doc is OpenAPIV3.Document {
   return "openapi" in doc;

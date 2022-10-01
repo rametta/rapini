@@ -1,18 +1,21 @@
 import type { OpenAPIV3 } from "openapi-types";
-import { makeQueries } from "../src/queries";
-import { compile } from "./test.utils";
+import { makeQueryIds } from "../../src/common/queryIds";
+import { compile } from "../test.utils";
 
-const expected = `function makeQueries(requests: ReturnType<typeof makeRequests>, queryIds: ReturnType<typeof makeQueryIds>) {
+const expected = `function nullIfUndefined<T>(value: T): T | null {
+    return typeof value === "undefined" ? null : value;
+}
+function makeQueryIds() {
     return {
-        useGetPets: (options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPets>>, unknown, Awaited<ReturnType<typeof requests.getPets>>, ReturnType<(typeof queryIds)["getPets"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPets>>, unknown> => useQuery(queryIds.getPets(), () => requests.getPets(), options),
-        useGetPet: (petId: string, options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPet>>, unknown, Awaited<ReturnType<typeof requests.getPet>>, ReturnType<(typeof queryIds)["getPet"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPet>>, unknown> => useQuery(queryIds.getPet(petId), () => requests.getPet(petId), options),
-        useGetPetPhotos: (petId: string, options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPetPhotos>>, unknown, Awaited<ReturnType<typeof requests.getPetPhotos>>, ReturnType<(typeof queryIds)["getPetPhotos"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPetPhotos>>, unknown> => useQuery(queryIds.getPetPhotos(petId), () => requests.getPetPhotos(petId), options)
+        getPets: () => ["getPets"] as const,
+        getPet: (petId: string) => ["getPet", petId] as const,
+        getPetPhotos: (petId: string) => ["getPetPhotos", petId] as const
     } as const;
 }
 `;
 
-describe("makeQueries", () => {
-  it("generates queries for every GET path", () => {
+describe("makeQueryIds", () => {
+  it("generates queryIds for every GET path", () => {
     const doc: OpenAPIV3.Document = {
       openapi: "3.0.0",
       info: {
@@ -144,7 +147,7 @@ describe("makeQueries", () => {
       },
     };
 
-    const str = compile([makeQueries(doc.paths)]);
+    const str = compile(makeQueryIds(doc.paths));
     expect(str).toBe(expected);
   });
 });

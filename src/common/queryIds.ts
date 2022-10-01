@@ -1,6 +1,6 @@
 import ts from "typescript";
 import type { OpenAPIV3 } from "openapi-types";
-import { normalizeOperationId, createParams } from "./common";
+import { normalizeOperationId, createParams } from "./util";
 
 const NULL_IF_UNDEFINED_FN_NAME = "nullIfUndefined";
 

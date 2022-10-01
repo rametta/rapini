@@ -1,21 +1,21 @@
 import type { OpenAPIV3 } from "openapi-types";
-import { makeQueryIds } from "../src/queryIds";
-import { compile } from "./test.utils";
+import { makeMutations } from "../../src/react-query/mutations";
+import { compile } from "../test.utils";
 
-const expected = `function nullIfUndefined<T>(value: T): T | null {
-    return typeof value === "undefined" ? null : value;
-}
-function makeQueryIds() {
+const expected = `type MutationConfigs = {
+    useCreatePet?: (queryClient: QueryClient) => Pick<UseMutationOptions<Awaited<ReturnType<ReturnType<typeof makeRequests>["createPet"]>>, unknown, Parameters<ReturnType<typeof makeRequests>["createPet"]>[0], unknown>, "onSuccess" | "onSettled" | "onError">;
+    useAddPetPhoto?: (queryClient: QueryClient) => Pick<UseMutationOptions<Awaited<ReturnType<ReturnType<typeof makeRequests>["addPetPhoto"]>>, unknown, Parameters<ReturnType<typeof makeRequests>["addPetPhoto"]>[0], unknown>, "onSuccess" | "onSettled" | "onError">;
+};
+function makeMutations(requests: ReturnType<typeof makeRequests>, config?: Config["mutations"]) {
     return {
-        getPets: () => ["getPets"] as const,
-        getPet: (petId: string) => ["getPet", petId] as const,
-        getPetPhotos: (petId: string) => ["getPetPhotos", petId] as const
+        useCreatePet: (options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof requests.createPet>>, unknown, Parameters<typeof requests.createPet>[0], unknown>, "mutationFn">) => useRapiniMutation<Awaited<ReturnType<typeof requests.createPet>>, unknown, Parameters<typeof requests.createPet>[0]>(payload => requests.createPet(payload), config?.useCreatePet, options),
+        useAddPetPhoto: (petId: string, options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof requests.addPetPhoto>>, unknown, Parameters<typeof requests.addPetPhoto>[0], unknown>, "mutationFn">) => useRapiniMutation<Awaited<ReturnType<typeof requests.addPetPhoto>>, unknown, Parameters<typeof requests.addPetPhoto>[0]>(payload => requests.addPetPhoto(payload, petId), config?.useAddPetPhoto, options)
     } as const;
 }
 `;
 
-describe("makeQueryIds", () => {
-  it("generates queryIds for every GET path", () => {
+describe("makeMutations", () => {
+  it("generates mutations for every non-GET path", () => {
     const doc: OpenAPIV3.Document = {
       openapi: "3.0.0",
       info: {
@@ -147,7 +147,7 @@ describe("makeQueryIds", () => {
       },
     };
 
-    const str = compile(makeQueryIds(doc.paths));
+    const str = compile(makeMutations(doc.paths));
     expect(str).toBe(expected);
   });
 });

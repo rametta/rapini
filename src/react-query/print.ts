@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { CLIOptions } from "./cli";
+import { CLIOptions } from "../cli";
 
 function printGeneratedTS(result: string, options: CLIOptions) {
   fs.writeFileSync(path.join(options.outputDir, "index.ts"), result);
