@@ -1,5 +1,5 @@
 import ts from "typescript";
-import { CLIOptions } from "./cli";
+import { CLIOptions } from "../cli";
 
 function makeImportAxiosInstanceTypeDeclaration() {
   return ts.factory.createImportDeclaration(

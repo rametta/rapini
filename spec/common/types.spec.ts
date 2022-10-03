@@ -1,6 +1,6 @@
 import type { OpenAPIV3 } from "openapi-types";
-import { makeTypes } from "../src/types";
-import { compile } from "./test.utils";
+import { makeTypes } from "../../src/common/types";
+import { compile } from "../test.utils";
 
 const expected = `export type RandomThing = {
     id: number;

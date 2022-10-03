@@ -4,7 +4,7 @@ import {
   lowercaseFirstLetter,
   normalizeOperationId,
   refToTypeName,
-} from "./../src/common";
+} from "../../src/common/util";
 
 describe("capitalizeFirstLetter", () => {
   it.each`

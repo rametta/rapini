@@ -1,6 +1,6 @@
-import { CLIOptions } from "../src/cli";
-import { makeImports } from "../src/imports";
-import { compile } from "./test.utils";
+import { CLIOptions } from "../../src/cli";
+import { makeImports } from "../../src/react-query/imports";
+import { compile } from "../test.utils";
 
 const expectedV3 = `import type { AxiosInstance, AxiosRequestConfig } from "axios";
 import { useQuery, useMutation, useQueryClient, type QueryClient, type UseMutationOptions, type UseQueryOptions, type MutationFunction, type UseMutationResult, type UseQueryResult } from "react-query";

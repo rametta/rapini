@@ -10,7 +10,7 @@ import {
   isReferenceObject,
   nonArraySchemaObjectTypeToTs,
   sanitizeTypeName,
-} from "./common";
+} from "./util";
 
 function schemaObjectTypeToArrayType(
   item: OpenAPIV3.NonArraySchemaObject

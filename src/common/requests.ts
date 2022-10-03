@@ -6,8 +6,8 @@ import {
   normalizeOperationId,
   isReferenceObject,
   combineUniqueParams,
-} from "./common";
-import type { CLIOptions } from "./cli";
+} from "./util";
+import type { CLIOptions } from "../cli";
 
 export function makeRequests(
   paths: OpenAPIV3.PathsObject,

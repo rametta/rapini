@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { generate } from "./generator";
+import { generate } from "./react-query/generator";
 import { Command } from "commander";
 
 export type CLIOptions = {

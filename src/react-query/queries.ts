@@ -5,7 +5,7 @@ import {
   capitalizeFirstLetter,
   createParams,
   normalizeOperationId,
-} from "./common";
+} from "../common/util";
 
 export function makeQueries(
   paths: OpenAPIV3.PathsObject,
