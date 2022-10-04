@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-import { generate } from "./react-query/generator";
-import { Command } from "commander";
+import { generate as generateReactQuery } from "./react-query/generator";
+import { generate as generateSWR } from "./swr/generator";
+import { Argument, Command } from "commander";
 
 export type CLIOptions = {
   name: string;
@@ -12,10 +13,15 @@ export type CLIOptions = {
   reactQueryV4: boolean;
 };
 
+enum CLIArgLibrary {
+  SWR = "swr",
+  ReactQuery = "react-query",
+}
+
 const program = new Command();
 
 program
-  .version("1.10.0")
+  .version("1.11.0")
   .description("Generate a package based on OpenAPI")
   .requiredOption("-p, --path <path>", "Path to OpenAPI file")
   .option(
@@ -42,10 +48,20 @@ program
     "-rq-v4, --react-query-v4",
     "Use React Query V4 aka '@tanstack/react-query'",
     false
-  )
-  .parse();
+  );
 
+program.addArgument(
+  new Argument("[library]", "Library for generating code")
+    .choices(["swr", "react-query"])
+    .default("react-query")
+);
+
+program.parse();
+
+const argLibrary = (program.args[0] ||
+  CLIArgLibrary.ReactQuery) as CLIArgLibrary;
 const options = program.opts<CLIOptions>();
 
 console.log(`Generating package using OpenApi file ${options.path}`);
-generate(options);
+if (argLibrary === CLIArgLibrary.ReactQuery) generateReactQuery(options);
+else if (argLibrary === CLIArgLibrary.SWR) generateSWR(options);
