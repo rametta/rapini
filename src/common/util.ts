@@ -1,11 +1,17 @@
 import ts from "typescript";
-import type { OpenAPIV3 } from "openapi-types";
+import type { OpenAPI, OpenAPIV3 } from "openapi-types";
 import { createLiteralNodeFromProperties } from "./types";
 
 export function toParamObjects(
   params: (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[]
 ): OpenAPIV3.ParameterObject[] {
   return params?.filter(<typeof isParameterObject>isParameterObject) ?? [];
+}
+
+export function isOpenApiV3Document(
+  doc: OpenAPI.Document
+): doc is OpenAPIV3.Document {
+  return "openapi" in doc;
 }
 
 export function isParameterObject(

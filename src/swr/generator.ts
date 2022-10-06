@@ -1,6 +1,7 @@
 import ts from "typescript";
 import type { OpenAPI, OpenAPIV3 } from "openapi-types";
 import SwaggerParser from "@apidevtools/swagger-parser";
+import { isOpenApiV3Document } from "../common/util";
 import { makeQueryIds } from "../common/queryIds";
 import { makeRequests } from "../common/requests";
 import { makeTypes } from "../common/types";
@@ -10,10 +11,6 @@ import { makeQueries } from "./queries";
 import { makeInitialize } from "./initialize";
 import { makeConfigTypes } from "./config";
 import { CLIOptions } from "../cli";
-
-function isOpenApiV3Document(doc: OpenAPI.Document): doc is OpenAPIV3.Document {
-  return "openapi" in doc;
-}
 
 function parse(
   doc: OpenAPI.Document,
