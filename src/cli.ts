@@ -13,10 +13,7 @@ export type CLIOptions = {
   reactQueryV4: boolean;
 };
 
-enum CLIArgLibrary {
-  SWR = "swr",
-  ReactQuery = "react-query",
-}
+type CLIArgLibrary = "swr" | "react-query";
 
 const program = new Command();
 
@@ -58,10 +55,9 @@ program.addArgument(
 
 program.parse();
 
-const argLibrary = (program.args[0] ||
-  CLIArgLibrary.ReactQuery) as CLIArgLibrary;
+const argLibrary = (program.args[0] || "react-query") as CLIArgLibrary;
 const options = program.opts<CLIOptions>();
 
 console.log(`Generating package using OpenApi file ${options.path}`);
-if (argLibrary === CLIArgLibrary.ReactQuery) generateReactQuery(options);
-else if (argLibrary === CLIArgLibrary.SWR) generateSWR(options);
+if (argLibrary === "react-query") generateReactQuery(options);
+else if (argLibrary === "swr") generateSWR(options);
