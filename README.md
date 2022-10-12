@@ -25,32 +25,74 @@ npm i -g rapini
 ## Usage
 
 ```sh
-rapini [options] [library]
+rapini [library] [options]
 ```
 
 eg:
 
 ```sh
-rapini -p path/to/openapi.yaml
+# For React Query V3
+rapini react-query -p path/to/openapi.yaml
+
+# For React Query V4
+rapini react-query v4 -p path/to/openapi.yaml
+
+# For SWR
+rapini swr -p path/to/openapi.yaml
 ```
 
-This will generate the React Query code based on an OpenAPI file at `path/to/openapi.yaml`. The outputted code will be packaged in a way to just publish it as your own NPM package and then import it in your React project.
+This will generate the package code based on an OpenAPI file at `path/to/openapi.yaml`. The outputted code will be packaged in a way to just publish it as your own NPM package and then import it in your React project.
 
 ## CLI Arguments & Options
 
+### `rapini help` outputs the following:
+
 ```
-Arguments:
-  library                                    Library for generating code (choices: "swr", "react-query", default: "react-query")
+Usage: rapini [options] [command]
+
+Generate a package based on OpenAPI
 
 Options:
-  -V, --version                              output the version number
+  -V, --version                    output the version number
+  -h, --help                       display help for command
+
+Commands:
+  react-query [options] [version]  Generate a Package for TanStack Query V4 or React Query V3
+  swr [options]                    Generate a Package for SWR (stale-while-revalidate)
+  help [command]                   display help for command
+```
+
+### `rapini help react-query` outputs the following:
+
+```
+Usage: rapini react-query [options] [version]
+
+Generate a Package for TanStack Query V4 or React Query V3
+
+Options:
   -p, --path <path>                          Path to OpenAPI file
   -n, --name [name]                          Name to use for the generated package (default: "rapini-generated-package")
   -pv, --package-version [version]           Semver version to use for the generated package (default: "1.0.0")
   -o, --output-dir [directory]               Directory to output the generated package (default: "rapini-generated-package")
   -b, --base-url [url]                       Prefix every request with this url
   -r, --replacer [oldString] [newString...]  Replace part(s) of any route's path with simple string replacements. Ex: `-r /api/v1 /api/v2` would replace the v1 with v2 in every route
-  -rq-v4, --react-query-v4                   Use React Query V4 aka '@tanstack/react-query' (default: false)
+  -h, --help                                 display help for command
+```
+
+### `rapini help swr` outputs the following:
+
+```
+Usage: rapini swr [options]
+
+Generate a Package for SWR (stale-while-revalidate)
+
+Options:
+  -p, --path <path>                          Path to OpenAPI file
+  -n, --name [name]                          Name to use for the generated package (default: "rapini-generated-package")
+  -pv, --package-version [version]           Semver version to use for the generated package (default: "1.0.0")
+  -o, --output-dir [directory]               Directory to output the generated package (default: "rapini-generated-package")
+  -b, --base-url [url]                       Prefix every request with this url
+  -r, --replacer [oldString] [newString...]  Replace part(s) of any route's path with simple string replacements. Ex: `-r /api/v1 /api/v2` would replace the v1 with v2 in every route
   -h, --help                                 display help for command
 ```
 
