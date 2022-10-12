@@ -2,15 +2,15 @@
 [![License](https://img.shields.io/github/license/rametta/rapini)](https://opensource.org/licenses/Apache-2.0)
 [![PR Test](https://github.com/rametta/rapini/actions/workflows/test.yml/badge.svg)](https://github.com/rametta/rapini/actions/workflows/test.yml)
 
-# :leafy_green: Rapini - OpenAPI to React Query & Axios
+# :leafy_green: Rapini - OpenAPI to React Query (or SWR) & Axios
 
-Rapini is a tool that generates [React Query](https://react-query.tanstack.com/) hooks, [Axios](https://axios-http.com/) requests and [Typescript](https://www.typescriptlang.org/) types, based on an [OpenAPI](https://www.openapis.org/) spec file.
+Rapini is a tool that generates [React Query](https://react-query.tanstack.com/) (or [SWR](https://swr.vercel.app/)) hooks, [Axios](https://axios-http.com/) requests and [Typescript](https://www.typescriptlang.org/) types, based on an [OpenAPI](https://www.openapis.org/) spec file.
 The generated code is packaged conveniently so that it can be published as a package on any NPM registry.
 
 ## Features
 
 - :bicyclist: Generates axios calls for every endpoint, with typed payload.
-- :golfing: Generates custom react hooks that use React Query's useQuery and useMutation hooks for each axios call.
+- :golfing: Generates custom react hooks that use React Query's `useQuery` and `useMutation` hooks for each axios call. Optional to generate custom hooks that use SWR's `useSWR` hook.
 - :rowboat: Generates query keys for every hook.
 - :weight_lifting: Generates strong typescript types for all inputs, outputs, and options.
 
@@ -25,23 +25,74 @@ npm i -g rapini
 ## Usage
 
 ```sh
-rapini -p path/to/openapi.yaml
+rapini [library] [options]
 ```
 
-This will generate the React Query code based on an OpenAPI file at `path/to/openapi.yaml`. The outputted code will be packaged in a way to just publish it as your own NPM package and then import it in your React project.
+eg:
 
-## CLI Options
+```sh
+# For React Query V3
+rapini react-query -p path/to/openapi.yaml
+
+# For React Query V4
+rapini react-query v4 -p path/to/openapi.yaml
+
+# For SWR
+rapini swr -p path/to/openapi.yaml
+```
+
+This will generate the package code based on an OpenAPI file at `path/to/openapi.yaml`. The outputted code will be packaged in a way to just publish it as your own NPM package and then import it in your React project.
+
+## CLI Arguments & Options
+
+### `rapini help` outputs the following:
 
 ```
+Usage: rapini [options] [command]
+
+Generate a package based on OpenAPI
+
 Options:
-  -V, --version                              output the version number
+  -V, --version                    output the version number
+  -h, --help                       display help for command
+
+Commands:
+  react-query [options] [version]  Generate a Package for TanStack Query V4 or React Query V3
+  swr [options]                    Generate a Package for SWR (stale-while-revalidate)
+  help [command]                   display help for command
+```
+
+### `rapini help react-query` outputs the following:
+
+```
+Usage: rapini react-query [options] [version]
+
+Generate a Package for TanStack Query V4 or React Query V3
+
+Options:
   -p, --path <path>                          Path to OpenAPI file
   -n, --name [name]                          Name to use for the generated package (default: "rapini-generated-package")
   -pv, --package-version [version]           Semver version to use for the generated package (default: "1.0.0")
   -o, --output-dir [directory]               Directory to output the generated package (default: "rapini-generated-package")
   -b, --base-url [url]                       Prefix every request with this url
   -r, --replacer [oldString] [newString...]  Replace part(s) of any route's path with simple string replacements. Ex: `-r /api/v1 /api/v2` would replace the v1 with v2 in every route
-  -rq-v4, --react-query-v4                   Use React Query V4 aka '@tanstack/react-query' (default: false)
+  -h, --help                                 display help for command
+```
+
+### `rapini help swr` outputs the following:
+
+```
+Usage: rapini swr [options]
+
+Generate a Package for SWR (stale-while-revalidate)
+
+Options:
+  -p, --path <path>                          Path to OpenAPI file
+  -n, --name [name]                          Name to use for the generated package (default: "rapini-generated-package")
+  -pv, --package-version [version]           Semver version to use for the generated package (default: "1.0.0")
+  -o, --output-dir [directory]               Directory to output the generated package (default: "rapini-generated-package")
+  -b, --base-url [url]                       Prefix every request with this url
+  -r, --replacer [oldString] [newString...]  Replace part(s) of any route's path with simple string replacements. Ex: `-r /api/v1 /api/v2` would replace the v1 with v2 in every route
   -h, --help                                 display help for command
 ```
 
@@ -80,7 +131,7 @@ You must call `initialize(axiosInstance)` with your custom axios instance. The r
 ```ts
 const rapini = initialize(axiosInstance);
 rapini.queries; // { usePets, usePetById } ...
-rapini.mutations; // { useUpdatePet, useDeletePet } ...
+rapini.mutations; // { useUpdatePet, useDeletePet } ... if generated by SWR, there will be no property `mutations`
 rapini.queryIds; // { pets: () => ['pets'] } ...
 rapini.requests; // { pets: () => axios.get<Pet[]>(...) } ...
 ```

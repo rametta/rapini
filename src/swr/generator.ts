@@ -1,16 +1,14 @@
 import ts from "typescript";
 import type { OpenAPI, OpenAPIV3 } from "openapi-types";
 import SwaggerParser from "@apidevtools/swagger-parser";
-import { print } from "./print";
-import { makeImports } from "./imports";
 import { isOpenApiV3Document } from "../common/util";
 import { makeQueryIds } from "../common/queryIds";
 import { makeRequests } from "../common/requests";
+import { makeTypes } from "../common/types";
+import { print } from "./print";
+import { makeImports } from "./imports";
 import { makeQueries } from "./queries";
 import { makeInitialize } from "./initialize";
-import { makeMutations } from "./mutations";
-import { makeTypes } from "../common/types";
-import { makeRapiniMutation } from "./rapini-mutation";
 import { makeConfigTypes } from "./config";
 import { CLIOptions } from "../cli";
 
@@ -32,11 +30,10 @@ function parseOpenApiV3Doc(
   options: CLIOptions
 ) {
   return {
-    imports: makeImports(options),
+    imports: makeImports(),
     queryIds: makeQueryIds(doc.paths),
     requests: makeRequests(doc.paths, $refs, options),
-    queries: makeQueries(doc.paths, $refs),
-    mutations: makeMutations(doc.paths, $refs),
+    queries: makeQueries(doc.paths),
     types: makeTypes(doc),
   };
 }
@@ -48,11 +45,9 @@ function makeSourceFile(data: ReturnType<typeof parse>) {
       ...data.types,
       ...makeConfigTypes(),
       makeInitialize(),
-      makeRapiniMutation(),
       ...data.queryIds,
       data.requests,
       data.queries,
-      ...data.mutations,
     ],
     /*endOfFileToken*/ ts.factory.createToken(ts.SyntaxKind.EndOfFileToken),
     /*flags*/ ts.NodeFlags.None
