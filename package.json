@@ -1,11 +1,11 @@
 {
   "name": "rapini",
-  "version": "1.11.0",
-  "description": "Generate React Query hooks, Axios requests and Typescript types from OpenAPI files",
+  "version": "2.0.0",
+  "description": "Generate React Query hooks, SWR hooks, Axios requests and Typescript types from OpenAPI files",
   "bin": "dist/cli.js",
   "scripts": {
     "build": "tsc --project tsconfig.json",
-    "start": "chmod +x dist/cli.js && dist/cli.js -p example-openapi.yaml",
+    "start": "chmod +x dist/cli.js && dist/cli.js react-query v3 --path example-openapi.yaml",
     "dev": "npm run build && npm run start",
     "test": "jest",
     "test:watch": "jest --watch",
