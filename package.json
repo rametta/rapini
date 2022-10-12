@@ -34,7 +34,9 @@
   "keywords": [
     "codegen",
     "react-query",
+    "tanstack",
     "swr",
+    "stale-while-revalidate",
     "react",
     "query",
     "axios",
