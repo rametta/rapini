@@ -95,13 +95,37 @@ function createTypeAliasDeclarationTypeWithSchemaObject(
 
   if (isOneOfOrAnyOfObject(item)) {
     const items = item.oneOf || item.anyOf;
+
+    const reverseDiscriminatorLookup = Object.fromEntries(
+      Object.entries(item.discriminator?.mapping ?? {}).map((x) => x.reverse())
+    );
+
     if (items) {
       return ts.factory.createUnionTypeNode(
-        items.map((oneOrAnyItem) =>
-          isReferenceObject(oneOrAnyItem)
-            ? createTypeRefFromRef(oneOrAnyItem)
-            : createTypeAliasDeclarationTypeWithSchemaObject(oneOrAnyItem)
-        )
+        items.map((oneOrAnyItem) => {
+          if (isReferenceObject(oneOrAnyItem)) {
+            const discriminator = reverseDiscriminatorLookup[oneOrAnyItem.$ref];
+            const discriminatorIntersection = discriminator
+              ? [
+                  ts.factory.createTypeLiteralNode([
+                    ts.factory.createPropertySignature(
+                      undefined,
+                      item.discriminator?.propertyName as string,
+                      undefined,
+                      ts.factory.createLiteralTypeNode(
+                        ts.factory.createStringLiteral(discriminator)
+                      )
+                    ),
+                  ]),
+                ]
+              : [];
+            return ts.factory.createIntersectionTypeNode([
+              createTypeRefFromRef(oneOrAnyItem),
+              ...discriminatorIntersection,
+            ]);
+          }
+          return createTypeAliasDeclarationTypeWithSchemaObject(oneOrAnyItem);
+        })
       );
     }
   }

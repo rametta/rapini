@@ -35,8 +35,12 @@ export type Cat = Pet & {
 export type Dog = Pet & {
     bark?: string;
 };
-export type MyResponseType = Cat | Dog;
-export type MyResponseTypeTwo = Cat | Dog;
+export type MyResponseType = (Cat & {
+    petType: "cat";
+}) | (Dog & {
+    petType: "doge";
+});
+export type MyResponseTypeTwo = (Cat) | (Dog);
 export type Error = {
     code: number;
     message: string;
@@ -207,6 +211,13 @@ describe("makeTypes", () => {
                 $ref: "#/components/schemas/Dog",
               },
             ],
+            discriminator: {
+              propertyName: "petType",
+              mapping: {
+                cat: "#/components/schemas/Cat",
+                doge: "#/components/schemas/Dog",
+              },
+            },
           },
           MyResponseTypeTwo: {
             oneOf: [

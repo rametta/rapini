@@ -234,6 +234,11 @@ components:
       oneOf:
         - $ref: "#/components/schemas/Cat"
         - $ref: "#/components/schemas/Dog"
+      discriminator:
+        propertyName: petType
+        mapping:
+          cat: '#/components/schemas/Cat'
+          doge: '#/components/schemas/Dog'
     MyResponseTypeTwo:
       anyOf:
         - $ref: "#/components/schemas/Cat"
