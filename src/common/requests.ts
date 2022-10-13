@@ -41,7 +41,7 @@ function makeRequestsDeclaration(
 
   return ts.factory.createFunctionDeclaration(
     /*decorators*/ undefined,
-    /*modifiers*/ undefined,
+    /*modifiers*/ [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
     /*asteriskToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("makeRequests"),
     /*typeParameters*/ undefined,
