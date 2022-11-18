@@ -44,37 +44,65 @@ export function isOneOfOrAnyOfObject(
   return "oneOf" in param || "anyOf" in param;
 }
 
-const unknown = ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+const unknownTypeNode = ts.factory.createKeywordTypeNode(
+  ts.SyntaxKind.UnknownKeyword
+);
+
+export function nodeId(node: ts.TypeNode): string {
+  if (ts.isArrayTypeNode(node)) {
+    return `Array<${nodeId(node.elementType)}>`;
+  }
+
+  if (ts.isParenthesizedTypeNode(node)) {
+    return `(${nodeId(node.type)})`;
+  }
+
+  if (ts.isUnionTypeNode(node)) {
+    return node.types.map(nodeId).join("|");
+  }
+
+  if (ts.isTypeLiteralNode(node)) {
+    return (
+      "type-literal-" +
+      node.members
+        .map((elementType) =>
+          elementType.name && ts.isIdentifier(elementType.name)
+            ? elementType.name.text
+            : elementType.kind
+        )
+        .join("&")
+    );
+  }
+
+  if (ts.isIdentifier(node)) {
+    return node.text;
+  }
+
+  if (ts.isTypeReferenceNode(node)) {
+    if (ts.isIdentifier(node.typeName)) {
+      return node.typeName.text;
+    }
+  }
+
+  return node.kind.toString();
+}
 
 export function schemaObjectOrRefType(
   schema?: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 ): { node: ts.TypeNode; id: string } {
   if (!schema) {
-    return { node: unknown, id: "unknown" };
+    return { node: unknownTypeNode, id: "unknown" };
   }
 
   if (isReferenceObject(schema)) {
     return referenceType(schema);
   }
 
-  return schemaObjectType(schema);
+  const node = schemaObjectTypeNode(schema);
+  return { node, id: nodeId(node) };
 }
 
-function schemaObjectType(
-  schema: OpenAPIV3.SchemaObject
-): ReturnType<typeof schemaObjectOrRefType> {
-  if (schema.type === "array") {
-    return arrayType(schema.items);
-  }
-
-  if (schema.type === "object") {
-    return objectType(schema);
-  }
-
-  return { node: nonArraySchemaObjectTypeToTs(schema), id: "unknown" };
-}
-
-export function createTypeAliasDeclarationTypeWithSchemaObject(
+export function schemaObjectTypeNode(
   item: OpenAPIV3.SchemaObject
 ): ts.TypeNode {
   if (isAllOfObject(item) && item.allOf) {
@@ -82,7 +110,7 @@ export function createTypeAliasDeclarationTypeWithSchemaObject(
       item.allOf.map((allOfItem) =>
         isReferenceObject(allOfItem)
           ? createTypeRefFromRef(allOfItem)
-          : createTypeAliasDeclarationTypeWithSchemaObject(allOfItem)
+          : schemaObjectTypeNode(allOfItem)
       )
     );
   }
@@ -94,7 +122,7 @@ export function createTypeAliasDeclarationTypeWithSchemaObject(
         items.map((oneOrAnyItem) =>
           isReferenceObject(oneOrAnyItem)
             ? createTypeRefFromRef(oneOrAnyItem)
-            : createTypeAliasDeclarationTypeWithSchemaObject(oneOrAnyItem)
+            : schemaObjectTypeNode(oneOrAnyItem)
         )
       );
     }
@@ -104,7 +132,7 @@ export function createTypeAliasDeclarationTypeWithSchemaObject(
     return ts.factory.createArrayTypeNode(
       isReferenceObject(item.items)
         ? createTypeRefFromRef(item.items)
-        : createTypeAliasDeclarationTypeWithSchemaObject(item.items)
+        : schemaObjectTypeNode(item.items)
     );
   }
 
@@ -128,14 +156,14 @@ function createTypeAliasDeclarationType(
 ): ts.TypeNode {
   return isReferenceObject(item)
     ? createTypeRefFromRef(item)
-    : createTypeAliasDeclarationTypeWithSchemaObject(item);
+    : schemaObjectTypeNode(item);
 }
 
 function resolveAdditionalPropertiesType(
   additionalProperties: OpenAPIV3.SchemaObject["additionalProperties"]
 ) {
   if (!additionalProperties) {
-    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+    return unknownTypeNode;
   }
 
   if (typeof additionalProperties === "boolean") {
@@ -143,7 +171,7 @@ function resolveAdditionalPropertiesType(
       return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
     }
 
-    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+    return unknownTypeNode;
   }
 
   return createTypeAliasDeclarationType(additionalProperties);
@@ -212,7 +240,7 @@ export function nonArraySchemaObjectTypeToTs(
       );
     }
     default:
-      return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
+      return unknownTypeNode;
   }
 }
 
@@ -254,19 +282,6 @@ function referenceType(
   return {
     node: ts.factory.createTypeReferenceNode(ts.factory.createIdentifier(name)),
     id: name,
-  };
-}
-
-function arrayType(
-  items: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
-): ReturnType<typeof schemaObjectOrRefType> {
-  const type = isReferenceObject(items)
-    ? referenceType(items)
-    : schemaObjectType(items);
-
-  return {
-    node: ts.factory.createArrayTypeNode(type.node),
-    id: type.id + "[]",
   };
 }
 
