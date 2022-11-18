@@ -1,9 +1,11 @@
+import ts from "typescript";
 import {
   capitalizeFirstLetter,
   combineUniqueParams,
   lowercaseFirstLetter,
   normalizeOperationId,
   refToTypeName,
+  nodeId,
 } from "../../src/common/util";
 
 describe("capitalizeFirstLetter", () => {
@@ -74,4 +76,42 @@ describe("combineUniqueParams", () => {
       );
     }
   );
+});
+
+describe("nodeId", () => {
+  const numeric = ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword);
+  const string = ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword);
+  const bool = ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword);
+  const any = ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+  const ref = ts.factory.createTypeReferenceNode("MyTypeName");
+  const union = ts.factory.createUnionTypeNode([numeric, string, ref]);
+  const arr = ts.factory.createArrayTypeNode(union);
+  const literal = ts.factory.createTypeLiteralNode([
+    ts.factory.createPropertySignature(
+      undefined,
+      ts.factory.createIdentifier("hello"),
+      undefined,
+      ts.factory.createLiteralTypeNode(ts.factory.createNumericLiteral("6"))
+    ),
+    ts.factory.createPropertySignature(
+      undefined,
+      ts.factory.createIdentifier("world"),
+      undefined,
+      ts.factory.createLiteralTypeNode(ts.factory.createTrue())
+    ),
+  ]);
+
+  it.each`
+    node       | expected
+    ${numeric} | ${"147"}
+    ${string}  | ${"150"}
+    ${bool}    | ${"133"}
+    ${any}     | ${"130"}
+    ${union}   | ${"147|150|MyTypeName"}
+    ${arr}     | ${"Array<(147|150|MyTypeName)>"}
+    ${ref}     | ${"MyTypeName"}
+    ${literal} | ${"type-literal-hello&world"}
+  `("nodeId($node) -> $expected", ({ node, expected }) => {
+    expect(nodeId(node)).toStrictEqual(expected);
+  });
 });
