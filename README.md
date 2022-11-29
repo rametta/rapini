@@ -14,31 +14,25 @@ The generated code is packaged conveniently so that it can be published as a pac
 - :rowboat: Generates query keys for every hook.
 - :weight_lifting: Generates strong typescript types for all inputs, outputs, and options.
 
-## Installation
+## Getting Started
 
-Rapini is a CLI tool so you can install it globally for convenience
-
-```sh
-npm i -g rapini
-```
-
-## Usage
+Rapini is a CLI tool so you can execute the remote npm package directly for convenience
 
 ```sh
-rapini [library] [options]
+npx rapini [library] [options]
 ```
 
 eg:
 
 ```sh
 # For React Query V3
-rapini react-query -p path/to/openapi.yaml
+npx rapini react-query -p path/to/openapi.yaml
 
 # For React Query V4
-rapini react-query v4 -p path/to/openapi.yaml
+npx rapini react-query v4 -p path/to/openapi.yaml
 
 # For SWR
-rapini swr -p path/to/openapi.yaml
+npx rapini swr -p path/to/openapi.yaml
 ```
 
 This will generate the package code based on an OpenAPI file at `path/to/openapi.yaml`. The outputted code will be packaged in a way to just publish it as your own NPM package and then import it in your React project.
