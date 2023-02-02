@@ -29,7 +29,7 @@ function printPackageJson(options: CLIOptions) {
       "build-esm": "tsc index.ts --skipLibCheck --moduleResolution node --target es2015 --esModuleInterop --outDir dist-esm && mv dist-esm/index.js dist-esm/index.mjs"
     },
     "peerDependencies": {
-      "axios": "0.27.x",
+      "axios": "1.2.x",
       "swr": "^1.3.0"
     },
     "devDependencies": {
