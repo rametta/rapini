@@ -98,36 +98,47 @@ function makeProperty(
       /*equalsGreaterThanToken*/ ts.factory.createToken(
         ts.SyntaxKind.EqualsGreaterThanToken
       ),
-      /*body*/ ts.factory.createCallExpression(
-        /*expression*/ ts.factory.createIdentifier("useQuery"),
-        /*typeArgs*/ undefined,
-        /*args*/ [
-          ts.factory.createCallExpression(
-            /*expression*/ ts.factory.createPropertyAccessExpression(
-              /*expression*/ ts.factory.createIdentifier("queryKeys"),
-              /*name*/ ts.factory.createIdentifier(normalizedOperationId)
-            ),
-            /*typeArgs*/ undefined,
-            /*args*/ params.map((p) => p.name)
-          ),
-          ts.factory.createArrowFunction(
-            /*modifiers*/ undefined,
-            /*typeParameters*/ undefined,
-            /*parameters*/ [],
-            /*type*/ undefined,
-            /*equalsGreaterThanToken*/ ts.factory.createToken(
-              ts.SyntaxKind.EqualsGreaterThanToken
-            ),
-            /*body*/ ts.factory.createCallExpression(
-              /*expression*/ ts.factory.createPropertyAccessExpression(
-                /*expression*/ ts.factory.createIdentifier("requests"),
-                /*name*/ ts.factory.createIdentifier(normalizedOperationId)
+      ts.factory.createCallExpression(
+        ts.factory.createIdentifier("useQuery"),
+        undefined,
+        [
+          ts.factory.createObjectLiteralExpression(
+            [
+              ts.factory.createPropertyAssignment(
+                ts.factory.createIdentifier("queryKey"),
+                ts.factory.createCallExpression(
+                  ts.factory.createPropertyAccessExpression(
+                    ts.factory.createIdentifier("queryKeys"),
+                    ts.factory.createIdentifier(normalizedOperationId)
+                  ),
+                  undefined,
+                  params.map((p) => p.name)
+                )
               ),
-              /*typeArguments*/ undefined,
-              /*args*/ params.map((p) => p.name)
-            )
+              ts.factory.createPropertyAssignment(
+                ts.factory.createIdentifier("queryFn"),
+                ts.factory.createArrowFunction(
+                  undefined,
+                  undefined,
+                  [],
+                  undefined,
+                  ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+                  ts.factory.createCallExpression(
+                    ts.factory.createPropertyAccessExpression(
+                      ts.factory.createIdentifier("requests"),
+                      ts.factory.createIdentifier(normalizedOperationId)
+                    ),
+                    undefined,
+                    params.map((p) => p.name)
+                  )
+                )
+              ),
+              ts.factory.createSpreadAssignment(
+                ts.factory.createIdentifier("options")
+              ),
+            ],
+            false
           ),
-          ts.factory.createIdentifier("options"),
         ]
       )
     )

@@ -4,9 +4,9 @@ import { compile } from "../test.utils";
 
 const expected = `function makeQueries(requests: Requests) {
     return {
-        useGetPets: (options?: Omit<UseQueryOptions<Response<"getPets">, unknown, Response<"getPets">, ReturnType<QueryKeys["getPets"]>>, "queryKey" | "queryFn">): UseQueryResult<Response<"getPets">, unknown> => useQuery(queryKeys.getPets(), () => requests.getPets(), options),
-        useGetPet: (petId: string, options?: Omit<UseQueryOptions<Response<"getPet">, unknown, Response<"getPet">, ReturnType<QueryKeys["getPet"]>>, "queryKey" | "queryFn">): UseQueryResult<Response<"getPet">, unknown> => useQuery(queryKeys.getPet(petId), () => requests.getPet(petId), options),
-        useGetPetPhotos: (petId: string, options?: Omit<UseQueryOptions<Response<"getPetPhotos">, unknown, Response<"getPetPhotos">, ReturnType<QueryKeys["getPetPhotos"]>>, "queryKey" | "queryFn">): UseQueryResult<Response<"getPetPhotos">, unknown> => useQuery(queryKeys.getPetPhotos(petId), () => requests.getPetPhotos(petId), options)
+        useGetPets: (options?: Omit<UseQueryOptions<Response<"getPets">, unknown, Response<"getPets">, ReturnType<QueryKeys["getPets"]>>, "queryKey" | "queryFn">): UseQueryResult<Response<"getPets">, unknown> => useQuery({ queryKey: queryKeys.getPets(), queryFn: () => requests.getPets(), ...options }),
+        useGetPet: (petId: string, options?: Omit<UseQueryOptions<Response<"getPet">, unknown, Response<"getPet">, ReturnType<QueryKeys["getPet"]>>, "queryKey" | "queryFn">): UseQueryResult<Response<"getPet">, unknown> => useQuery({ queryKey: queryKeys.getPet(petId), queryFn: () => requests.getPet(petId), ...options }),
+        useGetPetPhotos: (petId: string, options?: Omit<UseQueryOptions<Response<"getPetPhotos">, unknown, Response<"getPetPhotos">, ReturnType<QueryKeys["getPetPhotos"]>>, "queryKey" | "queryFn">): UseQueryResult<Response<"getPetPhotos">, unknown> => useQuery({ queryKey: queryKeys.getPetPhotos(petId), queryFn: () => requests.getPetPhotos(petId), ...options })
     } as const;
 }
 `;
