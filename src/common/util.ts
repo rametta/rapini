@@ -302,6 +302,7 @@ export function lowercaseFirstLetter(str: string) {
  * @example normalizeOperationId("Test1_test8-test1_test2") // test1Test8Test1Test2
  */
 export function normalizeOperationId(operationId: string) {
+  if (operationId === undefined) return "";
   const split = operationId
     .split("-")
     .flatMap((x) => x.split("_"))
