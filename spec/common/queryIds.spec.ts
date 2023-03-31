@@ -2,8 +2,8 @@ import type { OpenAPIV3 } from "openapi-types";
 import { makeQueryIds } from "../../src/common/queryIds";
 import { compile } from "../test.utils";
 
-const expected = `function nullIfUndefined<T>(value: T): T | null {
-    return typeof value === "undefined" ? null : value;
+const expected = `function nullIfUndefined<T>(value: T): NonNullable<T> | null {
+    return typeof value === "undefined" ? null : value as NonNullable<T> | null;
 }
 function makeQueryIds() {
     return {

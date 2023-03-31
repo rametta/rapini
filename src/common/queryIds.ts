@@ -23,56 +23,61 @@ function makeNullIfUndefinedFunctionDeclaration() {
     undefined,
     undefined,
     ts.factory.createIdentifier(NULL_IF_UNDEFINED_FN_NAME),
-    [
-      ts.factory.createTypeParameterDeclaration(
-        undefined,
-        ts.factory.createIdentifier("T"),
-        undefined,
-        undefined
-      ),
-    ],
-    [
-      ts.factory.createParameterDeclaration(
-        undefined,
-        undefined,
-        undefined,
-        ts.factory.createIdentifier("value"),
-        undefined,
-        ts.factory.createTypeReferenceNode(
-          ts.factory.createIdentifier("T"),
-          undefined
-        ),
-        undefined
-      ),
-    ],
-    ts.factory.createUnionTypeNode([
+    [ts.factory.createTypeParameterDeclaration(
+      undefined,
+      ts.factory.createIdentifier("T"),
+      undefined,
+      undefined
+    )],
+    [ts.factory.createParameterDeclaration(
+      undefined,
+      undefined,
+      undefined,
+      ts.factory.createIdentifier("value"),
+      undefined,
       ts.factory.createTypeReferenceNode(
         ts.factory.createIdentifier("T"),
         undefined
       ),
-      ts.factory.createLiteralTypeNode(ts.factory.createNull()),
+      undefined
+    )],
+    ts.factory.createUnionTypeNode([
+      ts.factory.createTypeReferenceNode(
+        ts.factory.createIdentifier("NonNullable"),
+        [ts.factory.createTypeReferenceNode(
+          ts.factory.createIdentifier("T"),
+          undefined
+        )]
+      ),
+      ts.factory.createLiteralTypeNode(ts.factory.createNull())
     ]),
     ts.factory.createBlock(
-      [
-        ts.factory.createReturnStatement(
-          ts.factory.createConditionalExpression(
-            ts.factory.createBinaryExpression(
-              ts.factory.createTypeOfExpression(
-                ts.factory.createIdentifier("value")
-              ),
-              ts.factory.createToken(ts.SyntaxKind.EqualsEqualsEqualsToken),
-              ts.factory.createStringLiteral("undefined")
-            ),
-            ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-            ts.factory.createNull(),
-            ts.factory.createToken(ts.SyntaxKind.ColonToken),
-            ts.factory.createIdentifier("value")
-          )
+      [ts.factory.createReturnStatement(ts.factory.createConditionalExpression(
+        ts.factory.createBinaryExpression(
+          ts.factory.createTypeOfExpression(ts.factory.createIdentifier("value")),
+          ts.factory.createToken(ts.SyntaxKind.EqualsEqualsEqualsToken),
+          ts.factory.createStringLiteral("undefined")
         ),
-      ],
+        ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+        ts.factory.createNull(),
+        ts.factory.createToken(ts.SyntaxKind.ColonToken),
+        ts.factory.createAsExpression(
+          ts.factory.createIdentifier("value"),
+          ts.factory.createUnionTypeNode([
+            ts.factory.createTypeReferenceNode(
+              ts.factory.createIdentifier("NonNullable"),
+              [ts.factory.createTypeReferenceNode(
+                ts.factory.createIdentifier("T"),
+                undefined
+              )]
+            ),
+            ts.factory.createLiteralTypeNode(ts.factory.createNull())
+          ])
+        )
+      ))],
       true
     )
-  );
+  )
 }
 
 function makeQueryIdsFunctionDeclaration(
