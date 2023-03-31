@@ -10,24 +10,24 @@ import { compile } from "../test.utils";
 
 const expected = `function makeRequests(axios: AxiosInstance, config?: AxiosConfig) {
     return {
-        getPets: () => axios.request<unknown>({
+        getPets: () => axios.request<Pets>({
             method: "get",
             url: \`/pets\`
         }).then(res => res.data),
-        createPet: (payload: Pet) => axios.request<Pet>({
+        createPet: (payload: unknown) => axios.request<Pet>({
             method: "post",
             url: \`/pets\`,
             data: payload
         }).then(res => res.data),
-        getPet: (petId?: string) => axios.request<unknown>({
+        getPet: (petId?: string) => axios.request<Pet>({
             method: "get",
             url: \`/pets/\${petId}\`
         }).then(res => res.data),
-        getPetPhotos: (petId: string) => axios.request<unknown>({
+        getPetPhotos: (petId: string) => axios.request<Photos>({
             method: "get",
             url: \`/pets/\${petId}/photos\`
         }).then(res => res.data),
-        addPetPhoto: (payload: Photos, petId: string) => axios.request<unknown>({
+        addPetPhoto: (payload: Photos, petId: string) => axios.request<Photos>({
             method: "post",
             url: \`/pets/\${petId}/photos\`,
             data: payload
@@ -70,7 +70,7 @@ describe("makeRequests", () => {
               content: {
                 "application/json": {
                   schema: {
-                    $ref: "#/components/schemas/Pet",
+                    $ref: "",
                   },
                 },
               },
