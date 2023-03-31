@@ -266,15 +266,6 @@ export function appendNullToUnion(type: ts.TypeNode, nullable?: boolean) {
     : type;
 }
 
-function objectType(
-  item: OpenAPIV3.NonArraySchemaObject
-): ReturnType<typeof schemaObjectOrRefType> {
-  return {
-    node: createLiteralNodeFromProperties(item),
-    id: "object", // stringify type maybe here
-  };
-}
-
 function referenceType(
   item: OpenAPIV3.ReferenceObject
 ): ReturnType<typeof schemaObjectOrRefType> {
