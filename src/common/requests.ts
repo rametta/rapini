@@ -303,15 +303,25 @@ function getResponseType(
     .filter(({ statusType }) => statusType === "success")
     .flatMap(({ schemas }) => schemas);
 
-  const uniqSuccessTypes = successTypes.reduce(
+  const uniqSuccessTypes = successTypes.reduce<
+    ReturnType<typeof schemaObjectOrRefType>[]
+  >(
     (acc, node) => (acc.find((n) => n.id === node.id) ? acc : acc.concat(node)),
-    [] as ReturnType<typeof schemaObjectOrRefType>[]
+    []
   );
 
   if (uniqSuccessTypes.length) {
     return ts.factory.createUnionTypeNode(
       uniqSuccessTypes.map((item) => item.node)
     );
+  }
+
+  const defaultType = responses.find(
+    ({ statusType }) => statusType === "default"
+  );
+
+  if (defaultType && defaultType.schemas?.[0]) {
+    return defaultType.schemas[0].node;
   }
 
   return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
@@ -332,10 +342,12 @@ function makeRequestsType(
     : undefined;
 
   if (schemas?.length) {
-    const uniqSchema = schemas.reduce(
+    const uniqSchema = schemas.reduce<
+      ReturnType<typeof schemaObjectOrRefType>[]
+    >(
       (acc, node) =>
         acc.find((n) => n.id === node.id) ? acc : acc.concat(node),
-      [] as ReturnType<typeof schemaObjectOrRefType>[]
+      []
     );
 
     return ts.factory.createUnionTypeNode(uniqSchema.map((item) => item.node));
