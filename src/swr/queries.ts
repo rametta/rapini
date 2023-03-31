@@ -30,30 +30,13 @@ export function makeQueries(paths: OpenAPIV3.PathsObject) {
     /*initializer*/ undefined
   );
 
-  const queryIdsParam = ts.factory.createParameterDeclaration(
-    /*decorators*/ undefined,
-    /*modifiers*/ undefined,
-    /*dotDotDotToken*/ undefined,
-    /*name*/ ts.factory.createIdentifier("queryIds"),
-    /*questionToken*/ undefined,
-    /*type*/ ts.factory.createTypeReferenceNode(
-      /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-      /*typeArgs*/ [
-        ts.factory.createTypeQueryNode(
-          /*exprName*/ ts.factory.createIdentifier("makeQueryIds")
-        ),
-      ]
-    ),
-    /*initializer*/ undefined
-  );
-
   return ts.factory.createFunctionDeclaration(
     /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*asteriskToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("makeQueries"),
     /*typeParameters*/ undefined,
-    /*parameters*/ [requestsParam, queryIdsParam],
+    /*parameters*/ [requestsParam],
     /*type*/ undefined,
     /*body*/ ts.factory.createBlock(
       [
@@ -159,7 +142,7 @@ function makeProperty(
         /*args*/ [
           ts.factory.createCallExpression(
             /*expression*/ ts.factory.createPropertyAccessExpression(
-              /*expression*/ ts.factory.createIdentifier("queryIds"),
+              /*expression*/ ts.factory.createIdentifier("queryKeys"),
               /*name*/ ts.factory.createIdentifier(normalizedOperationId)
             ),
             /*typeArgs*/ undefined,

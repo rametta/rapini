@@ -4,7 +4,7 @@ import SwaggerParser from "@apidevtools/swagger-parser";
 import { print } from "./print";
 import { makeImports } from "./imports";
 import { isOpenApiV3Document } from "../common/util";
-import { makeQueryIds } from "../common/queryIds";
+import { makeQueryKeys } from "../common/queryKeys";
 import { makeRequests } from "../common/requests";
 import { makeQueries } from "./queries";
 import { makeInitialize } from "./initialize";
@@ -33,7 +33,7 @@ function parseOpenApiV3Doc(
 ) {
   return {
     imports: makeImports(options),
-    queryIds: makeQueryIds(doc.paths),
+    queryKeys: makeQueryKeys(doc.paths),
     requests: makeRequests(doc.paths, $refs, options),
     queries: makeQueries(doc.paths, $refs),
     mutations: makeMutations(doc.paths, $refs),
@@ -49,7 +49,7 @@ function makeSourceFile(data: ReturnType<typeof parse>) {
       ...makeConfigTypes(),
       makeInitialize(),
       makeRapiniMutation(),
-      ...data.queryIds,
+      ...data.queryKeys,
       data.requests,
       data.queries,
       ...data.mutations,

@@ -4,16 +4,17 @@ import { normalizeOperationId, createParams } from "./util";
 
 const NULL_IF_UNDEFINED_FN_NAME = "nullIfUndefined";
 
-export function makeQueryIds(paths: OpenAPIV3.PathsObject) {
-  const queryIds = Object.entries(paths)
+export function makeQueryKeys(paths: OpenAPIV3.PathsObject) {
+  const queryKeys = Object.entries(paths)
     .filter(([_, item]) => !!item?.get)
     .map(([pattern, item]) =>
-      makeQueryId(pattern, item!.get, item!.parameters)
+      makeQueryKey(pattern, item!.get, item!.parameters)
     );
 
   return [
     makeNullIfUndefinedFunctionDeclaration(),
-    makeQueryIdsFunctionDeclaration(queryIds),
+    makeQueryKeysObject(queryKeys),
+    makeExportQueryKeyType(),
   ];
 }
 
@@ -80,45 +81,40 @@ function makeNullIfUndefinedFunctionDeclaration() {
   )
 }
 
-function makeQueryIdsFunctionDeclaration(
-  queryIds: ReturnType<typeof makeQueryId>[]
+function makeQueryKeysObject(
+  queryKeys: ts.PropertyAssignment[]
 ) {
-  const returnStatement = ts.factory.createReturnStatement(
-    ts.factory.createAsExpression(
-      /*expression*/ ts.factory.createObjectLiteralExpression(
-        queryIds,
-        /*multiline*/ true
-      ),
-      /*type*/ ts.factory.createTypeReferenceNode(
-        /*typeName*/ ts.factory.createIdentifier("const"),
-        /*typeArgs*/ undefined
-      )
+  return ts.factory.createVariableStatement(
+    [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
+    ts.factory.createVariableDeclarationList(
+      [ts.factory.createVariableDeclaration(
+        ts.factory.createIdentifier("queryKeys"),
+        undefined,
+        undefined,
+        ts.factory.createAsExpression(
+          ts.factory.createObjectLiteralExpression(
+            queryKeys,
+            true
+          ),
+          ts.factory.createTypeReferenceNode(
+            ts.factory.createIdentifier("const"),
+            undefined
+          )
+        )
+      )],
+      ts.NodeFlags.Const
     )
-  );
-
-  return ts.factory.createFunctionDeclaration(
-    /*decorators*/ undefined,
-    /*modifiers*/ undefined,
-    /*asteriskToken*/ undefined,
-    /*name*/ ts.factory.createIdentifier("makeQueryIds"),
-    /*typeParameters*/ undefined,
-    /*parameters*/ [],
-    /*type*/ undefined,
-    /*body*/ ts.factory.createBlock(
-      /*statments*/ [returnStatement],
-      /*multiline*/ true
-    )
-  );
+  )
 }
 
-// queryIds's are only made for GET's
-function makeQueryId(
+// queryKey's are only made for GET's
+function makeQueryKey(
   pattern: string,
   get: OpenAPIV3.PathItemObject["get"],
   pathParams: OpenAPIV3.PathItemObject["parameters"]
-) {
+): ts.PropertyAssignment {
   if (!get?.operationId) {
-    throw `Missing "operationId" from "get" request with pattern ${pattern}`;
+    throw `Missing "operationId" from "get" request with pattern "${pattern}"`;
   }
 
   const normalizedOperationId = normalizeOperationId(get.operationId);
@@ -159,4 +155,17 @@ function makeQueryId(
       )
     )
   );
+}
+
+function makeExportQueryKeyType(): ts.TypeAliasDeclaration {
+  return ts.factory.createTypeAliasDeclaration(
+    undefined,
+    [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
+    ts.factory.createIdentifier("QueryKeys"),
+    undefined,
+    ts.factory.createTypeQueryNode(
+      ts.factory.createIdentifier("queryKeys"),
+      undefined
+    )
+  )
 }

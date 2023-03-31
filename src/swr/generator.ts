@@ -2,7 +2,7 @@ import ts from "typescript";
 import type { OpenAPI, OpenAPIV3 } from "openapi-types";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import { isOpenApiV3Document } from "../common/util";
-import { makeQueryIds } from "../common/queryIds";
+import { makeQueryKeys } from "../common/queryKeys";
 import { makeRequests } from "../common/requests";
 import { makeTypes } from "../common/types";
 import { print } from "./print";
@@ -31,7 +31,7 @@ function parseOpenApiV3Doc(
 ) {
   return {
     imports: makeImports(),
-    queryIds: makeQueryIds(doc.paths),
+    queryKeys: makeQueryKeys(doc.paths),
     requests: makeRequests(doc.paths, $refs, options),
     queries: makeQueries(doc.paths),
     types: makeTypes(doc),
@@ -45,7 +45,7 @@ function makeSourceFile(data: ReturnType<typeof parse>) {
       ...data.types,
       ...makeConfigTypes(),
       makeInitialize(),
-      ...data.queryIds,
+      ...data.queryKeys,
       data.requests,
       data.queries,
     ],
