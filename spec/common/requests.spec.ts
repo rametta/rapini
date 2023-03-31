@@ -1,10 +1,180 @@
 import ts from "typescript";
+import type { OpenAPIV3 } from "openapi-types";
 import {
   chunker,
   replacePattern,
   patternToPath,
+  makeRequests,
 } from "../../src/common/requests";
 import { compile } from "../test.utils";
+
+const expected = `function makeRequests(axios: AxiosInstance, config?: AxiosConfig) {
+    return {
+        getPets: () => axios.request<unknown>({
+            method: "get",
+            url: \`/pets\`
+        }).then(res => res.data),
+        createPet: (payload: Pet) => axios.request<Pet>({
+            method: "post",
+            url: \`/pets\`,
+            data: payload
+        }).then(res => res.data),
+        getPet: (petId?: string) => axios.request<unknown>({
+            method: "get",
+            url: \`/pets/\${petId}\`
+        }).then(res => res.data),
+        getPetPhotos: (petId: string) => axios.request<unknown>({
+            method: "get",
+            url: \`/pets/\${petId}/photos\`
+        }).then(res => res.data),
+        addPetPhoto: (payload: Photos, petId: string) => axios.request<unknown>({
+            method: "post",
+            url: \`/pets/\${petId}/photos\`,
+            data: payload
+        }).then(res => res.data)
+    } as const;
+}
+export type Requests = ReturnType<typeof makeRequests>;
+export type Response<T extends keyof Requests> = Awaited<ReturnType<Requests[T]>>;
+`;
+
+describe("makeRequests", () => {
+  it("generates requests for every path", () => {
+    const doc: OpenAPIV3.Document = {
+      openapi: "3.0.0",
+      info: {
+        title: "Test",
+        version: "1.0.0",
+      },
+      paths: {
+        "/pets": {
+          get: {
+            operationId: "getPets",
+            responses: {
+              default: {
+                description: "anything",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "#/components/schemas/Pets",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          post: {
+            operationId: "createPet",
+            requestBody: {
+              description: "anything",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/Pet",
+                  },
+                },
+              },
+            },
+            responses: {
+              200: {
+                description: "anything",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "#/components/schemas/Pet",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        "/pets/{petId}": {
+          get: {
+            operationId: "getPet",
+            parameters: [
+              {
+                name: "petId",
+                in: "path",
+                required: false,
+                schema: {
+                  type: "string",
+                },
+              },
+            ],
+            responses: {
+              default: {
+                description: "anything",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "#/components/schemas/Pet",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        "/pets/{petId}/photos": {
+          parameters: [
+            {
+              name: "petId",
+              in: "path",
+              required: true,
+              schema: {
+                type: "string",
+              },
+            },
+          ],
+          get: {
+            operationId: "getPetPhotos",
+            responses: {
+              default: {
+                description: "anything",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "#/components/schemas/Photos",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          post: {
+            operationId: "addPetPhoto",
+            requestBody: {
+              description: "anything",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/Photos",
+                  },
+                },
+              },
+            },
+            responses: {
+              default: {
+                description: "anything",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "#/components/schemas/Photos",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const str = compile(makeRequests(doc.paths, {} as any, {} as any));
+    expect(str).toBe(expected);
+  });
+});
 
 describe("chunker", () => {
   it.each`
