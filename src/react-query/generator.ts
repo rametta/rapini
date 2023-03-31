@@ -83,7 +83,11 @@ export async function generate(options: CLIOptions) {
   const api = await parser.bundle(options.path);
 
   console.log("API name: %s, Version: %s", api.info.title, api.info.version);
-  const data = parse(api, parser.$refs, options);
-  const source = makeSource(data);
-  print(source, options);
+  try {
+    const data = parse(api, parser.$refs, options);
+    const source = makeSource(data);
+    print(source, options);
+  } catch (e) {
+    console.error("Failed to parse API document.", e)
+  }
 }
