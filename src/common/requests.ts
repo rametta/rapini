@@ -18,10 +18,14 @@ export function makeRequests(
     makeRequestsPropertyAssignment(pattern, item!, $refs, options)
   );
 
-  return [makeRequestsDeclaration(requests), requestsExportType()];
+  return [
+    makeRequestsDeclaration(requests),
+    exportRequestsType(),
+    exportResponseType(),
+  ];
 }
 
-function requestsExportType() {
+function exportRequestsType() {
   return ts.factory.createTypeAliasDeclaration(
     undefined,
     [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
@@ -36,6 +40,45 @@ function requestsExportType() {
         ),
       ]
     )
+  );
+}
+
+function exportResponseType() {
+  return ts.factory.createTypeAliasDeclaration(
+    undefined,
+    [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
+    ts.factory.createIdentifier("Response"),
+    [
+      ts.factory.createTypeParameterDeclaration(
+        undefined,
+        ts.factory.createIdentifier("T"),
+        ts.factory.createTypeOperatorNode(
+          ts.SyntaxKind.KeyOfKeyword,
+          ts.factory.createTypeReferenceNode(
+            ts.factory.createIdentifier("Requests"),
+            undefined
+          )
+        ),
+        undefined
+      ),
+    ],
+    ts.factory.createTypeReferenceNode(ts.factory.createIdentifier("Awaited"), [
+      ts.factory.createTypeReferenceNode(
+        ts.factory.createIdentifier("ReturnType"),
+        [
+          ts.factory.createIndexedAccessTypeNode(
+            ts.factory.createTypeReferenceNode(
+              ts.factory.createIdentifier("Requests"),
+              undefined
+            ),
+            ts.factory.createTypeReferenceNode(
+              ts.factory.createIdentifier("T"),
+              undefined
+            )
+          ),
+        ]
+      ),
+    ])
   );
 }
 

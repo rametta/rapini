@@ -4,9 +4,9 @@ import { compile } from "../test.utils";
 
 const expected = `function makeQueries(requests: Requests) {
     return {
-        useGetPets: (options?: SWRConfiguration<Awaited<ReturnType<typeof requests.getPets>>, unknown>): SWRResponse<Awaited<ReturnType<typeof requests.getPets>>, unknown> => useSWR(queryKeys.getPets(), () => requests.getPets(), options),
-        useGetPet: (petId: string, options?: SWRConfiguration<Awaited<ReturnType<typeof requests.getPet>>, unknown>): SWRResponse<Awaited<ReturnType<typeof requests.getPet>>, unknown> => useSWR(queryKeys.getPet(petId), () => requests.getPet(petId), options),
-        useGetPetPhotos: (petId: string, options?: SWRConfiguration<Awaited<ReturnType<typeof requests.getPetPhotos>>, unknown>): SWRResponse<Awaited<ReturnType<typeof requests.getPetPhotos>>, unknown> => useSWR(queryKeys.getPetPhotos(petId), () => requests.getPetPhotos(petId), options)
+        useGetPets: (options?: SWRConfiguration<Response<"getPets">, unknown>): SWRResponse<Response<"getPets">, unknown> => useSWR(queryKeys.getPets(), () => requests.getPets(), options),
+        useGetPet: (petId: string, options?: SWRConfiguration<Response<"getPet">, unknown>): SWRResponse<Response<"getPet">, unknown> => useSWR(queryKeys.getPet(petId), () => requests.getPet(petId), options),
+        useGetPetPhotos: (petId: string, options?: SWRConfiguration<Response<"getPetPhotos">, unknown>): SWRResponse<Response<"getPetPhotos">, unknown> => useSWR(queryKeys.getPetPhotos(petId), () => requests.getPetPhotos(petId), options)
     } as const;
 }
 `;

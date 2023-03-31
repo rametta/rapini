@@ -85,19 +85,10 @@ function makeProperty(
         ts.factory.createIdentifier("UseQueryResult"),
         [
           ts.factory.createTypeReferenceNode(
-            ts.factory.createIdentifier("Awaited"),
+            ts.factory.createIdentifier("Response"),
             [
-              ts.factory.createTypeReferenceNode(
-                ts.factory.createIdentifier("ReturnType"),
-                [
-                  ts.factory.createTypeQueryNode(
-                    ts.factory.createQualifiedName(
-                      ts.factory.createIdentifier("requests"),
-                      ts.factory.createIdentifier(normalizedOperationId)
-                    ),
-                    undefined
-                  ),
-                ]
+              ts.factory.createLiteralTypeNode(
+                ts.factory.createStringLiteral(normalizedOperationId)
               ),
             ]
           ),
@@ -157,35 +148,19 @@ function optionsParameterDeclaration(requestIdentifier: string) {
           /*typeName*/ ts.factory.createIdentifier("UseQueryOptions"),
           /*typeArgs*/ [
             ts.factory.createTypeReferenceNode(
-              /*typeName*/ ts.factory.createIdentifier("Awaited"),
+              /*typeName*/ ts.factory.createIdentifier("Response"),
               /*typeArgs*/ [
-                ts.factory.createTypeReferenceNode(
-                  /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-                  /*typeArgs*/ [
-                    ts.factory.createTypeQueryNode(
-                      /*expressionName*/ ts.factory.createQualifiedName(
-                        /*left*/ ts.factory.createIdentifier("requests"),
-                        /*right*/ ts.factory.createIdentifier(requestIdentifier)
-                      )
-                    ),
-                  ]
+                ts.factory.createLiteralTypeNode(
+                  ts.factory.createStringLiteral(requestIdentifier)
                 ),
               ]
             ),
             ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
             ts.factory.createTypeReferenceNode(
-              /*typeName*/ ts.factory.createIdentifier("Awaited"),
+              /*typeName*/ ts.factory.createIdentifier("Response"),
               /*typeArgs*/ [
-                ts.factory.createTypeReferenceNode(
-                  /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-                  /*typeArgs*/ [
-                    ts.factory.createTypeQueryNode(
-                      /*expressionName*/ ts.factory.createQualifiedName(
-                        /*left*/ ts.factory.createIdentifier("requests"),
-                        /*right*/ ts.factory.createIdentifier(requestIdentifier)
-                      )
-                    ),
-                  ]
+                ts.factory.createLiteralTypeNode(
+                  ts.factory.createStringLiteral(requestIdentifier)
                 ),
               ]
             ),

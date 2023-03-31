@@ -85,20 +85,10 @@ function makeProperty(
             /*typeName*/ ts.factory.createIdentifier("SWRConfiguration"),
             /*typeArguments*/ [
               ts.factory.createTypeReferenceNode(
-                /*typeName*/ ts.factory.createIdentifier("Awaited"),
+                /*typeName*/ ts.factory.createIdentifier("Response"),
                 /*typeArgs*/ [
-                  ts.factory.createTypeReferenceNode(
-                    /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-                    /*typeArgs*/ [
-                      ts.factory.createTypeQueryNode(
-                        /*expressionName*/ ts.factory.createQualifiedName(
-                          /*left*/ ts.factory.createIdentifier("requests"),
-                          /*right*/ ts.factory.createIdentifier(
-                            normalizedOperationId
-                          )
-                        )
-                      ),
-                    ]
+                  ts.factory.createLiteralTypeNode(
+                    ts.factory.createStringLiteral(normalizedOperationId)
                   ),
                 ]
               ),
@@ -111,18 +101,10 @@ function makeProperty(
         ts.factory.createIdentifier("SWRResponse"),
         [
           ts.factory.createTypeReferenceNode(
-            ts.factory.createIdentifier("Awaited"),
+            ts.factory.createIdentifier("Response"),
             [
-              ts.factory.createTypeReferenceNode(
-                ts.factory.createIdentifier("ReturnType"),
-                [
-                  ts.factory.createTypeQueryNode(
-                    ts.factory.createQualifiedName(
-                      ts.factory.createIdentifier("requests"),
-                      ts.factory.createIdentifier(normalizedOperationId)
-                    )
-                  ),
-                ]
+              ts.factory.createLiteralTypeNode(
+                ts.factory.createStringLiteral(normalizedOperationId)
               ),
             ]
           ),
