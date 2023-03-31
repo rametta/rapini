@@ -23,12 +23,8 @@ export function makeMutations(
     /*name*/ ts.factory.createIdentifier("requests"),
     /*questionToken*/ undefined,
     /*type*/ ts.factory.createTypeReferenceNode(
-      /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-      /*typeArgs*/ [
-        ts.factory.createTypeQueryNode(
-          /*exprName*/ ts.factory.createIdentifier("makeRequests")
-        ),
-      ]
+      /*typeName*/ ts.factory.createIdentifier("Requests"),
+      /*typeArgs*/ undefined
     ),
     /*initializer*/ undefined
   );
@@ -340,13 +336,8 @@ function makeProperty(
                       [
                         ts.factory.createIndexedAccessTypeNode(
                           ts.factory.createTypeReferenceNode(
-                            ts.factory.createIdentifier("ReturnType"),
-                            [
-                              ts.factory.createTypeQueryNode(
-                                ts.factory.createIdentifier("makeRequests"),
-                                undefined
-                              ),
-                            ]
+                            ts.factory.createIdentifier("Requests"),
+                            undefined
                           ),
                           ts.factory.createLiteralTypeNode(
                             ts.factory.createStringLiteral(
@@ -366,13 +357,8 @@ function makeProperty(
                         [
                           ts.factory.createIndexedAccessTypeNode(
                             ts.factory.createTypeReferenceNode(
-                              ts.factory.createIdentifier("ReturnType"),
-                              [
-                                ts.factory.createTypeQueryNode(
-                                  ts.factory.createIdentifier("makeRequests"),
-                                  undefined
-                                ),
-                              ]
+                              ts.factory.createIdentifier("Requests"),
+                              undefined
                             ),
                             ts.factory.createLiteralTypeNode(
                               ts.factory.createStringLiteral(

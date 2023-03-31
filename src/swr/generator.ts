@@ -46,7 +46,7 @@ function makeSourceFile(data: ReturnType<typeof parse>) {
       ...makeConfigTypes(),
       makeInitialize(),
       ...data.queryKeys,
-      data.requests,
+      ...data.requests,
       data.queries,
     ],
     /*endOfFileToken*/ ts.factory.createToken(ts.SyntaxKind.EndOfFileToken),
@@ -83,6 +83,6 @@ export async function generate(options: CLIOptions) {
     const source = makeSource(data);
     print(source, options);
   } catch (e) {
-    console.error("Failed to parse API document.", e)
+    console.error("Failed to parse API document.", e);
   }
 }

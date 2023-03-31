@@ -50,7 +50,7 @@ function makeSourceFile(data: ReturnType<typeof parse>) {
       makeInitialize(),
       makeRapiniMutation(),
       ...data.queryKeys,
-      data.requests,
+      ...data.requests,
       data.queries,
       ...data.mutations,
     ],
@@ -88,6 +88,6 @@ export async function generate(options: CLIOptions) {
     const source = makeSource(data);
     print(source, options);
   } catch (e) {
-    console.error("Failed to parse API document.", e)
+    console.error("Failed to parse API document.", e);
   }
 }

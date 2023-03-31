@@ -18,7 +18,25 @@ export function makeRequests(
     makeRequestsPropertyAssignment(pattern, item!, $refs, options)
   );
 
-  return makeRequestsDeclaration(requests);
+  return [makeRequestsDeclaration(requests), requestsExportType()];
+}
+
+function requestsExportType() {
+  return ts.factory.createTypeAliasDeclaration(
+    undefined,
+    [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
+    ts.factory.createIdentifier("Requests"),
+    undefined,
+    ts.factory.createTypeReferenceNode(
+      ts.factory.createIdentifier("ReturnType"),
+      [
+        ts.factory.createTypeQueryNode(
+          ts.factory.createIdentifier("makeRequests"),
+          undefined
+        ),
+      ]
+    )
+  );
 }
 
 function makeRequestsDeclaration(

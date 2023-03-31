@@ -3,10 +3,10 @@ import { makeMutations } from "../../src/react-query/mutations";
 import { compile } from "../test.utils";
 
 const expected = `type MutationConfigs = {
-    useCreatePet?: (queryClient: QueryClient) => Pick<UseMutationOptions<Awaited<ReturnType<ReturnType<typeof makeRequests>["createPet"]>>, unknown, Parameters<ReturnType<typeof makeRequests>["createPet"]>[0], unknown>, "onSuccess" | "onSettled" | "onError">;
-    useAddPetPhoto?: (queryClient: QueryClient) => Pick<UseMutationOptions<Awaited<ReturnType<ReturnType<typeof makeRequests>["addPetPhoto"]>>, unknown, Parameters<ReturnType<typeof makeRequests>["addPetPhoto"]>[0], unknown>, "onSuccess" | "onSettled" | "onError">;
+    useCreatePet?: (queryClient: QueryClient) => Pick<UseMutationOptions<Awaited<ReturnType<Requests["createPet"]>>, unknown, Parameters<Requests["createPet"]>[0], unknown>, "onSuccess" | "onSettled" | "onError">;
+    useAddPetPhoto?: (queryClient: QueryClient) => Pick<UseMutationOptions<Awaited<ReturnType<Requests["addPetPhoto"]>>, unknown, Parameters<Requests["addPetPhoto"]>[0], unknown>, "onSuccess" | "onSettled" | "onError">;
 };
-function makeMutations(requests: ReturnType<typeof makeRequests>, config?: Config["mutations"]) {
+function makeMutations(requests: Requests, config?: Config["mutations"]) {
     return {
         useCreatePet: (options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof requests.createPet>>, unknown, Parameters<typeof requests.createPet>[0], unknown>, "mutationFn">) => useRapiniMutation<Awaited<ReturnType<typeof requests.createPet>>, unknown, Parameters<typeof requests.createPet>[0]>(payload => requests.createPet(payload), config?.useCreatePet, options),
         useAddPetPhoto: (petId: string, options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof requests.addPetPhoto>>, unknown, Parameters<typeof requests.addPetPhoto>[0], unknown>, "mutationFn">) => useRapiniMutation<Awaited<ReturnType<typeof requests.addPetPhoto>>, unknown, Parameters<typeof requests.addPetPhoto>[0]>(payload => requests.addPetPhoto(payload, petId), config?.useAddPetPhoto, options)

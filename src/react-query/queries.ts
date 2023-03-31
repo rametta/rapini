@@ -24,12 +24,8 @@ export function makeQueries(
     /*name*/ ts.factory.createIdentifier("requests"),
     /*questionToken*/ undefined,
     /*type*/ ts.factory.createTypeReferenceNode(
-      /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-      /*typeArgs*/ [
-        ts.factory.createTypeQueryNode(
-          /*exprName*/ ts.factory.createIdentifier("makeRequests")
-        ),
-      ]
+      /*typeName*/ ts.factory.createIdentifier("Requests"),
+      /*typeArgs*/ undefined
     ),
     /*initializer*/ undefined
   );

@@ -2,7 +2,7 @@ import type { OpenAPIV3 } from "openapi-types";
 import { makeQueries } from "../../src/react-query/queries";
 import { compile } from "../test.utils";
 
-const expected = `function makeQueries(requests: ReturnType<typeof makeRequests>) {
+const expected = `function makeQueries(requests: Requests) {
     return {
         useGetPets: (options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPets>>, unknown, Awaited<ReturnType<typeof requests.getPets>>, ReturnType<QueryKeys["getPets"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPets>>, unknown> => useQuery(queryKeys.getPets(), () => requests.getPets(), options),
         useGetPet: (petId: string, options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPet>>, unknown, Awaited<ReturnType<typeof requests.getPet>>, ReturnType<QueryKeys["getPet"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPet>>, unknown> => useQuery(queryKeys.getPet(petId), () => requests.getPet(petId), options),

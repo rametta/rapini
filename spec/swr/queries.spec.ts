@@ -2,7 +2,7 @@ import type { OpenAPIV3 } from "openapi-types";
 import { makeQueries } from "../../src/swr/queries";
 import { compile } from "../test.utils";
 
-const expected = `function makeQueries(requests: ReturnType<typeof makeRequests>) {
+const expected = `function makeQueries(requests: Requests) {
     return {
         useGetPets: (options?: SWRConfiguration<Awaited<ReturnType<typeof requests.getPets>>, unknown>): SWRResponse<Awaited<ReturnType<typeof requests.getPets>>, unknown> => useSWR(queryKeys.getPets(), () => requests.getPets(), options),
         useGetPet: (petId: string, options?: SWRConfiguration<Awaited<ReturnType<typeof requests.getPet>>, unknown>): SWRResponse<Awaited<ReturnType<typeof requests.getPet>>, unknown> => useSWR(queryKeys.getPet(petId), () => requests.getPet(petId), options),
