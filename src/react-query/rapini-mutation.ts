@@ -576,8 +576,18 @@ export function makeRapiniMutation() {
             ts.factory.createIdentifier("useMutation"),
             undefined,
             [
-              ts.factory.createIdentifier("mutationFn"),
-              ts.factory.createIdentifier("mutationOptions"),
+              ts.factory.createObjectLiteralExpression(
+                [
+                  ts.factory.createShorthandPropertyAssignment(
+                    ts.factory.createIdentifier("mutationFn"),
+                    undefined
+                  ),
+                  ts.factory.createSpreadAssignment(
+                    ts.factory.createIdentifier("mutationOptions")
+                  ),
+                ],
+                false
+              ),
             ]
           )
         ),

@@ -24,29 +24,8 @@ export function makeQueries(
     /*name*/ ts.factory.createIdentifier("requests"),
     /*questionToken*/ undefined,
     /*type*/ ts.factory.createTypeReferenceNode(
-      /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-      /*typeArgs*/ [
-        ts.factory.createTypeQueryNode(
-          /*exprName*/ ts.factory.createIdentifier("makeRequests")
-        ),
-      ]
-    ),
-    /*initializer*/ undefined
-  );
-
-  const queryIdsParam = ts.factory.createParameterDeclaration(
-    /*decorators*/ undefined,
-    /*modifiers*/ undefined,
-    /*dotDotDotToken*/ undefined,
-    /*name*/ ts.factory.createIdentifier("queryIds"),
-    /*questionToken*/ undefined,
-    /*type*/ ts.factory.createTypeReferenceNode(
-      /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-      /*typeArgs*/ [
-        ts.factory.createTypeQueryNode(
-          /*exprName*/ ts.factory.createIdentifier("makeQueryIds")
-        ),
-      ]
+      /*typeName*/ ts.factory.createIdentifier("Requests"),
+      /*typeArgs*/ undefined
     ),
     /*initializer*/ undefined
   );
@@ -57,7 +36,7 @@ export function makeQueries(
     /*asteriskToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("makeQueries"),
     /*typeParameters*/ undefined,
-    /*parameters*/ [requestsParam, queryIdsParam],
+    /*parameters*/ [requestsParam],
     /*type*/ undefined,
     /*body*/ ts.factory.createBlock(
       [
@@ -106,19 +85,10 @@ function makeProperty(
         ts.factory.createIdentifier("UseQueryResult"),
         [
           ts.factory.createTypeReferenceNode(
-            ts.factory.createIdentifier("Awaited"),
+            ts.factory.createIdentifier("Response"),
             [
-              ts.factory.createTypeReferenceNode(
-                ts.factory.createIdentifier("ReturnType"),
-                [
-                  ts.factory.createTypeQueryNode(
-                    ts.factory.createQualifiedName(
-                      ts.factory.createIdentifier("requests"),
-                      ts.factory.createIdentifier(normalizedOperationId)
-                    ),
-                    undefined
-                  ),
-                ]
+              ts.factory.createLiteralTypeNode(
+                ts.factory.createStringLiteral(normalizedOperationId)
               ),
             ]
           ),
@@ -128,36 +98,47 @@ function makeProperty(
       /*equalsGreaterThanToken*/ ts.factory.createToken(
         ts.SyntaxKind.EqualsGreaterThanToken
       ),
-      /*body*/ ts.factory.createCallExpression(
-        /*expression*/ ts.factory.createIdentifier("useQuery"),
-        /*typeArgs*/ undefined,
-        /*args*/ [
-          ts.factory.createCallExpression(
-            /*expression*/ ts.factory.createPropertyAccessExpression(
-              /*expression*/ ts.factory.createIdentifier("queryIds"),
-              /*name*/ ts.factory.createIdentifier(normalizedOperationId)
-            ),
-            /*typeArgs*/ undefined,
-            /*args*/ params.map((p) => p.name)
-          ),
-          ts.factory.createArrowFunction(
-            /*modifiers*/ undefined,
-            /*typeParameters*/ undefined,
-            /*parameters*/ [],
-            /*type*/ undefined,
-            /*equalsGreaterThanToken*/ ts.factory.createToken(
-              ts.SyntaxKind.EqualsGreaterThanToken
-            ),
-            /*body*/ ts.factory.createCallExpression(
-              /*expression*/ ts.factory.createPropertyAccessExpression(
-                /*expression*/ ts.factory.createIdentifier("requests"),
-                /*name*/ ts.factory.createIdentifier(normalizedOperationId)
+      ts.factory.createCallExpression(
+        ts.factory.createIdentifier("useQuery"),
+        undefined,
+        [
+          ts.factory.createObjectLiteralExpression(
+            [
+              ts.factory.createPropertyAssignment(
+                ts.factory.createIdentifier("queryKey"),
+                ts.factory.createCallExpression(
+                  ts.factory.createPropertyAccessExpression(
+                    ts.factory.createIdentifier("queryKeys"),
+                    ts.factory.createIdentifier(normalizedOperationId)
+                  ),
+                  undefined,
+                  params.map((p) => p.name)
+                )
               ),
-              /*typeArguments*/ undefined,
-              /*args*/ params.map((p) => p.name)
-            )
+              ts.factory.createPropertyAssignment(
+                ts.factory.createIdentifier("queryFn"),
+                ts.factory.createArrowFunction(
+                  undefined,
+                  undefined,
+                  [],
+                  undefined,
+                  ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+                  ts.factory.createCallExpression(
+                    ts.factory.createPropertyAccessExpression(
+                      ts.factory.createIdentifier("requests"),
+                      ts.factory.createIdentifier(normalizedOperationId)
+                    ),
+                    undefined,
+                    params.map((p) => p.name)
+                  )
+                )
+              ),
+              ts.factory.createSpreadAssignment(
+                ts.factory.createIdentifier("options")
+              ),
+            ],
+            false
           ),
-          ts.factory.createIdentifier("options"),
         ]
       )
     )
@@ -178,35 +159,19 @@ function optionsParameterDeclaration(requestIdentifier: string) {
           /*typeName*/ ts.factory.createIdentifier("UseQueryOptions"),
           /*typeArgs*/ [
             ts.factory.createTypeReferenceNode(
-              /*typeName*/ ts.factory.createIdentifier("Awaited"),
+              /*typeName*/ ts.factory.createIdentifier("Response"),
               /*typeArgs*/ [
-                ts.factory.createTypeReferenceNode(
-                  /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-                  /*typeArgs*/ [
-                    ts.factory.createTypeQueryNode(
-                      /*expressionName*/ ts.factory.createQualifiedName(
-                        /*left*/ ts.factory.createIdentifier("requests"),
-                        /*right*/ ts.factory.createIdentifier(requestIdentifier)
-                      )
-                    ),
-                  ]
+                ts.factory.createLiteralTypeNode(
+                  ts.factory.createStringLiteral(requestIdentifier)
                 ),
               ]
             ),
             ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
             ts.factory.createTypeReferenceNode(
-              /*typeName*/ ts.factory.createIdentifier("Awaited"),
+              /*typeName*/ ts.factory.createIdentifier("Response"),
               /*typeArgs*/ [
-                ts.factory.createTypeReferenceNode(
-                  /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-                  /*typeArgs*/ [
-                    ts.factory.createTypeQueryNode(
-                      /*expressionName*/ ts.factory.createQualifiedName(
-                        /*left*/ ts.factory.createIdentifier("requests"),
-                        /*right*/ ts.factory.createIdentifier(requestIdentifier)
-                      )
-                    ),
-                  ]
+                ts.factory.createLiteralTypeNode(
+                  ts.factory.createStringLiteral(requestIdentifier)
                 ),
               ]
             ),
@@ -214,8 +179,9 @@ function optionsParameterDeclaration(requestIdentifier: string) {
               /*typeName*/ ts.factory.createIdentifier("ReturnType"),
               /*typeArgs*/ [
                 ts.factory.createIndexedAccessTypeNode(
-                  /*objectType*/ ts.factory.createTypeQueryNode(
-                    /*expressionName*/ ts.factory.createIdentifier("queryIds")
+                  /*objectType*/ ts.factory.createTypeReferenceNode(
+                    ts.factory.createIdentifier("QueryKeys"),
+                    undefined
                   ),
                   /*indexType*/ ts.factory.createLiteralTypeNode(
                     /*literal*/ ts.factory.createStringLiteral(

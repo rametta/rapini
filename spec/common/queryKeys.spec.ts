@@ -1,21 +1,20 @@
 import type { OpenAPIV3 } from "openapi-types";
-import { makeQueryIds } from "../../src/common/queryIds";
+import { makeQueryKeys } from "../../src/common/queryKeys";
 import { compile } from "../test.utils";
 
-const expected = `function nullIfUndefined<T>(value: T): T | null {
-    return typeof value === "undefined" ? null : value;
+const expected = `function nullIfUndefined<T>(value: T): NonNullable<T> | null {
+    return typeof value === "undefined" ? null : value as NonNullable<T> | null;
 }
-function makeQueryIds() {
-    return {
-        getPets: () => ["getPets"] as const,
-        getPet: (petId: string) => ["getPet", petId] as const,
-        getPetPhotos: (petId: string) => ["getPetPhotos", petId] as const
-    } as const;
-}
+export const queryKeys = {
+    getPets: () => ["getPets"] as const,
+    getPet: (petId?: string) => ["getPet", nullIfUndefined(petId)] as const,
+    getPetPhotos: (petId: string) => ["getPetPhotos", petId] as const
+} as const;
+export type QueryKeys = typeof queryKeys;
 `;
 
-describe("makeQueryIds", () => {
-  it("generates queryIds for every GET path", () => {
+describe("makeQueryKeys", () => {
+  it("generates queryKeys for every GET path", () => {
     const doc: OpenAPIV3.Document = {
       openapi: "3.0.0",
       info: {
@@ -72,7 +71,7 @@ describe("makeQueryIds", () => {
               {
                 name: "petId",
                 in: "path",
-                required: true,
+                required: false,
                 schema: {
                   type: "string",
                 },
@@ -147,7 +146,7 @@ describe("makeQueryIds", () => {
       },
     };
 
-    const str = compile(makeQueryIds(doc.paths));
+    const str = compile(makeQueryKeys(doc.paths));
     expect(str).toBe(expected);
   });
 });

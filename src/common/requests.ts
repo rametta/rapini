@@ -18,7 +18,68 @@ export function makeRequests(
     makeRequestsPropertyAssignment(pattern, item!, $refs, options)
   );
 
-  return makeRequestsDeclaration(requests);
+  return [
+    makeRequestsDeclaration(requests),
+    exportRequestsType(),
+    exportResponseType(),
+  ];
+}
+
+function exportRequestsType() {
+  return ts.factory.createTypeAliasDeclaration(
+    undefined,
+    [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
+    ts.factory.createIdentifier("Requests"),
+    undefined,
+    ts.factory.createTypeReferenceNode(
+      ts.factory.createIdentifier("ReturnType"),
+      [
+        ts.factory.createTypeQueryNode(
+          ts.factory.createIdentifier("makeRequests"),
+          undefined
+        ),
+      ]
+    )
+  );
+}
+
+function exportResponseType() {
+  return ts.factory.createTypeAliasDeclaration(
+    undefined,
+    [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
+    ts.factory.createIdentifier("Response"),
+    [
+      ts.factory.createTypeParameterDeclaration(
+        undefined,
+        ts.factory.createIdentifier("T"),
+        ts.factory.createTypeOperatorNode(
+          ts.SyntaxKind.KeyOfKeyword,
+          ts.factory.createTypeReferenceNode(
+            ts.factory.createIdentifier("Requests"),
+            undefined
+          )
+        ),
+        undefined
+      ),
+    ],
+    ts.factory.createTypeReferenceNode(ts.factory.createIdentifier("Awaited"), [
+      ts.factory.createTypeReferenceNode(
+        ts.factory.createIdentifier("ReturnType"),
+        [
+          ts.factory.createIndexedAccessTypeNode(
+            ts.factory.createTypeReferenceNode(
+              ts.factory.createIdentifier("Requests"),
+              undefined
+            ),
+            ts.factory.createTypeReferenceNode(
+              ts.factory.createIdentifier("T"),
+              undefined
+            )
+          ),
+        ]
+      ),
+    ])
+  );
 }
 
 function makeRequestsDeclaration(
@@ -242,15 +303,25 @@ function getResponseType(
     .filter(({ statusType }) => statusType === "success")
     .flatMap(({ schemas }) => schemas);
 
-  const uniqSuccessTypes = successTypes.reduce(
+  const uniqSuccessTypes = successTypes.reduce<
+    ReturnType<typeof schemaObjectOrRefType>[]
+  >(
     (acc, node) => (acc.find((n) => n.id === node.id) ? acc : acc.concat(node)),
-    [] as ReturnType<typeof schemaObjectOrRefType>[]
+    []
   );
 
   if (uniqSuccessTypes.length) {
     return ts.factory.createUnionTypeNode(
       uniqSuccessTypes.map((item) => item.node)
     );
+  }
+
+  const defaultType = responses.find(
+    ({ statusType }) => statusType === "default"
+  );
+
+  if (defaultType && defaultType.schemas?.[0]) {
+    return defaultType.schemas[0].node;
   }
 
   return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
@@ -271,10 +342,12 @@ function makeRequestsType(
     : undefined;
 
   if (schemas?.length) {
-    const uniqSchema = schemas.reduce(
+    const uniqSchema = schemas.reduce<
+      ReturnType<typeof schemaObjectOrRefType>[]
+    >(
       (acc, node) =>
         acc.find((n) => n.id === node.id) ? acc : acc.concat(node),
-      [] as ReturnType<typeof schemaObjectOrRefType>[]
+      []
     );
 
     return ts.factory.createUnionTypeNode(uniqSchema.map((item) => item.node));

@@ -20,29 +20,8 @@ export function makeQueries(paths: OpenAPIV3.PathsObject) {
     /*name*/ ts.factory.createIdentifier("requests"),
     /*questionToken*/ undefined,
     /*type*/ ts.factory.createTypeReferenceNode(
-      /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-      /*typeArgs*/ [
-        ts.factory.createTypeQueryNode(
-          /*exprName*/ ts.factory.createIdentifier("makeRequests")
-        ),
-      ]
-    ),
-    /*initializer*/ undefined
-  );
-
-  const queryIdsParam = ts.factory.createParameterDeclaration(
-    /*decorators*/ undefined,
-    /*modifiers*/ undefined,
-    /*dotDotDotToken*/ undefined,
-    /*name*/ ts.factory.createIdentifier("queryIds"),
-    /*questionToken*/ undefined,
-    /*type*/ ts.factory.createTypeReferenceNode(
-      /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-      /*typeArgs*/ [
-        ts.factory.createTypeQueryNode(
-          /*exprName*/ ts.factory.createIdentifier("makeQueryIds")
-        ),
-      ]
+      /*typeName*/ ts.factory.createIdentifier("Requests"),
+      /*typeArgs*/ undefined
     ),
     /*initializer*/ undefined
   );
@@ -53,7 +32,7 @@ export function makeQueries(paths: OpenAPIV3.PathsObject) {
     /*asteriskToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("makeQueries"),
     /*typeParameters*/ undefined,
-    /*parameters*/ [requestsParam, queryIdsParam],
+    /*parameters*/ [requestsParam],
     /*type*/ undefined,
     /*body*/ ts.factory.createBlock(
       [
@@ -106,20 +85,10 @@ function makeProperty(
             /*typeName*/ ts.factory.createIdentifier("SWRConfiguration"),
             /*typeArguments*/ [
               ts.factory.createTypeReferenceNode(
-                /*typeName*/ ts.factory.createIdentifier("Awaited"),
+                /*typeName*/ ts.factory.createIdentifier("Response"),
                 /*typeArgs*/ [
-                  ts.factory.createTypeReferenceNode(
-                    /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-                    /*typeArgs*/ [
-                      ts.factory.createTypeQueryNode(
-                        /*expressionName*/ ts.factory.createQualifiedName(
-                          /*left*/ ts.factory.createIdentifier("requests"),
-                          /*right*/ ts.factory.createIdentifier(
-                            normalizedOperationId
-                          )
-                        )
-                      ),
-                    ]
+                  ts.factory.createLiteralTypeNode(
+                    ts.factory.createStringLiteral(normalizedOperationId)
                   ),
                 ]
               ),
@@ -132,18 +101,10 @@ function makeProperty(
         ts.factory.createIdentifier("SWRResponse"),
         [
           ts.factory.createTypeReferenceNode(
-            ts.factory.createIdentifier("Awaited"),
+            ts.factory.createIdentifier("Response"),
             [
-              ts.factory.createTypeReferenceNode(
-                ts.factory.createIdentifier("ReturnType"),
-                [
-                  ts.factory.createTypeQueryNode(
-                    ts.factory.createQualifiedName(
-                      ts.factory.createIdentifier("requests"),
-                      ts.factory.createIdentifier(normalizedOperationId)
-                    )
-                  ),
-                ]
+              ts.factory.createLiteralTypeNode(
+                ts.factory.createStringLiteral(normalizedOperationId)
               ),
             ]
           ),
@@ -159,7 +120,7 @@ function makeProperty(
         /*args*/ [
           ts.factory.createCallExpression(
             /*expression*/ ts.factory.createPropertyAccessExpression(
-              /*expression*/ ts.factory.createIdentifier("queryIds"),
+              /*expression*/ ts.factory.createIdentifier("queryKeys"),
               /*name*/ ts.factory.createIdentifier(normalizedOperationId)
             ),
             /*typeArgs*/ undefined,

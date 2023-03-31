@@ -3,25 +3,6 @@ import ts from "typescript";
 export function makeInitialize() {
   const axios = ts.factory.createIdentifier("axios");
 
-  const makeQueryIdsStatement = ts.factory.createVariableStatement(
-    /*modifiers*/ undefined,
-    /*declarationList*/ ts.factory.createVariableDeclarationList(
-      /*declarations*/ [
-        ts.factory.createVariableDeclaration(
-          /*name*/ ts.factory.createIdentifier("queryIds"),
-          /*exclamationToken*/ undefined,
-          /*type*/ undefined,
-          /*initializer*/ ts.factory.createCallExpression(
-            /*expression*/ ts.factory.createIdentifier("makeQueryIds"),
-            /*typeArgs*/ undefined,
-            /*args*/ []
-          )
-        ),
-      ],
-      /*flags*/ ts.NodeFlags.Const
-    )
-  );
-
   const makeRequestsStatement = ts.factory.createVariableStatement(
     /*modifiers*/ undefined,
     /*declarationList*/ ts.factory.createVariableDeclarationList(
@@ -57,10 +38,6 @@ export function makeInitialize() {
           /*name*/ ts.factory.createIdentifier("requests"),
           /*objectAssignmentInitializer*/ undefined
         ),
-        ts.factory.createShorthandPropertyAssignment(
-          /*name*/ ts.factory.createIdentifier("queryIds"),
-          /*objectAssignmentInitializer*/ undefined
-        ),
         ts.factory.createPropertyAssignment(
           /*name*/ ts.factory.createIdentifier("queries"),
           /*initializer*/ ts.factory.createCallExpression(
@@ -68,7 +45,6 @@ export function makeInitialize() {
             /*typeArgs*/ undefined,
             /*args*/ [
               ts.factory.createIdentifier("requests"),
-              ts.factory.createIdentifier("queryIds"),
             ]
           )
         ),
@@ -79,7 +55,6 @@ export function makeInitialize() {
 
   const bodyStatements = [
     makeRequestsStatement,
-    makeQueryIdsStatement,
     returnStatement,
   ];
 

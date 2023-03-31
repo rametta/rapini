@@ -23,12 +23,8 @@ export function makeMutations(
     /*name*/ ts.factory.createIdentifier("requests"),
     /*questionToken*/ undefined,
     /*type*/ ts.factory.createTypeReferenceNode(
-      /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-      /*typeArgs*/ [
-        ts.factory.createTypeQueryNode(
-          /*exprName*/ ts.factory.createIdentifier("makeRequests")
-        ),
-      ]
+      /*typeName*/ ts.factory.createIdentifier("Requests"),
+      /*typeArgs*/ undefined
     ),
     /*initializer*/ undefined
   );
@@ -133,18 +129,10 @@ function optionsParameterDeclaration(
           /*typeName*/ ts.factory.createIdentifier("UseMutationOptions"),
           /*typeArguments*/ [
             ts.factory.createTypeReferenceNode(
-              /*typeName*/ ts.factory.createIdentifier("Awaited"),
+              /*typeName*/ ts.factory.createIdentifier("Response"),
               /*typeArguments*/ [
-                ts.factory.createTypeReferenceNode(
-                  /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-                  /*typeArguments*/ [
-                    ts.factory.createTypeQueryNode(
-                      /*expressionName*/ ts.factory.createQualifiedName(
-                        /*left*/ ts.factory.createIdentifier("requests"),
-                        /*right*/ ts.factory.createIdentifier(requestIdentifier)
-                      )
-                    ),
-                  ]
+                ts.factory.createLiteralTypeNode(
+                  ts.factory.createStringLiteral(requestIdentifier)
                 ),
               ]
             ),
@@ -154,12 +142,13 @@ function optionsParameterDeclaration(
                   /*objectType*/ ts.factory.createTypeReferenceNode(
                     /*typeName*/ ts.factory.createIdentifier("Parameters"),
                     /*typeArguments*/ [
-                      ts.factory.createTypeQueryNode(
-                        /*expressionName*/ ts.factory.createQualifiedName(
-                          /*left*/ ts.factory.createIdentifier("requests"),
-                          /*right*/ ts.factory.createIdentifier(
-                            requestIdentifier
-                          )
+                      ts.factory.createIndexedAccessTypeNode(
+                        ts.factory.createTypeReferenceNode(
+                          ts.factory.createIdentifier("Requests"),
+                          undefined
+                        ),
+                        ts.factory.createLiteralTypeNode(
+                          ts.factory.createStringLiteral(requestIdentifier)
                         )
                       ),
                     ]
@@ -205,18 +194,10 @@ function makeProperty(
     /*expression*/ ts.factory.createIdentifier(RAPINI_MUTATION_ID),
     /*typeArguments*/ [
       ts.factory.createTypeReferenceNode(
-        /*typeName*/ ts.factory.createIdentifier("Awaited"),
+        /*typeName*/ ts.factory.createIdentifier("Response"),
         /*typeArgs*/ [
-          ts.factory.createTypeReferenceNode(
-            /*typeName*/ ts.factory.createIdentifier("ReturnType"),
-            /*typeArgs*/ [
-              ts.factory.createTypeQueryNode(
-                /*expressionName*/ ts.factory.createQualifiedName(
-                  /*left*/ ts.factory.createIdentifier("requests"),
-                  /*right*/ ts.factory.createIdentifier(normalizedOperationId)
-                )
-              ),
-            ]
+          ts.factory.createLiteralTypeNode(
+            ts.factory.createStringLiteral(normalizedOperationId)
           ),
         ]
       ),
@@ -226,10 +207,13 @@ function makeProperty(
             /*objectType*/ ts.factory.createTypeReferenceNode(
               /*typeName*/ ts.factory.createIdentifier("Parameters"),
               /*typeArguments*/ [
-                ts.factory.createTypeQueryNode(
-                  /*expressionName*/ ts.factory.createQualifiedName(
-                    /*left*/ ts.factory.createIdentifier("requests"),
-                    /*right*/ ts.factory.createIdentifier(normalizedOperationId)
+                ts.factory.createIndexedAccessTypeNode(
+                  ts.factory.createTypeReferenceNode(
+                    ts.factory.createIdentifier("Requests"),
+                    undefined
+                  ),
+                  ts.factory.createLiteralTypeNode(
+                    ts.factory.createStringLiteral(normalizedOperationId)
                   )
                 ),
               ]
@@ -333,28 +317,10 @@ function makeProperty(
               ts.factory.createIdentifier("UseMutationOptions"),
               [
                 ts.factory.createTypeReferenceNode(
-                  ts.factory.createIdentifier("Awaited"),
+                  ts.factory.createIdentifier("Response"),
                   [
-                    ts.factory.createTypeReferenceNode(
-                      ts.factory.createIdentifier("ReturnType"),
-                      [
-                        ts.factory.createIndexedAccessTypeNode(
-                          ts.factory.createTypeReferenceNode(
-                            ts.factory.createIdentifier("ReturnType"),
-                            [
-                              ts.factory.createTypeQueryNode(
-                                ts.factory.createIdentifier("makeRequests"),
-                                undefined
-                              ),
-                            ]
-                          ),
-                          ts.factory.createLiteralTypeNode(
-                            ts.factory.createStringLiteral(
-                              normalizedOperationId
-                            )
-                          )
-                        ),
-                      ]
+                    ts.factory.createLiteralTypeNode(
+                      ts.factory.createStringLiteral(normalizedOperationId)
                     ),
                   ]
                 ),
@@ -366,13 +332,8 @@ function makeProperty(
                         [
                           ts.factory.createIndexedAccessTypeNode(
                             ts.factory.createTypeReferenceNode(
-                              ts.factory.createIdentifier("ReturnType"),
-                              [
-                                ts.factory.createTypeQueryNode(
-                                  ts.factory.createIdentifier("makeRequests"),
-                                  undefined
-                                ),
-                              ]
+                              ts.factory.createIdentifier("Requests"),
+                              undefined
                             ),
                             ts.factory.createLiteralTypeNode(
                               ts.factory.createStringLiteral(

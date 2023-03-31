@@ -2,11 +2,11 @@ import type { OpenAPIV3 } from "openapi-types";
 import { makeQueries } from "../../src/react-query/queries";
 import { compile } from "../test.utils";
 
-const expected = `function makeQueries(requests: ReturnType<typeof makeRequests>, queryIds: ReturnType<typeof makeQueryIds>) {
+const expected = `function makeQueries(requests: Requests) {
     return {
-        useGetPets: (options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPets>>, unknown, Awaited<ReturnType<typeof requests.getPets>>, ReturnType<(typeof queryIds)["getPets"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPets>>, unknown> => useQuery(queryIds.getPets(), () => requests.getPets(), options),
-        useGetPet: (petId: string, options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPet>>, unknown, Awaited<ReturnType<typeof requests.getPet>>, ReturnType<(typeof queryIds)["getPet"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPet>>, unknown> => useQuery(queryIds.getPet(petId), () => requests.getPet(petId), options),
-        useGetPetPhotos: (petId: string, options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof requests.getPetPhotos>>, unknown, Awaited<ReturnType<typeof requests.getPetPhotos>>, ReturnType<(typeof queryIds)["getPetPhotos"]>>, "queryKey" | "queryFn">): UseQueryResult<Awaited<ReturnType<typeof requests.getPetPhotos>>, unknown> => useQuery(queryIds.getPetPhotos(petId), () => requests.getPetPhotos(petId), options)
+        useGetPets: (options?: Omit<UseQueryOptions<Response<"getPets">, unknown, Response<"getPets">, ReturnType<QueryKeys["getPets"]>>, "queryKey" | "queryFn">): UseQueryResult<Response<"getPets">, unknown> => useQuery({ queryKey: queryKeys.getPets(), queryFn: () => requests.getPets(), ...options }),
+        useGetPet: (petId: string, options?: Omit<UseQueryOptions<Response<"getPet">, unknown, Response<"getPet">, ReturnType<QueryKeys["getPet"]>>, "queryKey" | "queryFn">): UseQueryResult<Response<"getPet">, unknown> => useQuery({ queryKey: queryKeys.getPet(petId), queryFn: () => requests.getPet(petId), ...options }),
+        useGetPetPhotos: (petId: string, options?: Omit<UseQueryOptions<Response<"getPetPhotos">, unknown, Response<"getPetPhotos">, ReturnType<QueryKeys["getPetPhotos"]>>, "queryKey" | "queryFn">): UseQueryResult<Response<"getPetPhotos">, unknown> => useQuery({ queryKey: queryKeys.getPetPhotos(petId), queryFn: () => requests.getPetPhotos(petId), ...options })
     } as const;
 }
 `;

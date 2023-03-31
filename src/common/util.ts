@@ -90,7 +90,7 @@ export function nodeId(node: ts.TypeNode): string {
 export function schemaObjectOrRefType(
   schema?: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 ): { node: ts.TypeNode; id: string } {
-  if (!schema) {
+  if (!schema || (isReferenceObject(schema) && !schema.$ref)) {
     return { node: unknownTypeNode, id: "unknown" };
   }
 
@@ -264,15 +264,6 @@ export function appendNullToUnion(type: ts.TypeNode, nullable?: boolean) {
         ]
       )
     : type;
-}
-
-function objectType(
-  item: OpenAPIV3.NonArraySchemaObject
-): ReturnType<typeof schemaObjectOrRefType> {
-  return {
-    node: createLiteralNodeFromProperties(item),
-    id: "object", // stringify type maybe here
-  };
 }
 
 function referenceType(
