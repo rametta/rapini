@@ -2,23 +2,29 @@ import { OpenAPIV3 } from "openapi-types";
 import ts from "typescript";
 import {
   appendNullToUnion,
-  createDictionaryType,
+  createTypeAliasDeclarationType,
   createTypeRefFromRef,
-  isAllOfObject,
   isArraySchemaObject,
-  isOneOfOrAnyOfObject,
   isReferenceObject,
   nonArraySchemaObjectTypeToTs,
   sanitizeTypeName,
 } from "./util";
+import SwaggerParser from "@apidevtools/swagger-parser";
 
 function schemaObjectTypeToArrayType(
+  $refs: SwaggerParser.$Refs,
   item: OpenAPIV3.NonArraySchemaObject
 ): ts.TypeNode {
-  return appendNullToUnion(nonArraySchemaObjectTypeToTs(item), item.nullable);
+  return appendNullToUnion(
+    nonArraySchemaObjectTypeToTs($refs, item),
+    item.nullable
+  );
 }
 
-function resolveArray(item: OpenAPIV3.ArraySchemaObject): ts.TypeNode {
+function resolveArray(
+  $refs: SwaggerParser.$Refs,
+  item: OpenAPIV3.ArraySchemaObject
+): ts.TypeNode {
   if (isReferenceObject(item.items)) {
     return appendNullToUnion(
       ts.factory.createArrayTypeNode(createTypeRefFromRef(item.items)),
@@ -28,32 +34,36 @@ function resolveArray(item: OpenAPIV3.ArraySchemaObject): ts.TypeNode {
 
   if (item.items.properties) {
     return ts.factory.createArrayTypeNode(
-      createLiteralNodeFromProperties(item.items)
+      createLiteralNodeFromProperties($refs, item.items)
     );
   }
 
   return ts.factory.createArrayTypeNode(
     isArraySchemaObject(item.items)
-      ? resolveArray(item.items)
-      : schemaObjectTypeToArrayType(item.items)
+      ? resolveArray($refs, item.items)
+      : schemaObjectTypeToArrayType($refs, item.items)
   );
 }
 
-function resolveType(item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject) {
+function resolveType(
+  $refs: SwaggerParser.$Refs,
+  item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
+) {
   if (isReferenceObject(item)) {
     return createTypeRefFromRef(item);
   }
 
   if (isArraySchemaObject(item)) {
-    return resolveArray(item);
+    return resolveArray($refs, item);
   }
 
   return item.type
-    ? nonArraySchemaObjectTypeToTs(item)
-    : createTypeAliasDeclarationType(item);
+    ? nonArraySchemaObjectTypeToTs($refs, item)
+    : createTypeAliasDeclarationType($refs, item);
 }
 
 function createPropertySignature(
+  $refs: SwaggerParser.$Refs,
   item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
   name: string,
   required: boolean
@@ -64,11 +74,12 @@ function createPropertySignature(
     /*questionToken*/ required
       ? undefined
       : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-    /*type*/ resolveType(item)
+    /*type*/ resolveType($refs, item)
   );
 }
 
 function createPropertySignatures(
+  $refs: SwaggerParser.$Refs,
   item: OpenAPIV3.SchemaObject
 ): ts.PropertySignature[] {
   if (!item.properties) {
@@ -76,73 +87,26 @@ function createPropertySignatures(
   }
 
   return Object.entries(item.properties).map(([name, prop]) =>
-    createPropertySignature(prop, name, item.required?.includes(name) ?? false)
+    createPropertySignature(
+      $refs,
+      prop,
+      name,
+      item.required?.includes(name) ?? false
+    )
   );
 }
 
-function createTypeAliasDeclarationTypeWithSchemaObject(
+export function createLiteralNodeFromProperties(
+  $refs: SwaggerParser.$Refs,
   item: OpenAPIV3.SchemaObject
-): ts.TypeNode {
-  if (isAllOfObject(item) && item.allOf) {
-    return ts.factory.createIntersectionTypeNode(
-      item.allOf.map((allOfItem) =>
-        isReferenceObject(allOfItem)
-          ? createTypeRefFromRef(allOfItem)
-          : createTypeAliasDeclarationTypeWithSchemaObject(allOfItem)
-      )
-    );
-  }
-
-  if (isOneOfOrAnyOfObject(item)) {
-    const items = item.oneOf || item.anyOf;
-    if (items) {
-      return ts.factory.createUnionTypeNode(
-        items.map((oneOrAnyItem) =>
-          isReferenceObject(oneOrAnyItem)
-            ? createTypeRefFromRef(oneOrAnyItem)
-            : createTypeAliasDeclarationTypeWithSchemaObject(oneOrAnyItem)
-        )
-      );
-    }
-  }
-
-  if (isArraySchemaObject(item)) {
-    return ts.factory.createArrayTypeNode(
-      isReferenceObject(item.items)
-        ? createTypeRefFromRef(item.items)
-        : createTypeAliasDeclarationTypeWithSchemaObject(item.items)
-    );
-  }
-
-  if (item.additionalProperties) {
-    return createDictionaryType(item);
-  }
-
-  if (item.properties) {
-    return createLiteralNodeFromProperties(item);
-  }
-
-  return nonArraySchemaObjectTypeToTs(item);
+) {
+  return ts.factory.createTypeLiteralNode(
+    createPropertySignatures($refs, item)
+  );
 }
 
-export function createLiteralNodeFromProperties(item: OpenAPIV3.SchemaObject) {
-  return ts.factory.createTypeLiteralNode(createPropertySignatures(item));
-}
-
-function createTypeAliasDeclarationType(
-  item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
-): ts.TypeNode {
-  return isReferenceObject(item)
-    ? createTypeRefFromRef(item)
-    : createTypeAliasDeclarationTypeWithSchemaObject(item);
-}
-
-export function makeTypes(doc: OpenAPIV3.Document) {
-  const schemas = doc.components?.schemas;
-
-  if (!schemas) {
-    return [];
-  }
+export function makeTypes($refs: SwaggerParser.$Refs, doc: OpenAPIV3.Document) {
+  const schemas = doc.components?.schemas ?? [];
 
   return Object.entries(schemas).map(([schemaName, item]) => {
     return ts.factory.createTypeAliasDeclaration(
@@ -150,7 +114,7 @@ export function makeTypes(doc: OpenAPIV3.Document) {
       /*modifiers*/ [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
       /*name*/ ts.factory.createIdentifier(sanitizeTypeName(schemaName)),
       /*typeParameters*/ undefined,
-      /*type*/ createTypeAliasDeclarationType(item)
+      /*type*/ createTypeAliasDeclarationType($refs, item)
     );
   });
 }

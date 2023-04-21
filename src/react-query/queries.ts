@@ -8,13 +8,13 @@ import {
 } from "../common/util";
 
 export function makeQueries(
-  paths: OpenAPIV3.PathsObject,
-  $refs?: SwaggerParser.$Refs
+  $refs: SwaggerParser.$Refs,
+  paths: OpenAPIV3.PathsObject
 ) {
   const properties = Object.entries(paths)
     .filter(([_, item]) => !!item?.get)
     .map(([pattern, item]) =>
-      makeProperty(pattern, item!.get, item!.parameters)
+      makeProperty($refs, pattern, item!.get, item!.parameters)
     );
 
   const requestsParam = ts.factory.createParameterDeclaration(
@@ -59,6 +59,7 @@ export function makeQueries(
 }
 
 function makeProperty(
+  $refs: SwaggerParser.$Refs,
   pattern: string,
   get: OpenAPIV3.PathItemObject["get"],
   pathParams: OpenAPIV3.PathItemObject["parameters"]
@@ -70,7 +71,7 @@ function makeProperty(
   const normalizedOperationId = normalizeOperationId(get.operationId);
   const identifierName = `use${capitalizeFirstLetter(normalizedOperationId)}`;
 
-  const params = createParams(get, pathParams);
+  const params = createParams($refs, get, pathParams);
 
   return ts.factory.createPropertyAssignment(
     /*name*/ ts.factory.createIdentifier(identifierName),
