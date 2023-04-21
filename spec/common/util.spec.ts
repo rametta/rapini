@@ -71,9 +71,9 @@ describe("combineUniqueParams", () => {
   `(
     "combineUniqueParams($pathParams, $itemParams) -> $expected",
     ({ pathParams, itemParams, expected }) => {
-      expect(combineUniqueParams(pathParams, itemParams)).toStrictEqual(
-        expected
-      );
+      expect(
+        combineUniqueParams({} as any, pathParams, itemParams)
+      ).toStrictEqual(expected);
     }
   );
 });
