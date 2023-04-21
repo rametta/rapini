@@ -9,11 +9,11 @@ import {
 import { RAPINI_MUTATION_ID } from "./rapini-mutation";
 
 export function makeMutations(
-  paths: OpenAPIV3.PathsObject,
-  $refs?: SwaggerParser.$Refs
+  $refs: SwaggerParser.$Refs,
+  paths: OpenAPIV3.PathsObject
 ) {
   const properties = Object.entries(paths).flatMap(([pattern, path]) =>
-    makeProperties(pattern, path!)
+    makeProperties($refs, pattern, path!)
   );
 
   const requestsParam = ts.factory.createParameterDeclaration(
@@ -86,7 +86,11 @@ export function makeMutations(
 
 // Every path can have multiple mutations, like POST/PUT/PATCH/DELETE etc
 // And if there's a GET too then we should invalidate that cache
-function makeProperties(pattern: string, path: OpenAPIV3.PathItemObject) {
+function makeProperties(
+  $refs: SwaggerParser.$Refs,
+  pattern: string,
+  path: OpenAPIV3.PathItemObject
+) {
   const properties: {
     property: ts.PropertyAssignment;
     config: ts.TypeElement;
@@ -94,19 +98,25 @@ function makeProperties(pattern: string, path: OpenAPIV3.PathItemObject) {
   const pathParams = path.parameters;
 
   if (path.post) {
-    properties.push(makeProperty(pattern, path.post, "post", pathParams));
+    properties.push(
+      makeProperty($refs, pattern, path.post, "post", pathParams)
+    );
   }
 
   if (path.put) {
-    properties.push(makeProperty(pattern, path.put, "put", pathParams));
+    properties.push(makeProperty($refs, pattern, path.put, "put", pathParams));
   }
 
   if (path.patch) {
-    properties.push(makeProperty(pattern, path.patch, "patch", pathParams));
+    properties.push(
+      makeProperty($refs, pattern, path.patch, "patch", pathParams)
+    );
   }
 
   if (path.delete) {
-    properties.push(makeProperty(pattern, path.delete, "delete", pathParams));
+    properties.push(
+      makeProperty($refs, pattern, path.delete, "delete", pathParams)
+    );
   }
 
   return properties;
@@ -174,6 +184,7 @@ function optionsParameterDeclaration(
 }
 
 function makeProperty(
+  $refs: SwaggerParser.$Refs,
   pattern: string,
   operation: OpenAPIV3.OperationObject,
   method: string,
@@ -186,7 +197,7 @@ function makeProperty(
   const normalizedOperationId = normalizeOperationId(operationId);
 
   const identifier = `use${capitalizeFirstLetter(normalizedOperationId)}`;
-  const params = createParams(operation, pathParams);
+  const params = createParams($refs, operation, pathParams);
 
   const hasRequestBody = !!operation.requestBody;
 

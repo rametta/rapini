@@ -13,28 +13,28 @@ import { makeConfigTypes } from "./config";
 import { CLIOptions } from "../cli";
 
 function parse(
-  doc: OpenAPI.Document,
   $refs: SwaggerParser.$Refs,
+  doc: OpenAPI.Document,
   options: CLIOptions
 ) {
   if (isOpenApiV3Document(doc)) {
-    return parseOpenApiV3Doc(doc, $refs, options);
+    return parseOpenApiV3Doc($refs, doc, options);
   }
 
   throw "OpenAPI Document version not supported";
 }
 
 function parseOpenApiV3Doc(
-  doc: OpenAPIV3.Document,
   $refs: SwaggerParser.$Refs,
+  doc: OpenAPIV3.Document,
   options: CLIOptions
 ) {
   return {
     imports: makeImports(),
-    queryKeys: makeQueryKeys(doc.paths),
-    requests: makeRequests(doc.paths, $refs, options),
-    queries: makeQueries(doc.paths),
-    types: makeTypes(doc),
+    queryKeys: makeQueryKeys($refs, doc.paths),
+    requests: makeRequests($refs, doc.paths, options),
+    queries: makeQueries($refs, doc.paths),
+    types: makeTypes($refs, doc),
   };
 }
 
@@ -79,7 +79,7 @@ export async function generate(options: CLIOptions) {
 
   console.log("API name: %s, Version: %s", api.info.title, api.info.version);
   try {
-    const data = parse(api, parser.$refs, options);
+    const data = parse(parser.$refs, api, options);
     const source = makeSource(data);
     print(source, options);
   } catch (e) {

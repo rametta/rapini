@@ -50,7 +50,7 @@ describe("refToTypeName", () => {
     ${""}                                      | ${""}
     ${"#/components/schemas/MySchema"}         | ${"MySchema"}
     ${"#/components/schemas/Pet"}              | ${"Pet"}
-    ${"#/components/responses/MyRes"}          | ${"#/components/responses/MyRes"}
+    ${"#/components/responses/MyRes"}          | ${"MyRes"}
     ${"#/components/schemas/MyRes.Hello"}      | ${"MyResHello"}
     ${"#/components/schemas/MyRes.Hello.Test"} | ${"MyResHelloTest"}
     ${"#/components/schemas/MyRes-Hello"}      | ${"MyResHello"}
@@ -62,18 +62,18 @@ describe("refToTypeName", () => {
 
 describe("combineUniqueParams", () => {
   it.each`
-    pathParams                      | queryParams                                                | expected
+    pathParams                      | itemParams                                                 | expected
     ${[]}                           | ${[]}                                                      | ${[]}
     ${[]}                           | ${[{ name: "a", in: "query" }]}                            | ${[{ name: "a", in: "query" }]}
     ${[{ name: "a", in: "path" }]}  | ${[]}                                                      | ${[{ name: "a", in: "path" }]}
     ${[{ name: "a", in: "path" }]}  | ${[{ name: "a", in: "query" }]}                            | ${[{ name: "a", in: "query" }, { name: "a", in: "path" }]}
     ${[{ name: "a", in: "query" }]} | ${[{ name: "a", in: "query" }, { name: "b", in: "path" }]} | ${[{ name: "a", in: "query" }, { name: "b", in: "path" }]}
   `(
-    "combineUniqueParams($pathParams, $queryParams) -> $expected",
-    ({ pathParams, queryParams, expected }) => {
-      expect(combineUniqueParams(pathParams, queryParams)).toStrictEqual(
-        expected
-      );
+    "combineUniqueParams($pathParams, $itemParams) -> $expected",
+    ({ pathParams, itemParams, expected }) => {
+      expect(
+        combineUniqueParams({} as any, pathParams, itemParams)
+      ).toStrictEqual(expected);
     }
   );
 });

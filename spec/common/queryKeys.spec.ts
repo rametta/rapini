@@ -146,7 +146,7 @@ describe("makeQueryKeys", () => {
       },
     };
 
-    const str = compile(makeQueryKeys(doc.paths));
+    const str = compile(makeQueryKeys({} as any, doc.paths));
     expect(str).toBe(expected);
   });
 });

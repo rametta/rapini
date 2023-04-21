@@ -23,6 +23,10 @@ const expected = `function makeRequests(axios: AxiosInstance, config?: AxiosConf
             method: "get",
             url: \`/pets/\${petId}\`
         }).then(res => res.data),
+        getPetGeneric: (petId?: string) => axios.request<(PetDog | PetCat)[]>({
+            method: "get",
+            url: \`/pets/\${petId}/generic\`
+        }).then(res => res.data),
         getPetPhotos: (petId: string) => axios.request<Photos>({
             method: "get",
             url: \`/pets/\${petId}/photos\`
@@ -116,6 +120,43 @@ describe("makeRequests", () => {
             },
           },
         },
+        "/pets/{petId}/generic": {
+          get: {
+            operationId: "getPetGeneric",
+            parameters: [
+              {
+                name: "petId",
+                in: "path",
+                required: false,
+                schema: {
+                  type: "string",
+                },
+              },
+            ],
+            responses: {
+              "200": {
+                description: "some",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "array",
+                      items: {
+                        oneOf: [
+                          {
+                            $ref: "#/components/schemas/Pet.Dog",
+                          },
+                          {
+                            $ref: "#/components/schemas/Pet.Cat",
+                          },
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
         "/pets/{petId}/photos": {
           parameters: [
             {
@@ -171,7 +212,7 @@ describe("makeRequests", () => {
       },
     };
 
-    const str = compile(makeRequests(doc.paths, {} as any, {} as any));
+    const str = compile(makeRequests({} as any, doc.paths, {} as any));
     expect(str).toBe(expected);
   });
 });

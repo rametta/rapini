@@ -1,12 +1,7 @@
 import ts from "typescript";
 import type { OpenAPI, OpenAPIV3 } from "openapi-types";
 import { createLiteralNodeFromProperties } from "./types";
-
-export function toParamObjects(
-  params: (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[]
-): OpenAPIV3.ParameterObject[] {
-  return params?.filter(<typeof isParameterObject>isParameterObject) ?? [];
-}
+import type SwaggerParser from "swagger-parser";
 
 export function isOpenApiV3Document(
   doc: OpenAPI.Document
@@ -88,30 +83,43 @@ export function nodeId(node: ts.TypeNode): string {
 }
 
 export function schemaObjectOrRefType(
-  schema?: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
+  $refs: SwaggerParser.$Refs,
+  schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject | undefined
 ): { node: ts.TypeNode; id: string } {
   if (!schema || (isReferenceObject(schema) && !schema.$ref)) {
     return { node: unknownTypeNode, id: "unknown" };
   }
 
   if (isReferenceObject(schema)) {
-    return referenceType(schema);
+    if (schema.$ref.startsWith("#/paths/")) {
+      const pathObj = $refs.get(schema.$ref);
+      const node = schemaObjectTypeNode($refs, pathObj);
+      return { node, id: nodeId(node) };
+    }
+    const refType = referenceType($refs, schema);
+    return refType;
   }
 
-  const node = schemaObjectTypeNode(schema);
+  const node = schemaObjectTypeNode($refs, schema);
   return { node, id: nodeId(node) };
 }
 
+function createTypeNode(
+  $refs: SwaggerParser.$Refs,
+  item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
+): ts.TypeNode {
+  return isReferenceObject(item)
+    ? createTypeRefOrSchemaObjectIfPathRef($refs, item)
+    : schemaObjectTypeNode($refs, item);
+}
+
 export function schemaObjectTypeNode(
+  $refs: SwaggerParser.$Refs,
   item: OpenAPIV3.SchemaObject
 ): ts.TypeNode {
   if (isAllOfObject(item) && item.allOf) {
     return ts.factory.createIntersectionTypeNode(
-      item.allOf.map((allOfItem) =>
-        isReferenceObject(allOfItem)
-          ? createTypeRefFromRef(allOfItem)
-          : schemaObjectTypeNode(allOfItem)
-      )
+      item.allOf.map((allOfItem) => createTypeNode($refs, allOfItem))
     );
   }
 
@@ -119,47 +127,59 @@ export function schemaObjectTypeNode(
     const items = item.oneOf || item.anyOf;
     if (items) {
       return ts.factory.createUnionTypeNode(
-        items.map((oneOrAnyItem) =>
-          isReferenceObject(oneOrAnyItem)
-            ? createTypeRefFromRef(oneOrAnyItem)
-            : schemaObjectTypeNode(oneOrAnyItem)
-        )
+        items.map((oneOrAnyItem) => createTypeNode($refs, oneOrAnyItem))
       );
     }
   }
 
   if (isArraySchemaObject(item)) {
-    return ts.factory.createArrayTypeNode(
-      isReferenceObject(item.items)
-        ? createTypeRefFromRef(item.items)
-        : schemaObjectTypeNode(item.items)
-    );
+    return ts.factory.createArrayTypeNode(createTypeNode($refs, item.items));
   }
 
   if (item.additionalProperties) {
-    return createDictionaryType(item);
+    return createDictionaryType($refs, item);
   }
 
   if (item.properties) {
-    return createLiteralNodeFromProperties(item);
+    return createLiteralNodeFromProperties($refs, item);
   }
 
-  return nonArraySchemaObjectTypeToTs(item);
+  return nonArraySchemaObjectTypeToTs($refs, item);
 }
 
-export function createTypeRefFromRef(item: OpenAPIV3.ReferenceObject) {
+/**
+ * Create a Ref Type Alias if local reference.
+ * If it's a remote reference, starting with #/path/ then
+ * resolve inline and do an inline object type
+ */
+export function createTypeRefOrSchemaObjectIfPathRef(
+  $refs: SwaggerParser.$Refs,
+  item: OpenAPIV3.ReferenceObject
+) {
+  if (item.$ref.startsWith("#/paths/")) {
+    // TODO: Instead of resolving inline, create a Type Alias instead and reference that
+    const pathObj = $refs.get(item.$ref);
+    return schemaObjectTypeNode($refs, pathObj);
+  }
+
+  return createTypeRefFromRef(item);
+}
+
+function createTypeRefFromRef(item: OpenAPIV3.ReferenceObject) {
   return ts.factory.createTypeReferenceNode(refToTypeName(item.$ref));
 }
 
-function createTypeAliasDeclarationType(
+export function createTypeAliasDeclarationType(
+  $refs: SwaggerParser.$Refs,
   item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 ): ts.TypeNode {
   return isReferenceObject(item)
-    ? createTypeRefFromRef(item)
-    : schemaObjectTypeNode(item);
+    ? createTypeRefOrSchemaObjectIfPathRef($refs, item)
+    : schemaObjectTypeNode($refs, item);
 }
 
 function resolveAdditionalPropertiesType(
+  $refs: SwaggerParser.$Refs,
   additionalProperties: OpenAPIV3.SchemaObject["additionalProperties"]
 ) {
   if (!additionalProperties) {
@@ -174,11 +194,14 @@ function resolveAdditionalPropertiesType(
     return unknownTypeNode;
   }
 
-  return createTypeAliasDeclarationType(additionalProperties);
+  return createTypeAliasDeclarationType($refs, additionalProperties);
 }
 
 // Dictionaries look like: { [key: string]: any }
-export function createDictionaryType(item: OpenAPIV3.SchemaObject) {
+export function createDictionaryType(
+  $refs: SwaggerParser.$Refs,
+  item: OpenAPIV3.SchemaObject
+) {
   return ts.factory.createTypeLiteralNode([
     ts.factory.createIndexSignature(
       /*decorators*/ undefined,
@@ -196,12 +219,13 @@ export function createDictionaryType(item: OpenAPIV3.SchemaObject) {
           /*initializer*/ undefined
         ),
       ],
-      /*type*/ resolveAdditionalPropertiesType(item.additionalProperties)
+      /*type*/ resolveAdditionalPropertiesType($refs, item.additionalProperties)
     ),
   ]);
 }
 
 export function nonArraySchemaObjectTypeToTs(
+  $refs: SwaggerParser.$Refs,
   item: OpenAPIV3.NonArraySchemaObject
 ): ts.TypeNode {
   if (!item.type) {
@@ -231,11 +255,11 @@ export function nonArraySchemaObjectTypeToTs(
       );
     case "object": {
       if (item.additionalProperties) {
-        return createDictionaryType(item);
+        return createDictionaryType($refs, item);
       }
 
       return appendNullToUnion(
-        createLiteralNodeFromProperties(item),
+        createLiteralNodeFromProperties($refs, item),
         item.nullable
       );
     }
@@ -267,11 +291,12 @@ export function appendNullToUnion(type: ts.TypeNode, nullable?: boolean) {
 }
 
 function referenceType(
+  $refs: SwaggerParser.$Refs,
   item: OpenAPIV3.ReferenceObject
 ): ReturnType<typeof schemaObjectOrRefType> {
   const name = refToTypeName(item.$ref);
   return {
-    node: ts.factory.createTypeReferenceNode(ts.factory.createIdentifier(name)),
+    node: createTypeRefOrSchemaObjectIfPathRef($refs, item),
     id: name,
   };
 }
@@ -325,15 +350,13 @@ export function sanitizeTypeName(name: string) {
  * @returns The type name
  */
 export function refToTypeName(ref: string) {
-  if (ref.startsWith("#/components/schemas/")) {
-    const name = ref.slice(21);
-    return sanitizeTypeName(name);
-  }
-
-  return ref;
+  const parts = ref.split("/");
+  const lastPart = parts[parts.length - 1];
+  return sanitizeTypeName(lastPart);
 }
 
 export function createParams(
+  $refs: SwaggerParser.$Refs,
   item: OpenAPIV3.OperationObject,
   pathParams: OpenAPIV3.PathItemObject["parameters"]
 ) {
@@ -341,7 +364,7 @@ export function createParams(
     return [];
   }
 
-  const paramObjects = combineUniqueParams(pathParams, item.parameters);
+  const paramObjects = combineUniqueParams($refs, pathParams, item.parameters);
   return paramObjects
     .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
     .map((param) => ({
@@ -355,29 +378,50 @@ export function createParams(
         /*questionToken*/ param.required
           ? undefined
           : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-        /*type*/ schemaObjectOrRefType(param.schema).node,
+        /*type*/ schemaObjectOrRefType($refs, param.schema).node,
         /*initializer*/ undefined
       ),
     }));
+}
+
+function resolveParams(
+  $refs: SwaggerParser.$Refs,
+  params: (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[]
+): OpenAPIV3.ParameterObject[] {
+  return params.flatMap((p) => {
+    if (isParameterObject(p)) {
+      return [p];
+    }
+    const ref = $refs.get(p.$ref);
+    if (isParameterObject(ref)) {
+      return [ref];
+    }
+
+    return [];
+  });
 }
 
 // Combines path and item parameters into a single unique array.
 // A unique parameter is defined by a combination of a name and location.
 // Item parameters override path parameters with the same name and location.
 export function combineUniqueParams(
+  $refs: SwaggerParser.$Refs,
   pathParams: (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[] = [],
   itemParams: (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[] = []
 ) {
-  if (!pathParams.length) {
-    return toParamObjects(itemParams);
-  } else if (!itemParams.length) {
-    return toParamObjects(pathParams);
+  const pathParamsResolved = resolveParams($refs, pathParams);
+  const itemParamsResolved = resolveParams($refs, itemParams);
+
+  if (!pathParamsResolved.length) {
+    return itemParamsResolved;
+  } else if (!itemParamsResolved.length) {
+    return pathParamsResolved;
   }
 
   const paramKey = (p: OpenAPIV3.ParameterObject) => `${p.name}-${p.in}`;
-  const itemParamIds = new Set(toParamObjects(itemParams).map(paramKey));
+  const itemParamIds = new Set(itemParamsResolved.map(paramKey));
   return [
-    ...toParamObjects(itemParams),
-    ...toParamObjects(pathParams).filter((p) => !itemParamIds.has(paramKey(p))),
+    ...itemParamsResolved,
+    ...pathParamsResolved.filter((p) => !itemParamIds.has(paramKey(p))),
   ];
 }

@@ -147,7 +147,7 @@ describe("makeMutations", () => {
       },
     };
 
-    const str = compile(makeMutations(doc.paths));
+    const str = compile(makeMutations({} as any, doc.paths));
     expect(str).toBe(expected);
   });
 });

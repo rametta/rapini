@@ -10,12 +10,12 @@ import {
 import type { CLIOptions } from "../cli";
 
 export function makeRequests(
-  paths: OpenAPIV3.PathsObject,
   $refs: SwaggerParser.$Refs,
+  paths: OpenAPIV3.PathsObject,
   options: CLIOptions
 ) {
   const requests = Object.entries(paths).flatMap(([pattern, item]) =>
-    makeRequestsPropertyAssignment(pattern, item!, $refs, options)
+    makeRequestsPropertyAssignment($refs, pattern, item!, options)
   );
 
   return [
@@ -138,47 +138,47 @@ function makeRequestsDeclaration(
 }
 
 function makeRequestsPropertyAssignment(
+  $refs: SwaggerParser.$Refs,
   pattern: string,
   item: OpenAPIV3.PathItemObject,
-  $refs: SwaggerParser.$Refs,
   options: CLIOptions
 ) {
   const requests: ts.PropertyAssignment[] = [];
-  const pathParams = item.parameters;
+  const params = item.parameters;
 
   if (item.get) {
     requests.push(
-      makeRequest(pattern, "get", item.get, $refs, options, pathParams)
+      makeRequest($refs, pattern, "get", item.get, options, params)
     );
   }
   if (item.delete) {
     requests.push(
-      makeRequest(pattern, "delete", item.delete, $refs, options, pathParams)
+      makeRequest($refs, pattern, "delete", item.delete, options, params)
     );
   }
   if (item.post) {
     requests.push(
-      makeRequest(pattern, "post", item.post, $refs, options, pathParams)
+      makeRequest($refs, pattern, "post", item.post, options, params)
     );
   }
   if (item.put) {
     requests.push(
-      makeRequest(pattern, "put", item.put, $refs, options, pathParams)
+      makeRequest($refs, pattern, "put", item.put, options, params)
     );
   }
   if (item.patch) {
     requests.push(
-      makeRequest(pattern, "patch", item.patch, $refs, options, pathParams)
+      makeRequest($refs, pattern, "patch", item.patch, options, params)
     );
   }
   if (item.head) {
     requests.push(
-      makeRequest(pattern, "head", item.head, $refs, options, pathParams)
+      makeRequest($refs, pattern, "head", item.head, options, params)
     );
   }
   if (item.options) {
     requests.push(
-      makeRequest(pattern, "options", item.options, $refs, options, pathParams)
+      makeRequest($refs, pattern, "options", item.options, options, params)
     );
   }
 
@@ -195,7 +195,7 @@ function createRequestParams(
   item: OpenAPIV3.OperationObject,
   paramObjects: OpenAPIV3.ParameterObject[],
   $refs: SwaggerParser.$Refs
-) {
+): { name: ts.Identifier; arrowFuncParam: ts.ParameterDeclaration }[] {
   const itemParamsDeclarations = paramObjects
     .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
     .map((param) => ({
@@ -208,7 +208,7 @@ function createRequestParams(
         /*questionToken*/ param.required
           ? undefined
           : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-        /*type*/ schemaObjectOrRefType(param.schema).node,
+        /*type*/ schemaObjectOrRefType($refs, param.schema).node,
         /*initializer*/ undefined
       ),
     }));
@@ -247,17 +247,20 @@ function statusCodeToType(statusCode: string): StatusType {
   return "default";
 }
 
-function mediaType(mediaTypeObj: OpenAPIV3.MediaTypeObject) {
+function mediaType(
+  $refs: SwaggerParser.$Refs,
+  mediaTypeObj: OpenAPIV3.MediaTypeObject
+) {
   if (!mediaTypeObj.schema) {
     return [];
   }
 
-  const typeName = schemaObjectOrRefType(mediaTypeObj.schema);
+  const typeName = schemaObjectOrRefType($refs, mediaTypeObj.schema);
 
   return [typeName];
 }
 
-function makeResponses(
+function makeAxiosRequestGenericType(
   $refs: SwaggerParser.$Refs,
   statusCode: string,
   resOrRef: OpenAPIV3.ReferenceObject | OpenAPIV3.ResponseObject
@@ -275,7 +278,7 @@ function makeResponses(
 
   const schemas = obj.content
     ? Object.values(obj.content).flatMap((mediaTypeObj) =>
-        mediaType(mediaTypeObj)
+        mediaType($refs, mediaTypeObj)
       )
     : [];
 
@@ -291,15 +294,16 @@ function makeResponses(
   ];
 }
 
-function getResponseType(
+export function getAxiosRequestGenericTypeResponse(
   item: OpenAPIV3.OperationObject,
   $refs: SwaggerParser.$Refs
 ) {
-  const responses = Object.entries(item.responses).flatMap(
-    ([statusCode, resOrRef]) => makeResponses($refs, statusCode, resOrRef)
+  const genericType = Object.entries(item.responses).flatMap(
+    ([statusCode, resOrRef]) =>
+      makeAxiosRequestGenericType($refs, statusCode, resOrRef)
   );
 
-  const successTypes = responses
+  const successTypes = genericType
     .filter(({ statusType }) => statusType === "success")
     .flatMap(({ schemas }) => schemas);
 
@@ -316,7 +320,7 @@ function getResponseType(
     );
   }
 
-  const defaultType = responses.find(
+  const defaultType = genericType.find(
     ({ statusType }) => statusType === "default"
   );
 
@@ -337,7 +341,7 @@ function makeRequestsType(
 
   const schemas = reqBody.content
     ? Object.values(reqBody.content).flatMap((mediaTypeObj) =>
-        mediaType(mediaTypeObj)
+        mediaType($refs, mediaTypeObj)
       )
     : undefined;
 
@@ -357,10 +361,10 @@ function makeRequestsType(
 }
 
 function makeRequest(
+  $refs: SwaggerParser.$Refs,
   pattern: string,
   method: string,
   item: OpenAPIV3.OperationObject,
-  $refs: SwaggerParser.$Refs,
   options: CLIOptions,
   pathParams?: OpenAPIV3.PathItemObject["parameters"]
 ) {
@@ -370,12 +374,15 @@ function makeRequest(
     options.replacer
   );
 
-  const paramObjects = combineUniqueParams(pathParams, item.parameters);
+  const paramObjects = combineUniqueParams($refs, pathParams, item.parameters);
   const arrowFuncParams = createRequestParams(item, paramObjects, $refs).map(
     (param) => param.arrowFuncParam
   );
 
-  const responseType = getResponseType(item, $refs);
+  const axiosRequestGenericType = getAxiosRequestGenericTypeResponse(
+    item,
+    $refs
+  );
 
   const axiosConfigFields = [
     ts.factory.createPropertyAssignment(
@@ -450,7 +457,7 @@ function makeRequest(
               /*expression*/ ts.factory.createIdentifier("axios"),
               /*name*/ ts.factory.createIdentifier("request")
             ),
-            /*typeArgs*/ [responseType],
+            /*typeArgs*/ [axiosRequestGenericType],
             /*args*/ [
               ts.factory.createObjectLiteralExpression(axiosConfigFields, true),
             ]

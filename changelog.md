@@ -30,3 +30,12 @@ A major release with breaking changes. Involves updating type signatures to matc
 - A new TS type is exported from the package as `QueryKeys` which is an object type of all the `queryKeys` generated
 - `queryKeys` is exported from the package directly instead of as a return type from `initialize(..)`, this means it can be imported as `import { queryKeys } from 'your-package' `
 - Fixed bug when dealing with vague input for request types and responses, now uses default response type if available, otherwise 2xx response type
+
+## 3.1.0
+
+- Fix bug for resolving inline reference parameters to external files
+- Fix bug for resolving inline reference types to external files
+
+## 3.2.0
+
+- Fix bug for resolving more inline references to external files

@@ -1,14 +1,18 @@
 import ts from "typescript";
 import type { OpenAPIV3 } from "openapi-types";
 import { normalizeOperationId, createParams } from "./util";
+import SwaggerParser from "swagger-parser";
 
 const NULL_IF_UNDEFINED_FN_NAME = "nullIfUndefined";
 
-export function makeQueryKeys(paths: OpenAPIV3.PathsObject) {
+export function makeQueryKeys(
+  $refs: SwaggerParser.$Refs,
+  paths: OpenAPIV3.PathsObject
+) {
   const queryKeys = Object.entries(paths)
     .filter(([_, item]) => !!item?.get)
     .map(([pattern, item]) =>
-      makeQueryKey(pattern, item!.get, item!.parameters)
+      makeQueryKey($refs, pattern, item!.get, item!.parameters)
     );
 
   return [
@@ -24,91 +28,103 @@ function makeNullIfUndefinedFunctionDeclaration() {
     undefined,
     undefined,
     ts.factory.createIdentifier(NULL_IF_UNDEFINED_FN_NAME),
-    [ts.factory.createTypeParameterDeclaration(
-      undefined,
-      ts.factory.createIdentifier("T"),
-      undefined,
-      undefined
-    )],
-    [ts.factory.createParameterDeclaration(
-      undefined,
-      undefined,
-      undefined,
-      ts.factory.createIdentifier("value"),
-      undefined,
-      ts.factory.createTypeReferenceNode(
+    [
+      ts.factory.createTypeParameterDeclaration(
+        undefined,
         ts.factory.createIdentifier("T"),
+        undefined,
         undefined
       ),
-      undefined
-    )],
+    ],
+    [
+      ts.factory.createParameterDeclaration(
+        undefined,
+        undefined,
+        undefined,
+        ts.factory.createIdentifier("value"),
+        undefined,
+        ts.factory.createTypeReferenceNode(
+          ts.factory.createIdentifier("T"),
+          undefined
+        ),
+        undefined
+      ),
+    ],
     ts.factory.createUnionTypeNode([
       ts.factory.createTypeReferenceNode(
         ts.factory.createIdentifier("NonNullable"),
-        [ts.factory.createTypeReferenceNode(
-          ts.factory.createIdentifier("T"),
-          undefined
-        )]
+        [
+          ts.factory.createTypeReferenceNode(
+            ts.factory.createIdentifier("T"),
+            undefined
+          ),
+        ]
       ),
-      ts.factory.createLiteralTypeNode(ts.factory.createNull())
+      ts.factory.createLiteralTypeNode(ts.factory.createNull()),
     ]),
     ts.factory.createBlock(
-      [ts.factory.createReturnStatement(ts.factory.createConditionalExpression(
-        ts.factory.createBinaryExpression(
-          ts.factory.createTypeOfExpression(ts.factory.createIdentifier("value")),
-          ts.factory.createToken(ts.SyntaxKind.EqualsEqualsEqualsToken),
-          ts.factory.createStringLiteral("undefined")
-        ),
-        ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-        ts.factory.createNull(),
-        ts.factory.createToken(ts.SyntaxKind.ColonToken),
-        ts.factory.createAsExpression(
-          ts.factory.createIdentifier("value"),
-          ts.factory.createUnionTypeNode([
-            ts.factory.createTypeReferenceNode(
-              ts.factory.createIdentifier("NonNullable"),
-              [ts.factory.createTypeReferenceNode(
-                ts.factory.createIdentifier("T"),
-                undefined
-              )]
+      [
+        ts.factory.createReturnStatement(
+          ts.factory.createConditionalExpression(
+            ts.factory.createBinaryExpression(
+              ts.factory.createTypeOfExpression(
+                ts.factory.createIdentifier("value")
+              ),
+              ts.factory.createToken(ts.SyntaxKind.EqualsEqualsEqualsToken),
+              ts.factory.createStringLiteral("undefined")
             ),
-            ts.factory.createLiteralTypeNode(ts.factory.createNull())
-          ])
-        )
-      ))],
+            ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+            ts.factory.createNull(),
+            ts.factory.createToken(ts.SyntaxKind.ColonToken),
+            ts.factory.createAsExpression(
+              ts.factory.createIdentifier("value"),
+              ts.factory.createUnionTypeNode([
+                ts.factory.createTypeReferenceNode(
+                  ts.factory.createIdentifier("NonNullable"),
+                  [
+                    ts.factory.createTypeReferenceNode(
+                      ts.factory.createIdentifier("T"),
+                      undefined
+                    ),
+                  ]
+                ),
+                ts.factory.createLiteralTypeNode(ts.factory.createNull()),
+              ])
+            )
+          )
+        ),
+      ],
       true
     )
-  )
+  );
 }
 
-function makeQueryKeysObject(
-  queryKeys: ts.PropertyAssignment[]
-) {
+function makeQueryKeysObject(queryKeys: ts.PropertyAssignment[]) {
   return ts.factory.createVariableStatement(
     [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
     ts.factory.createVariableDeclarationList(
-      [ts.factory.createVariableDeclaration(
-        ts.factory.createIdentifier("queryKeys"),
-        undefined,
-        undefined,
-        ts.factory.createAsExpression(
-          ts.factory.createObjectLiteralExpression(
-            queryKeys,
-            true
-          ),
-          ts.factory.createTypeReferenceNode(
-            ts.factory.createIdentifier("const"),
-            undefined
+      [
+        ts.factory.createVariableDeclaration(
+          ts.factory.createIdentifier("queryKeys"),
+          undefined,
+          undefined,
+          ts.factory.createAsExpression(
+            ts.factory.createObjectLiteralExpression(queryKeys, true),
+            ts.factory.createTypeReferenceNode(
+              ts.factory.createIdentifier("const"),
+              undefined
+            )
           )
-        )
-      )],
+        ),
+      ],
       ts.NodeFlags.Const
     )
-  )
+  );
 }
 
 // queryKey's are only made for GET's
 function makeQueryKey(
+  $refs: SwaggerParser.$Refs,
   pattern: string,
   get: OpenAPIV3.PathItemObject["get"],
   pathParams: OpenAPIV3.PathItemObject["parameters"]
@@ -118,7 +134,7 @@ function makeQueryKey(
   }
 
   const normalizedOperationId = normalizeOperationId(get.operationId);
-  const params = createParams(get, pathParams);
+  const params = createParams($refs, get, pathParams);
 
   return ts.factory.createPropertyAssignment(
     /*name*/ ts.factory.createIdentifier(normalizedOperationId),
@@ -167,5 +183,5 @@ function makeExportQueryKeyType(): ts.TypeAliasDeclaration {
       ts.factory.createIdentifier("queryKeys"),
       undefined
     )
-  )
+  );
 }

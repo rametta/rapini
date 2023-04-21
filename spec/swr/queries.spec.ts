@@ -144,7 +144,7 @@ describe("makeQueries", () => {
       },
     };
 
-    const str = compile([makeQueries(doc.paths)]);
+    const str = compile([makeQueries({} as any, doc.paths)]);
     expect(str).toBe(expected);
   });
 });

@@ -293,7 +293,7 @@ describe("makeTypes", () => {
       },
     };
 
-    const str = compile(makeTypes(doc));
+    const str = compile(makeTypes({} as any, doc));
     expect(str).toBe(expected);
   });
 });
