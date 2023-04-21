@@ -33,5 +33,9 @@ A major release with breaking changes. Involves updating type signatures to matc
 
 ## 3.1.0
 
-- Fix bug for resolving inline reference parameters
-- Fix bug for resolving inline reference types
+- Fix bug for resolving inline reference parameters to external files
+- Fix bug for resolving inline reference types to external files
+
+## 3.2.0
+
+- Fix bug for resolving more inline references to external files
