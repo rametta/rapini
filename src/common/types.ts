@@ -3,7 +3,7 @@ import ts from "typescript";
 import {
   appendNullToUnion,
   createTypeAliasDeclarationType,
-  createTypeRefFromRef,
+  createTypeRefOrSchemaObjectIfPathRef,
   isArraySchemaObject,
   isReferenceObject,
   nonArraySchemaObjectTypeToTs,
@@ -27,7 +27,9 @@ function resolveArray(
 ): ts.TypeNode {
   if (isReferenceObject(item.items)) {
     return appendNullToUnion(
-      ts.factory.createArrayTypeNode(createTypeRefFromRef(item.items)),
+      ts.factory.createArrayTypeNode(
+        createTypeRefOrSchemaObjectIfPathRef($refs, item.items)
+      ),
       item.nullable
     );
   }
@@ -50,7 +52,7 @@ function resolveType(
   item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 ) {
   if (isReferenceObject(item)) {
-    return createTypeRefFromRef(item);
+    return createTypeAliasDeclarationType($refs, item);
   }
 
   if (isArraySchemaObject(item)) {

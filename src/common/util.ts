@@ -96,7 +96,7 @@ export function schemaObjectOrRefType(
       const node = schemaObjectTypeNode($refs, pathObj);
       return { node, id: nodeId(node) };
     }
-    const refType = referenceType(schema);
+    const refType = referenceType($refs, schema);
     return refType;
   }
 
@@ -152,11 +152,12 @@ export function schemaObjectTypeNode(
  * If it's a remote reference, starting with #/path/ then
  * resolve inline and do an inline object type
  */
-function createTypeRefOrSchemaObjectIfPathRef(
+export function createTypeRefOrSchemaObjectIfPathRef(
   $refs: SwaggerParser.$Refs,
   item: OpenAPIV3.ReferenceObject
 ) {
   if (item.$ref.startsWith("#/paths/")) {
+    // TODO: Instead of resolving inline, create a Type Alias instead and reference that
     const pathObj = $refs.get(item.$ref);
     return schemaObjectTypeNode($refs, pathObj);
   }
@@ -164,7 +165,7 @@ function createTypeRefOrSchemaObjectIfPathRef(
   return createTypeRefFromRef(item);
 }
 
-export function createTypeRefFromRef(item: OpenAPIV3.ReferenceObject) {
+function createTypeRefFromRef(item: OpenAPIV3.ReferenceObject) {
   return ts.factory.createTypeReferenceNode(refToTypeName(item.$ref));
 }
 
@@ -173,7 +174,7 @@ export function createTypeAliasDeclarationType(
   item: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 ): ts.TypeNode {
   return isReferenceObject(item)
-    ? createTypeRefFromRef(item)
+    ? createTypeRefOrSchemaObjectIfPathRef($refs, item)
     : schemaObjectTypeNode($refs, item);
 }
 
@@ -290,11 +291,12 @@ export function appendNullToUnion(type: ts.TypeNode, nullable?: boolean) {
 }
 
 function referenceType(
+  $refs: SwaggerParser.$Refs,
   item: OpenAPIV3.ReferenceObject
 ): ReturnType<typeof schemaObjectOrRefType> {
   const name = refToTypeName(item.$ref);
   return {
-    node: createTypeRefFromRef(item),
+    node: createTypeRefOrSchemaObjectIfPathRef($refs, item),
     id: name,
   };
 }
