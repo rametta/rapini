@@ -17,7 +17,10 @@ const expected = `function makeRequests(axios: AxiosInstance, config?: AxiosConf
         createPet: (payload: unknown) => axios.request<Pet>({
             method: "post",
             url: \`/pets\`,
-            data: payload
+            data: payload,
+            headers: {
+                "Content-Type": "application/json"
+            }
         }).then(res => res.data),
         getPet: (petId?: string) => axios.request<Pet>({
             method: "get",
@@ -34,7 +37,10 @@ const expected = `function makeRequests(axios: AxiosInstance, config?: AxiosConf
         addPetPhoto: (payload: Photos, petId: string) => axios.request<Photos>({
             method: "post",
             url: \`/pets/\${petId}/photos\`,
-            data: payload
+            data: payload,
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
         }).then(res => res.data)
     } as const;
 }
@@ -188,7 +194,7 @@ describe("makeRequests", () => {
             requestBody: {
               description: "anything",
               content: {
-                "application/json": {
+                "multipart/form-data": {
                   schema: {
                     $ref: "#/components/schemas/Photos",
                   },
