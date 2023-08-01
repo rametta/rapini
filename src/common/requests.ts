@@ -1,13 +1,13 @@
 import ts from "typescript";
 import type SwaggerParser from "swagger-parser";
-import type {OpenAPIV3} from "openapi-types";
+import type { OpenAPIV3 } from "openapi-types";
 import {
     schemaObjectOrRefType,
     normalizeOperationId,
     isReferenceObject,
     combineUniqueParams,
 } from "./util";
-import type {CLIOptions} from "../cli";
+import type { CLIOptions } from "../cli";
 
 export function makeRequests(
     $refs: SwaggerParser.$Refs,
@@ -145,6 +145,7 @@ function makeRequestsPropertyAssignment(
 ) {
     const requests: ts.PropertyAssignment[] = [];
     const params = item.parameters;
+
     if (item.get) {
         requests.push(
             makeRequest($refs, pattern, "get", item.get, options, params)
@@ -303,8 +304,8 @@ export function getAxiosRequestGenericTypeResponse(
     );
 
     const successTypes = genericType
-        .filter(({statusType}) => statusType === "success")
-        .flatMap(({schemas}) => schemas);
+        .filter(({ statusType }) => statusType === "success")
+        .flatMap(({ schemas }) => schemas);
 
     const uniqSuccessTypes = successTypes.reduce<
         ReturnType<typeof schemaObjectOrRefType>[]
@@ -320,7 +321,7 @@ export function getAxiosRequestGenericTypeResponse(
     }
 
     const defaultType = genericType.find(
-        ({statusType}) => statusType === "default"
+        ({ statusType }) => statusType === "default"
     );
 
     if (defaultType && defaultType.schemas?.[0]) {
@@ -391,7 +392,7 @@ function makeRequest(
         ts.factory.createPropertyAssignment(
             /*name*/ ts.factory.createIdentifier("url"),
             /*initializer*/ pathTemplateExpression
-        )
+        ),
     ];
 
     const queryParamObjects = paramObjects.filter(
@@ -430,14 +431,12 @@ function makeRequest(
 
     // `data` field is only allowed for certain methods
     if (item.requestBody && ["put", "post", "patch", "delete"].includes(method)) {
-
         axiosConfigFields.push(
             ts.factory.createPropertyAssignment(
                 /*name*/ ts.factory.createIdentifier("data"),
                 /*initializer*/ ts.factory.createIdentifier("payload")
             )
         );
-        // Can be used in response type too
         if ("content" in item.requestBody) {
             axiosConfigFields.push(
                 ts.factory.createPropertyAssignment(
