@@ -1,13 +1,13 @@
 import ts from "typescript";
 import type SwaggerParser from "swagger-parser";
-import type { OpenAPIV3 } from "openapi-types";
+import type {OpenAPIV3} from "openapi-types";
 import {
     schemaObjectOrRefType,
     normalizeOperationId,
     isReferenceObject,
     combineUniqueParams,
 } from "./util";
-import type { CLIOptions } from "../cli";
+import type {CLIOptions} from "../cli";
 
 export function makeRequests(
     $refs: SwaggerParser.$Refs,
@@ -304,8 +304,8 @@ export function getAxiosRequestGenericTypeResponse(
     );
 
     const successTypes = genericType
-        .filter(({ statusType }) => statusType === "success")
-        .flatMap(({ schemas }) => schemas);
+        .filter(({statusType}) => statusType === "success")
+        .flatMap(({schemas}) => schemas);
 
     const uniqSuccessTypes = successTypes.reduce<
         ReturnType<typeof schemaObjectOrRefType>[]
@@ -321,7 +321,7 @@ export function getAxiosRequestGenericTypeResponse(
     }
 
     const defaultType = genericType.find(
-        ({ statusType }) => statusType === "default"
+        ({statusType}) => statusType === "default"
     );
 
     if (defaultType && defaultType.schemas?.[0]) {
