@@ -40,6 +40,6 @@ A major release with breaking changes. Involves updating type signatures to matc
 
 - Fix bug for resolving more inline references to external files
 
-## 3.3.0
+## 3.2.1
 
 - Add support for Content-Type in payload data
