@@ -1,12 +1,14 @@
 import ts from "typescript";
+
+import {
+  combineUniqueParams,
+  isReferenceObject,
+  normalizeOperationId,
+  schemaObjectOrRefType,
+} from "./util";
+
 import type SwaggerParser from "swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
-import {
-  schemaObjectOrRefType,
-  normalizeOperationId,
-  isReferenceObject,
-  combineUniqueParams,
-} from "./util";
 import type { CLIOptions } from "../cli";
 
 export function makeRequests(
@@ -442,16 +444,19 @@ function makeRequest(
         ts.factory.createPropertyAssignment(
           /*name*/ ts.factory.createIdentifier("headers"),
           /*initializer*/ ts.factory.createObjectLiteralExpression(
-                /*properties*/ [
-                ts.factory.createPropertyAssignment(
-                    /*name*/ ts.factory.createStringLiteral(`Content-Type`),
-                    /*initializer*/ ts.factory.createStringLiteral(Object.keys(item.requestBody.content).at(0) ?? "application/json")
-                ),
+            /*properties*/ [
+              ts.factory.createPropertyAssignment(
+                /*name*/ ts.factory.createStringLiteral(`Content-Type`),
+                /*initializer*/ ts.factory.createStringLiteral(
+                  Object.keys(item.requestBody.content).at(0) ??
+                    "application/json"
+                )
+              ),
             ],
             /*multiline*/ true
           )
-        ),
-      )
+        )
+      );
     }
   }
 
