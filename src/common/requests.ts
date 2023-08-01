@@ -1,14 +1,13 @@
 import ts from "typescript";
-
-import {
-  combineUniqueParams,
-  isReferenceObject,
-  normalizeOperationId,
-  schemaObjectOrRefType,
-} from "./util";
-
 import type SwaggerParser from "swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
+import {
+  schemaObjectOrRefType,
+  normalizeOperationId,
+  isReferenceObject,
+  combineUniqueParams,
+} from "./util";
+
 import type { CLIOptions } from "../cli";
 
 export function makeRequests(
