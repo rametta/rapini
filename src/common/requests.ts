@@ -439,11 +439,12 @@ function makeRequest(
       )
     );
     if ("content" in item.requestBody) {
-      if(Object.keys(item.requestBody.content).length > 0) {
-        if(Object.keys(item.requestBody.content).length > 1) {
+      const contentTypeKeys = Object.keys(item.requestBody.content)
+      if(contentTypeKeys.length > 0) {
+        if(contentTypeKeys.length > 1) {
           console.warn(`Warning: Multiple media types in request body are not supported. Only the first one will be used.`)
         }
-        const mediaType = Object.keys(item.requestBody.content)[0]
+        const mediaType = contentTypeKeys[0]
         axiosConfigFields.push(
             ts.factory.createPropertyAssignment(
                 /*name*/ ts.factory.createIdentifier("headers"),
