@@ -439,23 +439,26 @@ function makeRequest(
       )
     );
     if ("content" in item.requestBody) {
-      axiosConfigFields.push(
-        ts.factory.createPropertyAssignment(
-          /*name*/ ts.factory.createIdentifier("headers"),
-          /*initializer*/ ts.factory.createObjectLiteralExpression(
-            /*properties*/ [
-              ts.factory.createPropertyAssignment(
-                /*name*/ ts.factory.createStringLiteral(`Content-Type`),
-                /*initializer*/ ts.factory.createStringLiteral(
-                  Object.keys(item.requestBody.content).at(0) ??
-                    "application/json"
+      if(Object.keys(item.requestBody.content).length > 0) {
+        if(Object.keys(item.requestBody.content).length > 1) {
+          console.warn(`Warning: Multiple media types in request body are not supported. Only the first one will be used.`)
+        }
+        const mediaType = Object.keys(item.requestBody.content)[0]
+        axiosConfigFields.push(
+            ts.factory.createPropertyAssignment(
+                /*name*/ ts.factory.createIdentifier("headers"),
+                /*initializer*/ ts.factory.createObjectLiteralExpression(
+                    /*properties*/ [
+                      ts.factory.createPropertyAssignment(
+                          /*name*/ ts.factory.createStringLiteral(`Content-Type`),
+                          /*initializer*/ ts.factory.createStringLiteral(mediaType)
+                      ),
+                    ],
+                    /*multiline*/ true
                 )
-              ),
-            ],
-            /*multiline*/ true
-          )
-        )
-      );
+            )
+        );
+      }
     }
   }
 
