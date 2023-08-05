@@ -1,4 +1,4 @@
-import ts from "typescript";
+import ts, {PropertyAssignment} from "typescript";
 import type SwaggerParser from "swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
 import {
@@ -439,26 +439,17 @@ function makeRequest(
       )
     );
     if ("content" in item.requestBody) {
-      const contentTypeKeys = Object.keys(item.requestBody.content)
-      if(contentTypeKeys.length > 0) {
-        if(contentTypeKeys.length > 1) {
-          console.warn(`Warning: Multiple media types in request body are not supported. Only the first one will be used.`)
+      const contentTypeConfig = tryCreateContentTypeAssignment(Object.keys(item.requestBody.content))
+      if(contentTypeConfig) {
+        axiosConfigFields.push(contentTypeConfig);
+      }
+    } else if("$ref" in item.requestBody) {
+      const reference = $refs.get(item.requestBody.$ref);
+      if(reference && "content" in reference) {
+        const contentTypeConfig = tryCreateContentTypeAssignment(Object.keys(reference.content))
+        if(contentTypeConfig) {
+          axiosConfigFields.push(contentTypeConfig);
         }
-        const mediaType = contentTypeKeys[0]
-        axiosConfigFields.push(
-            ts.factory.createPropertyAssignment(
-                /*name*/ ts.factory.createIdentifier("headers"),
-                /*initializer*/ ts.factory.createObjectLiteralExpression(
-                    /*properties*/ [
-                      ts.factory.createPropertyAssignment(
-                          /*name*/ ts.factory.createStringLiteral(`Content-Type`),
-                          /*initializer*/ ts.factory.createStringLiteral(mediaType)
-                      ),
-                    ],
-                    /*multiline*/ true
-                )
-            )
-        );
       }
     }
   }
@@ -611,4 +602,27 @@ export function replacePattern(pattern: string, replacers: string[]) {
     (acc, [oldStr, newStr]) => acc.replace(new RegExp(oldStr, "g"), newStr),
     pattern
   );
+}
+
+
+function tryCreateContentTypeAssignment(contentTypeKeys: string[]): PropertyAssignment | undefined {
+  if(contentTypeKeys.length > 0) {
+    if (contentTypeKeys.length > 1) {
+      console.warn(`Warning: Multiple media types in request body are not supported. Defaulting to the first one : {${contentTypeKeys[0]}}`)
+    }
+    const mediaType = contentTypeKeys[0]
+    return ts.factory.createPropertyAssignment(
+      /*name*/ ts.factory.createIdentifier("headers"),
+      /*initializer*/ ts.factory.createObjectLiteralExpression(
+          /*properties*/ [
+            ts.factory.createPropertyAssignment(
+                /*name*/ ts.factory.createStringLiteral(`Content-Type`),
+                /*initializer*/ ts.factory.createStringLiteral(mediaType)
+            ),
+          ],
+          /*multiline*/ true
+      )
+    );
+  }
+  return undefined;
 }
