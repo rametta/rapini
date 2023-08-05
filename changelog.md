@@ -43,7 +43,3 @@ A major release with breaking changes. Involves updating type signatures to matc
 ## 3.2.1
 
 - Add support for Content-Type in payload data
-
-## 3.2.1
-
-- Add support for Content-Type in payload data
