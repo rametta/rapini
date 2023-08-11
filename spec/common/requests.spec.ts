@@ -1,5 +1,6 @@
 import ts from "typescript";
 import type { OpenAPIV3 } from "openapi-types";
+import SwaggerParser from "@apidevtools/swagger-parser";
 import {
   chunker,
   replacePattern,
@@ -17,7 +18,18 @@ const expected = `function makeRequests(axios: AxiosInstance, config?: AxiosConf
         createPet: (payload: unknown) => axios.request<Pet>({
             method: "post",
             url: \`/pets\`,
-            data: payload
+            data: payload,
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }).then(res => res.data),
+        updatePets: (payload: Pet) => axios.request<Pet>({
+            method: "put",
+            url: \`/pets\`,
+            data: payload,
+            headers: {
+                "Content-Type": "application/xml"
+            }
         }).then(res => res.data),
         getPet: (petId?: string) => axios.request<Pet>({
             method: "get",
@@ -34,7 +46,10 @@ const expected = `function makeRequests(axios: AxiosInstance, config?: AxiosConf
         addPetPhoto: (payload: Photos, petId: string) => axios.request<Photos>({
             method: "post",
             url: \`/pets/\${petId}/photos\`,
-            data: payload
+            data: payload,
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
         }).then(res => res.data)
     } as const;
 }
@@ -43,7 +58,7 @@ export type Response<T extends keyof Requests> = Awaited<ReturnType<Requests[T]>
 `;
 
 describe("makeRequests", () => {
-  it("generates requests for every path", () => {
+  it("generates requests for every path", async () => {
     const doc: OpenAPIV3.Document = {
       openapi: "3.0.0",
       info: {
@@ -78,6 +93,24 @@ describe("makeRequests", () => {
                   },
                 },
               },
+            },
+            responses: {
+              200: {
+                description: "anything",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "#/components/schemas/Pet",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          put: {
+            operationId: "updatePets",
+            requestBody: {
+              $ref: "#/components/requestBodies/UpdatePetsBody",
             },
             responses: {
               200: {
@@ -188,7 +221,7 @@ describe("makeRequests", () => {
             requestBody: {
               description: "anything",
               content: {
-                "application/json": {
+                "multipart/form-data": {
                   schema: {
                     $ref: "#/components/schemas/Photos",
                   },
@@ -210,9 +243,31 @@ describe("makeRequests", () => {
           },
         },
       },
+      components: {
+        requestBodies: {
+          UpdatePetsBody: {
+            content: {
+              "application/xml": {
+                schema: {
+                  $ref:  '#/components/schemas/Pet'
+                }
+              }
+            }
+          }
+        },
+        schemas: {
+          Pets: {},
+          Pet: {},
+          Photos: {},
+          "Pet.Dog": {},
+          "Pet.Cat": {}
+        }
+      }
     };
 
-    const str = compile(makeRequests({} as any, doc.paths, {} as any));
+    const parser = new SwaggerParser();
+    const api = await parser.bundle(doc)
+    const str = compile(makeRequests(parser.$refs, api.paths as OpenAPIV3.PathsObject<{}, {}>, {} as any));
     expect(str).toBe(expected);
   });
 });

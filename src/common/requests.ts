@@ -1,4 +1,4 @@
-import ts from "typescript";
+import ts, { PropertyAssignment } from "typescript";
 import type SwaggerParser from "swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
 import {
@@ -7,6 +7,7 @@ import {
   isReferenceObject,
   combineUniqueParams,
 } from "./util";
+
 import type { CLIOptions } from "../cli";
 
 export function makeRequests(
@@ -437,6 +438,13 @@ function makeRequest(
         /*initializer*/ ts.factory.createIdentifier("payload")
       )
     );
+
+    const reqBody = isRequestBodyObject(item.requestBody)
+      ? item.requestBody
+      : ($refs.get(item.requestBody.$ref) as OpenAPIV3.RequestBodyObject);
+
+    const contentTypeConfig = tryCreateContentTypeAssignment(Object.keys(reqBody.content))
+    axiosConfigFields.push(...contentTypeConfig);
   }
 
   return ts.factory.createPropertyAssignment(
@@ -587,4 +595,26 @@ export function replacePattern(pattern: string, replacers: string[]) {
     (acc, [oldStr, newStr]) => acc.replace(new RegExp(oldStr, "g"), newStr),
     pattern
   );
+}
+
+
+function tryCreateContentTypeAssignment(contentTypeKeys: string[]): PropertyAssignment[] {
+  if (!contentTypeKeys.length) {
+    return []
+  }
+  
+  const propertyAssignment = ts.factory.createPropertyAssignment(
+    /*name*/ ts.factory.createIdentifier("headers"),
+    /*initializer*/ ts.factory.createObjectLiteralExpression(
+        /*properties*/ [
+          ts.factory.createPropertyAssignment(
+              /*name*/ ts.factory.createStringLiteral(`Content-Type`),
+              /*initializer*/ ts.factory.createStringLiteral(contentTypeKeys[0])
+          ),
+        ],
+        /*multiline*/ true
+    )
+  );
+
+  return [propertyAssignment]
 }
