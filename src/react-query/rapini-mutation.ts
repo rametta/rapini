@@ -6,7 +6,6 @@ export function makeRapiniMutation() {
   return ts.factory.createFunctionDeclaration(
     undefined,
     undefined,
-    undefined,
     ts.factory.createIdentifier(RAPINI_MUTATION_ID),
     [
       ts.factory.createTypeParameterDeclaration(
@@ -38,7 +37,6 @@ export function makeRapiniMutation() {
       ts.factory.createParameterDeclaration(
         undefined,
         undefined,
-        undefined,
         ts.factory.createIdentifier("mutationFn"),
         undefined,
         ts.factory.createTypeReferenceNode(
@@ -59,14 +57,12 @@ export function makeRapiniMutation() {
       ts.factory.createParameterDeclaration(
         undefined,
         undefined,
-        undefined,
         ts.factory.createIdentifier("config"),
         ts.factory.createToken(ts.SyntaxKind.QuestionToken),
         ts.factory.createFunctionTypeNode(
           undefined,
           [
             ts.factory.createParameterDeclaration(
-              undefined,
               undefined,
               undefined,
               ts.factory.createIdentifier("queryClient"),
@@ -119,7 +115,6 @@ export function makeRapiniMutation() {
         undefined
       ),
       ts.factory.createParameterDeclaration(
-        undefined,
         undefined,
         undefined,
         ts.factory.createIdentifier("options"),
@@ -281,7 +276,6 @@ export function makeRapiniMutation() {
                           ts.factory.createParameterDeclaration(
                             undefined,
                             undefined,
-                            undefined,
                             ts.factory.createIdentifier("data"),
                             undefined,
                             ts.factory.createTypeReferenceNode(
@@ -293,7 +287,6 @@ export function makeRapiniMutation() {
                           ts.factory.createParameterDeclaration(
                             undefined,
                             undefined,
-                            undefined,
                             ts.factory.createIdentifier("variables"),
                             undefined,
                             ts.factory.createTypeReferenceNode(
@@ -303,7 +296,6 @@ export function makeRapiniMutation() {
                             undefined
                           ),
                           ts.factory.createParameterDeclaration(
-                            undefined,
                             undefined,
                             undefined,
                             ts.factory.createIdentifier("context"),
@@ -369,7 +361,6 @@ export function makeRapiniMutation() {
                           ts.factory.createParameterDeclaration(
                             undefined,
                             undefined,
-                            undefined,
                             ts.factory.createIdentifier("error"),
                             undefined,
                             ts.factory.createTypeReferenceNode(
@@ -381,7 +372,6 @@ export function makeRapiniMutation() {
                           ts.factory.createParameterDeclaration(
                             undefined,
                             undefined,
-                            undefined,
                             ts.factory.createIdentifier("variables"),
                             undefined,
                             ts.factory.createTypeReferenceNode(
@@ -391,7 +381,6 @@ export function makeRapiniMutation() {
                             undefined
                           ),
                           ts.factory.createParameterDeclaration(
-                            undefined,
                             undefined,
                             undefined,
                             ts.factory.createIdentifier("context"),
@@ -457,7 +446,6 @@ export function makeRapiniMutation() {
                           ts.factory.createParameterDeclaration(
                             undefined,
                             undefined,
-                            undefined,
                             ts.factory.createIdentifier("data"),
                             undefined,
                             ts.factory.createUnionTypeNode([
@@ -472,7 +460,6 @@ export function makeRapiniMutation() {
                             undefined
                           ),
                           ts.factory.createParameterDeclaration(
-                            undefined,
                             undefined,
                             undefined,
                             ts.factory.createIdentifier("error"),
@@ -491,7 +478,6 @@ export function makeRapiniMutation() {
                           ts.factory.createParameterDeclaration(
                             undefined,
                             undefined,
-                            undefined,
                             ts.factory.createIdentifier("variables"),
                             undefined,
                             ts.factory.createTypeReferenceNode(
@@ -501,7 +487,6 @@ export function makeRapiniMutation() {
                             undefined
                           ),
                           ts.factory.createParameterDeclaration(
-                            undefined,
                             undefined,
                             undefined,
                             ts.factory.createIdentifier("context"),

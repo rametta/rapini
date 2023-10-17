@@ -59,7 +59,6 @@ export function makeInitialize() {
   ];
 
   const axiosParameter = ts.factory.createParameterDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*dotDotDotToken*/ undefined,
     /*name*/ axios,
@@ -72,7 +71,6 @@ export function makeInitialize() {
   );
 
   const configParameter = ts.factory.createParameterDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*dotDotDotToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("config"),
@@ -85,7 +83,6 @@ export function makeInitialize() {
   );
 
   return ts.factory.createFunctionDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
     /*asteriskToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("initialize"),

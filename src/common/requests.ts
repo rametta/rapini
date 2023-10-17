@@ -28,7 +28,6 @@ export function makeRequests(
 
 function exportRequestsType() {
   return ts.factory.createTypeAliasDeclaration(
-    undefined,
     [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
     ts.factory.createIdentifier("Requests"),
     undefined,
@@ -46,7 +45,6 @@ function exportRequestsType() {
 
 function exportResponseType() {
   return ts.factory.createTypeAliasDeclaration(
-    undefined,
     [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
     ts.factory.createIdentifier("Response"),
     [
@@ -102,14 +100,12 @@ function makeRequestsDeclaration(
   ];
 
   return ts.factory.createFunctionDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*asteriskToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("makeRequests"),
     /*typeParameters*/ undefined,
     /*parameters*/ [
       ts.factory.createParameterDeclaration(
-        /*decorators*/ undefined,
         /*modifiers*/ undefined,
         /*dotDotDotToken*/ undefined,
         /*name*/ ts.factory.createIdentifier("axios"),
@@ -121,7 +117,6 @@ function makeRequestsDeclaration(
         /*initializer*/ undefined
       ),
       ts.factory.createParameterDeclaration(
-        /*decorators*/ undefined,
         /*modifiers*/ undefined,
         /*dotDotDotToken*/ undefined,
         /*name*/ ts.factory.createIdentifier("config"),
@@ -202,7 +197,6 @@ function createRequestParams(
     .map((param) => ({
       name: ts.factory.createIdentifier(param.name),
       arrowFuncParam: ts.factory.createParameterDeclaration(
-        /*decorators*/ undefined,
         /*modifiers*/ undefined,
         /*dotDotDotToken*/ undefined,
         /*name*/ ts.factory.createIdentifier(param.name),
@@ -220,7 +214,6 @@ function createRequestParams(
     itemParamsDeclarations.unshift({
       name: payload,
       arrowFuncParam: ts.factory.createParameterDeclaration(
-        /*decorators*/ undefined,
         /*modifiers*/ undefined,
         /*dotDotDotToken*/ undefined,
         /*name*/ payload,
@@ -479,7 +472,6 @@ function makeRequest(
             /*typeParameters*/ undefined,
             /*parameters*/ [
               ts.factory.createParameterDeclaration(
-                /*decorators*/ undefined,
                 /*modifiers*/ undefined,
                 /*dotDotDotToken*/ undefined,
                 /*name*/ ts.factory.createIdentifier("res"),
