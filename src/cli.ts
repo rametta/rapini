@@ -66,7 +66,7 @@ sharedOptions.forEach((option) => {
 program
   .name("rapini")
   .description("Generate a package based on OpenAPI")
-  .version("3.2.0")
+  .version("3.4.0")
   .addCommand(rqCommand)
   .addCommand(swrComamnd);
 
