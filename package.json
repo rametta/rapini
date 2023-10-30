@@ -14,9 +14,9 @@
   "author": "Jason Rametta",
   "license": "Apache-2.0",
   "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.0",
     "axios": "^1.5.1",
     "commander": "^11.1.0",
-    "swagger-parser": "^10.0.3",
     "typescript": "^5.2.2"
   },
   "devDependencies": {

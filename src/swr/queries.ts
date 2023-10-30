@@ -5,7 +5,7 @@ import {
   createParams,
   normalizeOperationId,
 } from "../common/util";
-import SwaggerParser from "swagger-parser";
+import SwaggerParser from "@apidevtools/swagger-parser";
 
 export function makeQueries(
   $refs: SwaggerParser.$Refs,

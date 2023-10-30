@@ -1,7 +1,7 @@
 import ts from "typescript";
 import type { OpenAPI, OpenAPIV3 } from "openapi-types";
 import { createLiteralNodeFromProperties } from "./types";
-import type SwaggerParser from "swagger-parser";
+import type SwaggerParser from "@apidevtools/swagger-parser";
 
 export function isOpenApiV3Document(
   doc: OpenAPI.Document

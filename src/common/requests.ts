@@ -1,5 +1,5 @@
 import ts, { PropertyAssignment } from "typescript";
-import type SwaggerParser from "swagger-parser";
+import type SwaggerParser from "@apidevtools/swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
 import {
   schemaObjectOrRefType,
@@ -436,7 +436,9 @@ function makeRequest(
       ? item.requestBody
       : ($refs.get(item.requestBody.$ref) as OpenAPIV3.RequestBodyObject);
 
-    const contentTypeConfig = tryCreateContentTypeAssignment(Object.keys(reqBody.content))
+    const contentTypeConfig = tryCreateContentTypeAssignment(
+      Object.keys(reqBody.content)
+    );
     axiosConfigFields.push(...contentTypeConfig);
   }
 
@@ -589,24 +591,25 @@ export function replacePattern(pattern: string, replacers: string[]) {
   );
 }
 
-
-function tryCreateContentTypeAssignment(contentTypeKeys: string[]): PropertyAssignment[] {
+function tryCreateContentTypeAssignment(
+  contentTypeKeys: string[]
+): PropertyAssignment[] {
   if (!contentTypeKeys.length) {
-    return []
+    return [];
   }
-  
+
   const propertyAssignment = ts.factory.createPropertyAssignment(
     /*name*/ ts.factory.createIdentifier("headers"),
     /*initializer*/ ts.factory.createObjectLiteralExpression(
-        /*properties*/ [
-          ts.factory.createPropertyAssignment(
-              /*name*/ ts.factory.createStringLiteral(`Content-Type`),
-              /*initializer*/ ts.factory.createStringLiteral(contentTypeKeys[0])
-          ),
-        ],
-        /*multiline*/ true
+      /*properties*/ [
+        ts.factory.createPropertyAssignment(
+          /*name*/ ts.factory.createStringLiteral(`Content-Type`),
+          /*initializer*/ ts.factory.createStringLiteral(contentTypeKeys[0])
+        ),
+      ],
+      /*multiline*/ true
     )
   );
 
-  return [propertyAssignment]
+  return [propertyAssignment];
 }
