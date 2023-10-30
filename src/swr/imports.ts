@@ -2,7 +2,6 @@ import ts from "typescript";
 
 function makeImportAxiosInstanceTypeDeclaration() {
   return ts.factory.createImportDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*importClause*/ ts.factory.createImportClause(
       /*isTypeOnly*/ true,
@@ -27,7 +26,6 @@ function makeImportAxiosInstanceTypeDeclaration() {
 
 function makeImportSWRDeclaration() {
   return ts.factory.createImportDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*importClause*/ ts.factory.createImportClause(
       /*typeOnly*/ false,

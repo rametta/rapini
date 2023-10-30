@@ -5,7 +5,7 @@ import {
   createParams,
   normalizeOperationId,
 } from "../common/util";
-import SwaggerParser from "swagger-parser";
+import SwaggerParser from "@apidevtools/swagger-parser";
 
 export function makeQueries(
   $refs: SwaggerParser.$Refs,
@@ -18,7 +18,6 @@ export function makeQueries(
     );
 
   const requestsParam = ts.factory.createParameterDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*dotDotDotToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("requests"),
@@ -31,7 +30,6 @@ export function makeQueries(
   );
 
   return ts.factory.createFunctionDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*asteriskToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("makeQueries"),
@@ -81,7 +79,6 @@ function makeProperty(
       /*params*/ [
         ...params.map((p) => p.arrowFuncParam),
         ts.factory.createParameterDeclaration(
-          /*decorators*/ undefined,
           /*modifiers*/ undefined,
           /*dotDotDotToken*/ undefined,
           /*name*/ ts.factory.createIdentifier("options"),

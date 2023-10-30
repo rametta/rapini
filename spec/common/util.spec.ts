@@ -103,12 +103,12 @@ describe("nodeId", () => {
 
   it.each`
     node       | expected
-    ${numeric} | ${"147"}
-    ${string}  | ${"150"}
-    ${bool}    | ${"133"}
-    ${any}     | ${"130"}
-    ${union}   | ${"147|150|MyTypeName"}
-    ${arr}     | ${"Array<(147|150|MyTypeName)>"}
+    ${numeric} | ${"150"}
+    ${string}  | ${"154"}
+    ${bool}    | ${"136"}
+    ${any}     | ${"133"}
+    ${union}   | ${"150|154|MyTypeName"}
+    ${arr}     | ${"Array<(150|154|MyTypeName)>"}
     ${ref}     | ${"MyTypeName"}
     ${literal} | ${"type-literal-hello&world"}
   `("nodeId($node) -> $expected", ({ node, expected }) => {

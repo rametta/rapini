@@ -1,6 +1,6 @@
 import ts from "typescript";
 import type { OpenAPIV3 } from "openapi-types";
-import SwaggerParser from "swagger-parser";
+import SwaggerParser from "@apidevtools/swagger-parser";
 import {
   capitalizeFirstLetter,
   normalizeOperationId,
@@ -17,7 +17,6 @@ export function makeMutations(
   );
 
   const requestsParam = ts.factory.createParameterDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*dotDotDotToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("requests"),
@@ -30,7 +29,6 @@ export function makeMutations(
   );
 
   const configParam = ts.factory.createParameterDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*dotDotDotToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("config"),
@@ -49,14 +47,12 @@ export function makeMutations(
 
   return [
     ts.factory.createTypeAliasDeclaration(
-      /*decorators*/ undefined,
       /*modifiers*/ undefined,
       /*name*/ ts.factory.createIdentifier("MutationConfigs"),
       /*typeParameters*/ undefined,
       /*type*/ ts.factory.createTypeLiteralNode(properties.map((p) => p.config))
     ),
     ts.factory.createFunctionDeclaration(
-      /*decorators*/ undefined,
       /*modifiers*/ undefined,
       /*asteriskToken*/ undefined,
       /*name*/ ts.factory.createIdentifier("makeMutations"),
@@ -127,7 +123,6 @@ function optionsParameterDeclaration(
   hasRequestBody: boolean
 ) {
   return ts.factory.createParameterDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*dotDotDotToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("options"),
@@ -245,7 +240,6 @@ function makeProperty(
         /*parameters*/ hasRequestBody
           ? [
               ts.factory.createParameterDeclaration(
-                /*decorators*/ undefined,
                 /*modifiers*/ undefined,
                 /*dotDotDotToken*/ undefined,
                 /*name*/ ts.factory.createIdentifier("payload"),
@@ -309,7 +303,6 @@ function makeProperty(
         undefined,
         [
           ts.factory.createParameterDeclaration(
-            undefined,
             undefined,
             undefined,
             ts.factory.createIdentifier("queryClient"),

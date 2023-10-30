@@ -112,7 +112,6 @@ export function makeTypes($refs: SwaggerParser.$Refs, doc: OpenAPIV3.Document) {
 
   return Object.entries(schemas).map(([schemaName, item]) => {
     return ts.factory.createTypeAliasDeclaration(
-      /*decorators*/ undefined,
       /*modifiers*/ [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
       /*name*/ ts.factory.createIdentifier(sanitizeTypeName(schemaName)),
       /*typeParameters*/ undefined,

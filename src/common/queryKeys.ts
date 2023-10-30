@@ -1,7 +1,7 @@
 import ts from "typescript";
 import type { OpenAPIV3 } from "openapi-types";
 import { normalizeOperationId, createParams } from "./util";
-import SwaggerParser from "swagger-parser";
+import SwaggerParser from "@apidevtools/swagger-parser";
 
 const NULL_IF_UNDEFINED_FN_NAME = "nullIfUndefined";
 
@@ -26,7 +26,6 @@ function makeNullIfUndefinedFunctionDeclaration() {
   return ts.factory.createFunctionDeclaration(
     undefined,
     undefined,
-    undefined,
     ts.factory.createIdentifier(NULL_IF_UNDEFINED_FN_NAME),
     [
       ts.factory.createTypeParameterDeclaration(
@@ -38,7 +37,6 @@ function makeNullIfUndefinedFunctionDeclaration() {
     ],
     [
       ts.factory.createParameterDeclaration(
-        undefined,
         undefined,
         undefined,
         ts.factory.createIdentifier("value"),
@@ -175,7 +173,6 @@ function makeQueryKey(
 
 function makeExportQueryKeyType(): ts.TypeAliasDeclaration {
   return ts.factory.createTypeAliasDeclaration(
-    undefined,
     [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
     ts.factory.createIdentifier("QueryKeys"),
     undefined,

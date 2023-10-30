@@ -3,7 +3,6 @@ import { CLIOptions } from "../cli";
 
 function makeImportAxiosInstanceTypeDeclaration() {
   return ts.factory.createImportDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*importClause*/ ts.factory.createImportClause(
       /*isTypeOnly*/ true,
@@ -80,7 +79,6 @@ function makeImportReactQueryDeclaration(isV4: boolean) {
   );
 
   return ts.factory.createImportDeclaration(
-    /*decorators*/ undefined,
     /*modifers*/ undefined,
     /*importClause*/ importClause,
     /*moduleSpecifier*/ ts.factory.createStringLiteral(

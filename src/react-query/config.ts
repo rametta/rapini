@@ -3,7 +3,6 @@ import ts from "typescript";
 export function makeConfigTypes() {
   return [
     ts.factory.createTypeAliasDeclaration(
-      /*decorators*/ undefined,
       /*modifiers*/ [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
       /*name*/ ts.factory.createIdentifier("AxiosConfig"),
       /*typeParameters*/ undefined,
@@ -25,7 +24,6 @@ export function makeConfigTypes() {
       ])
     ),
     ts.factory.createTypeAliasDeclaration(
-      /*decorators*/ undefined,
       /*modifiers*/ [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
       /*name*/ ts.factory.createIdentifier("Config"),
       /*typeParameters*/ undefined,

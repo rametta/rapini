@@ -1,5 +1,5 @@
 import ts, { PropertyAssignment } from "typescript";
-import type SwaggerParser from "swagger-parser";
+import type SwaggerParser from "@apidevtools/swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
 import {
   schemaObjectOrRefType,
@@ -28,7 +28,6 @@ export function makeRequests(
 
 function exportRequestsType() {
   return ts.factory.createTypeAliasDeclaration(
-    undefined,
     [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
     ts.factory.createIdentifier("Requests"),
     undefined,
@@ -46,7 +45,6 @@ function exportRequestsType() {
 
 function exportResponseType() {
   return ts.factory.createTypeAliasDeclaration(
-    undefined,
     [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
     ts.factory.createIdentifier("Response"),
     [
@@ -102,14 +100,12 @@ function makeRequestsDeclaration(
   ];
 
   return ts.factory.createFunctionDeclaration(
-    /*decorators*/ undefined,
     /*modifiers*/ undefined,
     /*asteriskToken*/ undefined,
     /*name*/ ts.factory.createIdentifier("makeRequests"),
     /*typeParameters*/ undefined,
     /*parameters*/ [
       ts.factory.createParameterDeclaration(
-        /*decorators*/ undefined,
         /*modifiers*/ undefined,
         /*dotDotDotToken*/ undefined,
         /*name*/ ts.factory.createIdentifier("axios"),
@@ -121,7 +117,6 @@ function makeRequestsDeclaration(
         /*initializer*/ undefined
       ),
       ts.factory.createParameterDeclaration(
-        /*decorators*/ undefined,
         /*modifiers*/ undefined,
         /*dotDotDotToken*/ undefined,
         /*name*/ ts.factory.createIdentifier("config"),
@@ -202,7 +197,6 @@ function createRequestParams(
     .map((param) => ({
       name: ts.factory.createIdentifier(param.name),
       arrowFuncParam: ts.factory.createParameterDeclaration(
-        /*decorators*/ undefined,
         /*modifiers*/ undefined,
         /*dotDotDotToken*/ undefined,
         /*name*/ ts.factory.createIdentifier(param.name),
@@ -220,7 +214,6 @@ function createRequestParams(
     itemParamsDeclarations.unshift({
       name: payload,
       arrowFuncParam: ts.factory.createParameterDeclaration(
-        /*decorators*/ undefined,
         /*modifiers*/ undefined,
         /*dotDotDotToken*/ undefined,
         /*name*/ payload,
@@ -443,7 +436,9 @@ function makeRequest(
       ? item.requestBody
       : ($refs.get(item.requestBody.$ref) as OpenAPIV3.RequestBodyObject);
 
-    const contentTypeConfig = tryCreateContentTypeAssignment(Object.keys(reqBody.content))
+    const contentTypeConfig = tryCreateContentTypeAssignment(
+      Object.keys(reqBody.content)
+    );
     axiosConfigFields.push(...contentTypeConfig);
   }
 
@@ -479,7 +474,6 @@ function makeRequest(
             /*typeParameters*/ undefined,
             /*parameters*/ [
               ts.factory.createParameterDeclaration(
-                /*decorators*/ undefined,
                 /*modifiers*/ undefined,
                 /*dotDotDotToken*/ undefined,
                 /*name*/ ts.factory.createIdentifier("res"),
@@ -597,24 +591,25 @@ export function replacePattern(pattern: string, replacers: string[]) {
   );
 }
 
-
-function tryCreateContentTypeAssignment(contentTypeKeys: string[]): PropertyAssignment[] {
+function tryCreateContentTypeAssignment(
+  contentTypeKeys: string[]
+): PropertyAssignment[] {
   if (!contentTypeKeys.length) {
-    return []
+    return [];
   }
-  
+
   const propertyAssignment = ts.factory.createPropertyAssignment(
     /*name*/ ts.factory.createIdentifier("headers"),
     /*initializer*/ ts.factory.createObjectLiteralExpression(
-        /*properties*/ [
-          ts.factory.createPropertyAssignment(
-              /*name*/ ts.factory.createStringLiteral(`Content-Type`),
-              /*initializer*/ ts.factory.createStringLiteral(contentTypeKeys[0])
-          ),
-        ],
-        /*multiline*/ true
+      /*properties*/ [
+        ts.factory.createPropertyAssignment(
+          /*name*/ ts.factory.createStringLiteral(`Content-Type`),
+          /*initializer*/ ts.factory.createStringLiteral(contentTypeKeys[0])
+        ),
+      ],
+      /*multiline*/ true
     )
   );
 
-  return [propertyAssignment]
+  return [propertyAssignment];
 }

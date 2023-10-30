@@ -43,3 +43,7 @@ A major release with breaking changes. Involves updating type signatures to matc
 ## 3.3.0
 
 - Add support for Content-Type header in requests
+
+## 3.4.0
+
+- Update all packages

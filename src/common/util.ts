@@ -1,7 +1,7 @@
 import ts from "typescript";
 import type { OpenAPI, OpenAPIV3 } from "openapi-types";
 import { createLiteralNodeFromProperties } from "./types";
-import type SwaggerParser from "swagger-parser";
+import type SwaggerParser from "@apidevtools/swagger-parser";
 
 export function isOpenApiV3Document(
   doc: OpenAPI.Document
@@ -204,11 +204,9 @@ export function createDictionaryType(
 ) {
   return ts.factory.createTypeLiteralNode([
     ts.factory.createIndexSignature(
-      /*decorators*/ undefined,
       /*modifiers*/ undefined,
       /*params*/ [
         ts.factory.createParameterDeclaration(
-          /*decorators*/ undefined,
           /*modifiers*/ undefined,
           /*dotDotDotToken*/ undefined,
           /*name*/ ts.factory.createIdentifier("key"),
@@ -371,7 +369,6 @@ export function createParams(
       required: param.required ?? false,
       name: ts.factory.createIdentifier(param.name),
       arrowFuncParam: ts.factory.createParameterDeclaration(
-        /*decorators*/ undefined,
         /*modifiers*/ undefined,
         /*dotDotDotToken*/ undefined,
         /*name*/ ts.factory.createIdentifier(param.name),
