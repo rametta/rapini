@@ -10,7 +10,7 @@ export type CLIOptions = {
   path: string;
   baseUrl: string;
   replacer: string[];
-  reactQueryV4: boolean;
+  reactQueryVersion: "v3" | "v4" | "v5";
 };
 
 const program = new Command();
@@ -37,24 +37,24 @@ const sharedOptions = [
 ];
 
 let rqCommand = new Command("react-query")
-  .description("Generate a Package for TanStack Query V4 or React Query V3")
+  .description("Generate a Package for TanStack React Query")
   .addArgument(
     new Argument("[version]")
-      .choices(["v3", "v4"])
+      .choices(["v3", "v4", "v5"])
       .default("v3", "React Query V3 is the default version")
   )
   .action((version, options) => {
     console.log(
-      `Generating React Query ${version} package using OpenApi file ${options.path}`
+      `Generating React Query ${version} package using OpenAPI file ${options.path}`
     );
-    options.reactQueryV4 = version === "v4";
+    options.reactQueryVersion = version;
     generateReactQuery(options);
   });
 
 let swrComamnd = new Command("swr")
   .description("Generate a Package for SWR (stale-while-revalidate)")
   .action((options) => {
-    console.log(`Generating SWR package using OpenApi file ${options.path}`);
+    console.log(`Generating SWR package using OpenAPI file ${options.path}`);
     generateSWR(options);
   });
 
@@ -66,7 +66,7 @@ sharedOptions.forEach((option) => {
 program
   .name("rapini")
   .description("Generate a package based on OpenAPI")
-  .version("3.4.0")
+  .version("3.5.0")
   .addCommand(rqCommand)
   .addCommand(swrComamnd);
 

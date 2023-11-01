@@ -25,7 +25,9 @@ function makeImportAxiosInstanceTypeDeclaration() {
   );
 }
 
-function makeImportReactQueryDeclaration(isV4: boolean) {
+function makeImportReactQueryDeclaration(
+  version: CLIOptions["reactQueryVersion"]
+) {
   const importClause = ts.factory.createImportClause(
     /*typeOnly*/ false,
     /*name*/ undefined,
@@ -82,7 +84,7 @@ function makeImportReactQueryDeclaration(isV4: boolean) {
     /*modifers*/ undefined,
     /*importClause*/ importClause,
     /*moduleSpecifier*/ ts.factory.createStringLiteral(
-      isV4 ? "@tanstack/react-query" : "react-query"
+      version === "v3" ? "react-query" : "@tanstack/react-query"
     ),
     /*assertClause*/ undefined
   );
@@ -91,6 +93,6 @@ function makeImportReactQueryDeclaration(isV4: boolean) {
 export function makeImports(options: CLIOptions) {
   return [
     makeImportAxiosInstanceTypeDeclaration(),
-    makeImportReactQueryDeclaration(options.reactQueryV4),
+    makeImportReactQueryDeclaration(options.reactQueryVersion),
   ];
 }

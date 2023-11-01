@@ -4,7 +4,7 @@
 
 # :leafy_green: Rapini - OpenAPI to React Query (or SWR) & Axios
 
-Rapini is a tool that generates [React Query](https://react-query.tanstack.com/) (or [SWR](https://swr.vercel.app/)) hooks, [Axios](https://axios-http.com/) requests and [Typescript](https://www.typescriptlang.org/) types, based on an [OpenAPI](https://www.openapis.org/) spec file.
+Rapini is a tool that generates [React Query](https://tanstack.com/query/latest/) (or [SWR](https://swr.vercel.app/)) hooks, [Axios](https://axios-http.com/) requests and [Typescript](https://www.typescriptlang.org/) types, based on an [OpenAPI](https://www.openapis.org/) spec file.
 The generated code is packaged conveniently so that it can be published as a package on any NPM registry.
 
 ## Features
@@ -28,8 +28,11 @@ eg:
 # For React Query V3
 npx rapini react-query -p path/to/openapi.yaml
 
-# For React Query V4
+# For TanStack Query 4
 npx rapini react-query v4 -p path/to/openapi.yaml
+
+# For TanStack Query 5
+npx rapini react-query v5 -p path/to/openapi.yaml
 
 # For SWR
 npx rapini swr -p path/to/openapi.yaml
@@ -59,9 +62,9 @@ Commands:
 ### `rapini help react-query` outputs the following:
 
 ```
-Usage: rapini react-query [options] [version]
+Usage: rapini react-query [options] [react-query-version]
 
-Generate a Package for TanStack Query V4 or React Query V3
+Generate a Package for TanStack Query V4 or V5, or legacy React Query V3
 
 Options:
   -p, --path <path>                          Path to OpenAPI file
