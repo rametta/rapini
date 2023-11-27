@@ -141,45 +141,19 @@ function makeRequestsPropertyAssignment(
 ) {
   const requests: ts.PropertyAssignment[] = [];
   const params = item.parameters;
+  const methods = ["get", "delete", "post", "put", "patch", "head", "options"];
 
-  if (item.get) {
-    requests.push(
-      makeRequest($refs, pattern, "get", item.get, options, params)
-    );
-  }
-  if (item.delete) {
-    requests.push(
-      makeRequest($refs, pattern, "delete", item.delete, options, params)
-    );
-  }
-  if (item.post) {
-    requests.push(
-      makeRequest($refs, pattern, "post", item.post, options, params)
-    );
-  }
-  if (item.put) {
-    requests.push(
-      makeRequest($refs, pattern, "put", item.put, options, params)
-    );
-  }
-  if (item.patch) {
-    requests.push(
-      makeRequest($refs, pattern, "patch", item.patch, options, params)
-    );
-  }
-  if (item.head) {
-    requests.push(
-      makeRequest($refs, pattern, "head", item.head, options, params)
-    );
-  }
-  if (item.options) {
-    requests.push(
-      makeRequest($refs, pattern, "options", item.options, options, params)
-    );
-  }
+  methods.forEach(method => {
+    if (item[method]) {
+      requests.push(
+        makeRequest($refs, pattern, method, item[method], options, params)
+      );
+    }
+  });
 
   return requests;
 }
+
 
 function isRequestBodyObject(
   obj: OpenAPIV3.ReferenceObject | OpenAPIV3.RequestBodyObject
