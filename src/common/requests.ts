@@ -152,8 +152,6 @@ function makeRequestsPropertyAssignment(
 ) {
   const requests: ts.PropertyAssignment[] = [];
   const params = item.parameters;
-  const methods = ["get", "delete", "post", "put", "patch", "head", "options"];
-
   const methods: HttpMethods[] = [
     "get",
     "delete",
