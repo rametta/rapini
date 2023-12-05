@@ -135,7 +135,14 @@ function makeRequestsDeclaration(
   );
 }
 
-type HttpMethods = 'get' | 'delete' | 'post' | 'put' | 'patch' | 'head' | 'options';
+type HttpMethods =
+  | "get"
+  | "delete"
+  | "post"
+  | "put"
+  | "patch"
+  | "head"
+  | "options";
 
 function makeRequestsPropertyAssignment(
   $refs: SwaggerParser.$Refs,
@@ -145,6 +152,7 @@ function makeRequestsPropertyAssignment(
 ) {
   const requests: ts.PropertyAssignment[] = [];
   const params = item.parameters;
+  const methods = ["get", "delete", "post", "put", "patch", "head", "options"];
 
   const methods: HttpMethods[] = [
     "get",
@@ -155,7 +163,7 @@ function makeRequestsPropertyAssignment(
     "head",
     "options",
   ];
-  
+
   methods.forEach((method) => {
     const operation: OpenAPIV3.OperationObject | undefined = item[method];
     if (operation) {
