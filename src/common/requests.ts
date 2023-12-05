@@ -9,6 +9,8 @@ import {
 } from "./util";
 
 import type { CLIOptions } from "../cli";
+import { request } from "http";
+import { Interface } from "readline";
 
 export function makeRequests(
   $refs: SwaggerParser.$Refs,
@@ -133,6 +135,8 @@ function makeRequestsDeclaration(
   );
 }
 
+type HttpMethods = 'get' | 'delete' | 'post' | 'put' | 'patch' | 'head' | 'options';
+
 function makeRequestsPropertyAssignment(
   $refs: SwaggerParser.$Refs,
   pattern: string,
@@ -141,19 +145,28 @@ function makeRequestsPropertyAssignment(
 ) {
   const requests: ts.PropertyAssignment[] = [];
   const params = item.parameters;
-  const methods = ["get", "delete", "post", "put", "patch", "head", "options"];
 
-  methods.forEach(method => {
-    if (item[method]) {
+  const methods: HttpMethods[] = [
+    "get",
+    "delete",
+    "post",
+    "put",
+    "patch",
+    "head",
+    "options",
+  ];
+  
+  methods.forEach((method) => {
+    const operation: OpenAPIV3.OperationObject | undefined = item[method];
+    if (operation) {
       requests.push(
-        makeRequest($refs, pattern, method, item[method], options, params)
+        makeRequest($refs, pattern, method, operation, options, params)
       );
     }
   });
 
   return requests;
 }
-
 
 function isRequestBodyObject(
   obj: OpenAPIV3.ReferenceObject | OpenAPIV3.RequestBodyObject
