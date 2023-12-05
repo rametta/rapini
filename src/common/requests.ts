@@ -9,8 +9,6 @@ import {
 } from "./util";
 
 import type { CLIOptions } from "../cli";
-import { request } from "http";
-import { Interface } from "readline";
 
 export function makeRequests(
   $refs: SwaggerParser.$Refs,
