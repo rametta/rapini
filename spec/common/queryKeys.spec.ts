@@ -76,6 +76,20 @@ describe("makeQueryKeys", () => {
                   type: "string",
                 },
               },
+              {
+                name: 'X-Example',
+                in: 'header',
+                schema: {
+                  type: 'string',
+                },
+              },
+              {
+                name: 'example',
+                in: 'cookie',
+                schema: {
+                  type: 'string',
+                },
+              }
             ],
             responses: {
               default: {

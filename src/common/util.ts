@@ -364,6 +364,8 @@ export function createParams(
 
   const paramObjects = combineUniqueParams($refs, pathParams, item.parameters);
   return paramObjects
+    // Skip header and cookie parameters
+    .filter(param => param.in === "query" || param.in === "path")
     .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
     .map((param) => ({
       required: param.required ?? false,
