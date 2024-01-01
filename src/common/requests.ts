@@ -10,6 +10,16 @@ import {
 
 import type { CLIOptions } from "../cli";
 
+const methods = [
+  "get",
+  "delete",
+  "post",
+  "put",
+  "patch",
+  "head",
+  "options",
+] as const;
+
 export function makeRequests(
   $refs: SwaggerParser.$Refs,
   paths: OpenAPIV3.PathsObject,
@@ -142,41 +152,14 @@ function makeRequestsPropertyAssignment(
   const requests: ts.PropertyAssignment[] = [];
   const params = item.parameters;
 
-  if (item.get) {
-    requests.push(
-      makeRequest($refs, pattern, "get", item.get, options, params)
-    );
-  }
-  if (item.delete) {
-    requests.push(
-      makeRequest($refs, pattern, "delete", item.delete, options, params)
-    );
-  }
-  if (item.post) {
-    requests.push(
-      makeRequest($refs, pattern, "post", item.post, options, params)
-    );
-  }
-  if (item.put) {
-    requests.push(
-      makeRequest($refs, pattern, "put", item.put, options, params)
-    );
-  }
-  if (item.patch) {
-    requests.push(
-      makeRequest($refs, pattern, "patch", item.patch, options, params)
-    );
-  }
-  if (item.head) {
-    requests.push(
-      makeRequest($refs, pattern, "head", item.head, options, params)
-    );
-  }
-  if (item.options) {
-    requests.push(
-      makeRequest($refs, pattern, "options", item.options, options, params)
-    );
-  }
+  methods.forEach((method) => {
+    const operation = item[method];
+    if (operation) {
+      requests.push(
+        makeRequest($refs, pattern, method, operation, options, params)
+      );
+    }
+  });
 
   return requests;
 }
