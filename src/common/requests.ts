@@ -10,6 +10,16 @@ import {
 
 import type { CLIOptions } from "../cli";
 
+const methods = [
+  "get",
+  "delete",
+  "post",
+  "put",
+  "patch",
+  "head",
+  "options",
+] as const;
+
 export function makeRequests(
   $refs: SwaggerParser.$Refs,
   paths: OpenAPIV3.PathsObject,
@@ -133,9 +143,6 @@ function makeRequestsDeclaration(
   );
 }
 
-const methods = ['get', 'delete', 'post', 'put', 'patch', 'head', 'options'] as const;
-type HttpMethods = typeof methods[number];
-
 function makeRequestsPropertyAssignment(
   $refs: SwaggerParser.$Refs,
   pattern: string,
@@ -146,7 +153,7 @@ function makeRequestsPropertyAssignment(
   const params = item.parameters;
 
   methods.forEach((method) => {
-    const operation: OpenAPIV3.OperationObject | undefined = item[method];
+    const operation = item[method];
     if (operation) {
       requests.push(
         makeRequest($refs, pattern, method, operation, options, params)
@@ -156,7 +163,6 @@ function makeRequestsPropertyAssignment(
 
   return requests;
 }
-
 
 function isRequestBodyObject(
   obj: OpenAPIV3.ReferenceObject | OpenAPIV3.RequestBodyObject
