@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { generate as generateReactQuery } from "./react-query/generator";
+import { generate as generateVueQuery } from "./vue-query/generator";
 import { generate as generateSWR } from "./swr/generator";
 import { Argument, Command, Option } from "commander";
 
@@ -36,6 +37,15 @@ const sharedOptions = [
   ),
 ];
 
+let vqCommand = new Command("vue-query")
+  .description("Generate a Package for TanStack Vue Query")
+  .action((version, options) => {
+    console.log(
+      `Generating Vye Query package using OpenAPI file ${options.path}`
+    );
+    generateVueQuery(options);
+  });
+
 let rqCommand = new Command("react-query")
   .description("Generate a Package for TanStack React Query")
   .addArgument(
@@ -59,6 +69,7 @@ let swrComamnd = new Command("swr")
   });
 
 sharedOptions.forEach((option) => {
+  vqCommand = vqCommand.addOption(option);
   rqCommand = rqCommand.addOption(option);
   swrComamnd = swrComamnd.addOption(option);
 });
@@ -67,6 +78,7 @@ program
   .name("rapini")
   .description("Generate a package based on OpenAPI")
   .version("3.5.0")
+  .addCommand(vqCommand)
   .addCommand(rqCommand)
   .addCommand(swrComamnd);
 
