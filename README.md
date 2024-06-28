@@ -36,6 +36,9 @@ npx rapini react-query v5 -p path/to/openapi.yaml
 
 # For SWR
 npx rapini swr -p path/to/openapi.yaml
+
+# For TanStack Vue Query
+npx rapini vue-query -p path/to/openapi.yaml
 ```
 
 This will generate the package code based on an OpenAPI file at `path/to/openapi.yaml`. The outputted code will be packaged in a way to just publish it as your own NPM package and then import it in your React project.
@@ -64,7 +67,7 @@ Commands:
 ```
 Usage: rapini react-query [options] [react-query-version]
 
-Generate a Package for TanStack Query V4 or V5, or legacy React Query V3
+Generate a Package for TanStack Query V4 or V5, legacy React Query V3, or Vue Query
 
 Options:
   -p, --path <path>                          Path to OpenAPI file
@@ -74,6 +77,7 @@ Options:
   -b, --base-url [url]                       Prefix every request with this url
   -r, --replacer [oldString] [newString...]  Replace part(s) of any route's path with simple string replacements. Ex: `-r /api/v1 /api/v2` would replace the v1 with v2 in every route
   -h, --help                                 display help for command
+  -s, --skip-package-json                    Skip generating package.json file
 ```
 
 ### `rapini help swr` outputs the following:
