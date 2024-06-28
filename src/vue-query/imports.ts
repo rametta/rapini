@@ -68,12 +68,12 @@ function makeImportReactQueryDeclaration() {
       ts.factory.createImportSpecifier(
         /*typeOnly*/ true,
         /*propertyName*/ undefined,
-        /*name*/ ts.factory.createIdentifier("UseMutationResult")
+        /*name*/ ts.factory.createIdentifier("UseMutationReturnType")
       ),
       ts.factory.createImportSpecifier(
         /*typeOnly*/ true,
         /*propertyName*/ undefined,
-        /*name*/ ts.factory.createIdentifier("UseQueryResult")
+        /*name*/ ts.factory.createIdentifier("UseQueryReturnType")
       ),
     ])
   );

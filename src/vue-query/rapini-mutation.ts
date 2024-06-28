@@ -152,7 +152,7 @@ export function makeRapiniMutation() {
       ),
     ],
     ts.factory.createTypeReferenceNode(
-      ts.factory.createIdentifier("UseMutationResult"),
+      ts.factory.createIdentifier("UseMutationReturnType"),
       [
         ts.factory.createTypeReferenceNode(
           ts.factory.createIdentifier("TData"),

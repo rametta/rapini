@@ -6,12 +6,6 @@ function printGeneratedTS(result: string, options: CLIOptions) {
   fs.writeFileSync(path.join(options.outputDir, "index.ts"), result);
 }
 
-const reactQueryVersionMap = {
-  v3: `"react-query": "3.x.x"`,
-  v4: `"@tanstack/react-query": "4.x.x"`,
-  v5: `"@tanstack/react-query": "5.x.x"`,
-} as const;
-
 function printPackageJson(options: CLIOptions) {
   const pkgJson = `
   {
@@ -37,8 +31,7 @@ function printPackageJson(options: CLIOptions) {
     "peerDependencies": {
       "axios": "0.27.x",
       ${
-        reactQueryVersionMap[options.reactQueryVersion] ??
-        `"@tanstack/react-query": "latest"`
+        `"@tanstack/vue-query": "latest"`
       }
     },
     "devDependencies": {

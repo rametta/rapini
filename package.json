@@ -5,7 +5,7 @@
   "bin": "dist/cli.js",
   "scripts": {
     "build": "tsc --project tsconfig.json",
-    "start": "chmod +x dist/cli.js && dist/cli.js react-query v5 --path example-openapi.yaml",
+    "start": "chmod +x dist/cli.js && dist/cli.js vue-query --path example-openapi.yaml",
     "dev": "npm run build && npm run start",
     "test": "jest",
     "test:watch": "jest --watch",

@@ -34,14 +34,14 @@ const sharedOptions = [
   new Option(
     "-r, --replacer [oldString] [newString...]",
     "Replace part(s) of any route's path with simple string replacements. Ex: `-r /api/v1 /api/v2` would replace the v1 with v2 in every route"
-  ),
+  )
 ];
 
 let vqCommand = new Command("vue-query")
   .description("Generate a Package for TanStack Vue Query")
-  .action((version, options) => {
+  .action((options) => {
     console.log(
-      `Generating Vye Query package using OpenAPI file ${options.path}`
+      `Generating Vue Query package using OpenAPI file ${options.path}`
     );
     generateVueQuery(options);
   });
@@ -69,17 +69,17 @@ let swrComamnd = new Command("swr")
   });
 
 sharedOptions.forEach((option) => {
-  vqCommand = vqCommand.addOption(option);
   rqCommand = rqCommand.addOption(option);
   swrComamnd = swrComamnd.addOption(option);
+  vqCommand = vqCommand.addOption(option);
 });
 
 program
   .name("rapini")
   .description("Generate a package based on OpenAPI")
   .version("3.5.0")
-  .addCommand(vqCommand)
   .addCommand(rqCommand)
-  .addCommand(swrComamnd);
+  .addCommand(swrComamnd)
+  .addCommand(vqCommand);
 
 program.parse();

@@ -81,7 +81,7 @@ function makeProperty(
         optionsParameterDeclaration(normalizedOperationId),
       ],
       /*type*/ ts.factory.createTypeReferenceNode(
-        ts.factory.createIdentifier("UseQueryResult"),
+        ts.factory.createIdentifier("UseQueryReturnType"),
         [
           ts.factory.createTypeReferenceNode(
             ts.factory.createIdentifier("Response"),
