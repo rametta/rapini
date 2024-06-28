@@ -12,6 +12,7 @@ export type CLIOptions = {
   baseUrl: string;
   replacer: string[];
   reactQueryVersion: "v3" | "v4" | "v5";
+  "skipPackage": boolean;
 };
 
 const program = new Command();
@@ -34,7 +35,8 @@ const sharedOptions = [
   new Option(
     "-r, --replacer [oldString] [newString...]",
     "Replace part(s) of any route's path with simple string replacements. Ex: `-r /api/v1 /api/v2` would replace the v1 with v2 in every route"
-  )
+  ),
+  new Option("-s, --skip-package", "Skip generating package.json file, usable when you want to generate types in existing project.")
 ];
 
 let vqCommand = new Command("vue-query")

@@ -57,5 +57,5 @@ export function print(result: string, options: CLIOptions) {
   }
 
   printGeneratedTS(result, options);
-  printPackageJson(options);
+  if(!options.skipPackage) printPackageJson(options);
 }
