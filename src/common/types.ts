@@ -1,6 +1,7 @@
 import { OpenAPIV3 } from "openapi-types";
 import ts from "typescript";
 import {
+  addQuotesWhenHasDashes,
   appendNullToUnion,
   createTypeAliasDeclarationType,
   createTypeRefOrSchemaObjectIfPathRef,
@@ -72,7 +73,7 @@ function createPropertySignature(
 ) {
   return ts.factory.createPropertySignature(
     /*modifiers*/ undefined,
-    /*name*/ ts.factory.createIdentifier(name),
+    /*name*/ ts.factory.createIdentifier(addQuotesWhenHasDashes(name)),
     /*questionToken*/ required
       ? undefined
       : ts.factory.createToken(ts.SyntaxKind.QuestionToken),

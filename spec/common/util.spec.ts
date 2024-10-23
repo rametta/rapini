@@ -1,5 +1,6 @@
 import ts from "typescript";
 import {
+  addQuotesWhenHasDashes,
   capitalizeFirstLetter,
   combineUniqueParams,
   lowercaseFirstLetter,
@@ -7,6 +8,17 @@ import {
   refToTypeName,
   nodeId,
 } from "../../src/common/util";
+
+describe("addQuotesWhenHasDashes", () => {
+  it.each`
+    str                          | expected
+    ${""}                        | ${""}
+    ${"helloGoodbye"}            | ${"helloGoodbye"}
+    ${"test1-test8-test1_test2"} | ${"'test1-test8-test1_test2'"}
+  `("addQuotesWhenHasDashes($str) -> $expected", ({ str, expected }) => {
+    expect(addQuotesWhenHasDashes(str)).toBe(expected);
+  });
+});
 
 describe("capitalizeFirstLetter", () => {
   it.each`

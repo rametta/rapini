@@ -34,6 +34,7 @@ export type Cat = Pet & {
 };
 export type Dog = Pet & {
     bark?: string;
+    'is-cute'?: boolean;
 };
 export type MyResponseType = Cat | Dog;
 export type MyResponseTypeTwo = Cat | Dog;
@@ -193,6 +194,9 @@ describe("makeTypes", () => {
                 properties: {
                   bark: {
                     type: "string",
+                  },
+                  "is-cute": {
+                    type: "boolean",
                   },
                 },
               },
