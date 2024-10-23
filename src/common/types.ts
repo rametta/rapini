@@ -72,7 +72,9 @@ function createPropertySignature(
 ) {
   return ts.factory.createPropertySignature(
     /*modifiers*/ undefined,
-    /*name*/ ts.factory.createIdentifier(name),
+    /*name*/ name.includes("-")
+      ? ts.factory.createStringLiteral(name)
+      : ts.factory.createIdentifier(name),
     /*questionToken*/ required
       ? undefined
       : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
