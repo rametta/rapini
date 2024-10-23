@@ -34,7 +34,7 @@ export type Cat = Pet & {
 };
 export type Dog = Pet & {
     bark?: string;
-    'is-cute'?: boolean;
+    "is-cute"?: boolean;
 };
 export type MyResponseType = Cat | Dog;
 export type MyResponseTypeTwo = Cat | Dog;

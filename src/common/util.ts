@@ -325,17 +325,6 @@ export function normalizeOperationId(operationId: string) {
   return split.join("");
 }
 
-/**
- * Adds single quotes around operation id if it contains dashes
- * @param operationId Raw value from openapi file
- * @returns value with single quotes around it if value has dashes
- * @example addQuotesWhenHasDashes("nodashes") // nodashes
- * @example addQuotesWhenHasDashes("has-dashes-in-it") // 'has-dashes-in-it'
- */
-export function addQuotesWhenHasDashes(operationId: string) {
-  return operationId.includes("-") ? `'${operationId}'` : operationId;
-}
-
 export function isRequestBodyObject(
   obj: OpenAPIV3.ReferenceObject | OpenAPIV3.RequestBodyObject
 ): obj is OpenAPIV3.RequestBodyObject {
