@@ -48,6 +48,6 @@ A major release with breaking changes. Involves updating type signatures to matc
 
 - Update all packages
 
-## 3.5.1
+## 3.5.2
 
 - Fix types generator when yaml file key includes dashes
