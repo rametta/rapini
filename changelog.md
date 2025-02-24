@@ -2,22 +2,31 @@
 
 This document outlines the changes from version to version.
 
-## 2.0.0
+## Unreleased
 
-- Added support for SWR
-- Revamped CLI options to accommodate SWR
+### Fixed
+- #48: Make context parameter required in onSuccess callback to match React Query's types
 
-## 2.1.0
+## 3.5.2
 
-- Added support for ESM output (Still includes CJS output)
+- Fix types generator when yaml file key includes dashes
 
-## 2.3.0
+## 3.4.0
 
-- Fix return type for `anyOf` types
+- Update all packages
 
-## 2.4.0
+## 3.3.0
 
-- Better handling of thrown errors, outputs clearer CLI errors
+- Add support for Content-Type header in requests
+
+## 3.2.0
+
+- Fix bug for resolving more inline references to external files
+
+## 3.1.0
+
+- Fix bug for resolving inline reference parameters to external files
+- Fix bug for resolving inline reference types to external files
 
 ## 3.0.0
 
@@ -31,23 +40,19 @@ A major release with breaking changes. Involves updating type signatures to matc
 - `queryKeys` is exported from the package directly instead of as a return type from `initialize(..)`, this means it can be imported as `import { queryKeys } from 'your-package' `
 - Fixed bug when dealing with vague input for request types and responses, now uses default response type if available, otherwise 2xx response type
 
-## 3.1.0
+## 2.4.0
 
-- Fix bug for resolving inline reference parameters to external files
-- Fix bug for resolving inline reference types to external files
+- Better handling of thrown errors, outputs clearer CLI errors
 
-## 3.2.0
+## 2.3.0
 
-- Fix bug for resolving more inline references to external files
+- Fix return type for `anyOf` types
 
-## 3.3.0
+## 2.1.0
 
-- Add support for Content-Type header in requests
+- Added support for ESM output (Still includes CJS output)
 
-## 3.4.0
+## 2.0.0
 
-- Update all packages
-
-## 3.5.2
-
-- Fix types generator when yaml file key includes dashes
+- Added support for SWR
+- Revamped CLI options to accommodate SWR
