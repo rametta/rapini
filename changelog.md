@@ -5,7 +5,7 @@ This document outlines the changes from version to version.
 ## Unreleased
 
 ### Fixed
-- #48: Make context parameter required in onSuccess callback to match React Query's types
+- [#48](https://github.com/rametta/rapini/issues/48): Make context parameter required in onSuccess callback to match React Query's types
 
 ## 3.5.2
 
