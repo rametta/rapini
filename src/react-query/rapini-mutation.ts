@@ -299,7 +299,7 @@ export function makeRapiniMutation() {
                             undefined,
                             undefined,
                             ts.factory.createIdentifier("context"),
-                            ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+                            undefined,
                             ts.factory.createTypeReferenceNode(
                               ts.factory.createIdentifier("TContext"),
                               undefined

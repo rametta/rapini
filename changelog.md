@@ -51,3 +51,7 @@ A major release with breaking changes. Involves updating type signatures to matc
 ## 3.5.2
 
 - Fix types generator when yaml file key includes dashes
+
+### 3.5.3
+
+- Fix for issue #48: Make context parameter required in onSuccess callback to match React Query's types

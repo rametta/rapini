@@ -6,7 +6,7 @@ const expected = `function useRapiniMutation<TData = unknown, TError = unknown, 
     const queryClient = useQueryClient();
     const conf = config?.(queryClient);
     const mutationOptions: typeof options = {
-        onSuccess: (data: TData, variables: TVariables, context?: TContext) => {
+        onSuccess: (data: TData, variables: TVariables, context: TContext) => {
             conf?.onSuccess?.(data, variables, context);
             onSuccess?.(data, variables, context);
         },
