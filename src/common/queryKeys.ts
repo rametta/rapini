@@ -1,5 +1,5 @@
 import ts from "typescript";
-import type { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3_1 as OpenAPIV3 } from "openapi-types";
 import { normalizeOperationId, createParams } from "./util";
 import SwaggerParser from "@apidevtools/swagger-parser";
 
@@ -7,9 +7,9 @@ const NULL_IF_UNDEFINED_FN_NAME = "nullIfUndefined";
 
 export function makeQueryKeys(
   $refs: SwaggerParser.$Refs,
-  paths: OpenAPIV3.PathsObject
+  paths: OpenAPIV3.PathsObject | undefined
 ) {
-  const queryKeys = Object.entries(paths)
+  const queryKeys = Object.entries(paths ?? {})
     .filter(([_, item]) => !!item?.get)
     .map(([pattern, item]) =>
       makeQueryKey($refs, pattern, item!.get, item!.parameters)

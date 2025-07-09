@@ -1,5 +1,5 @@
 import ts from "typescript";
-import type { OpenAPI, OpenAPIV3 } from "openapi-types";
+import type { OpenAPI, OpenAPIV3_1 as OpenAPIV3 } from "openapi-types";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import { print } from "./print";
 import { makeImports } from "./imports";
@@ -36,7 +36,7 @@ function parseOpenApiV3Doc(
     queryKeys: makeQueryKeys($refs, doc.paths),
     requests: makeRequests($refs, doc.paths, options),
     queries: makeQueries($refs, doc.paths),
-    mutations: makeMutations($refs, doc.paths),
+    mutations: makeMutations($refs, doc.paths ?? {}),
     types: makeTypes($refs, doc),
   };
 }

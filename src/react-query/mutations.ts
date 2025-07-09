@@ -1,5 +1,5 @@
 import ts from "typescript";
-import type { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3_1 as OpenAPIV3 } from "openapi-types";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import {
   capitalizeFirstLetter,

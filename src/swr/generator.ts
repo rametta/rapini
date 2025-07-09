@@ -1,5 +1,5 @@
 import ts from "typescript";
-import type { OpenAPI, OpenAPIV3 } from "openapi-types";
+import type { OpenAPI, OpenAPIV3_1 as OpenAPIV3 } from "openapi-types";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import { isOpenApiV3Document } from "../common/util";
 import { makeQueryKeys } from "../common/queryKeys";

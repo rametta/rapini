@@ -1,4 +1,4 @@
-import { OpenAPIV3 } from "openapi-types";
+import { OpenAPIV3_1 as OpenAPIV3 } from "openapi-types";
 import ts from "typescript";
 import {
   appendNullToUnion,
@@ -13,12 +13,9 @@ import SwaggerParser from "@apidevtools/swagger-parser";
 
 function schemaObjectTypeToArrayType(
   $refs: SwaggerParser.$Refs,
-  item: OpenAPIV3.NonArraySchemaObject
+  item: OpenAPIV3.SchemaObject
 ): ts.TypeNode {
-  return appendNullToUnion(
-    nonArraySchemaObjectTypeToTs($refs, item),
-    item.nullable
-  );
+  return appendNullToUnion(nonArraySchemaObjectTypeToTs($refs, item));
 }
 
 function resolveArray(
@@ -29,8 +26,7 @@ function resolveArray(
     return appendNullToUnion(
       ts.factory.createArrayTypeNode(
         createTypeRefOrSchemaObjectIfPathRef($refs, item.items)
-      ),
-      item.nullable
+      )
     );
   }
 

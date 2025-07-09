@@ -1,4 +1,4 @@
-import type { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3_1 as OpenAPIV3 } from "openapi-types";
 import { makeQueryKeys } from "../../src/common/queryKeys";
 import { compile } from "../test.utils";
 

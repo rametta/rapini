@@ -1,11 +1,12 @@
 import ts, { PropertyAssignment } from "typescript";
 import type SwaggerParser from "@apidevtools/swagger-parser";
-import type { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3_1 as OpenAPIV3 } from "openapi-types";
 import {
   schemaObjectOrRefType,
   normalizeOperationId,
   isReferenceObject,
   combineUniqueParams,
+  sanitizeParamName,
 } from "./util";
 
 import type { CLIOptions } from "../cli";
@@ -22,10 +23,10 @@ const methods = [
 
 export function makeRequests(
   $refs: SwaggerParser.$Refs,
-  paths: OpenAPIV3.PathsObject,
+  paths: OpenAPIV3.PathsObject | undefined,
   options: CLIOptions
 ) {
-  const requests = Object.entries(paths).flatMap(([pattern, item]) =>
+  const requests = Object.entries(paths ?? {}).flatMap(([pattern, item]) =>
     makeRequestsPropertyAssignment($refs, pattern, item!, options)
   );
 
@@ -182,7 +183,7 @@ function createRequestParams(
       arrowFuncParam: ts.factory.createParameterDeclaration(
         /*modifiers*/ undefined,
         /*dotDotDotToken*/ undefined,
-        /*name*/ ts.factory.createIdentifier(param.name),
+        /*name*/ ts.factory.createIdentifier(sanitizeParamName(param.name)),
         /*questionToken*/ param.required
           ? undefined
           : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
@@ -275,7 +276,7 @@ export function getAxiosRequestGenericTypeResponse(
   item: OpenAPIV3.OperationObject,
   $refs: SwaggerParser.$Refs
 ) {
-  const genericType = Object.entries(item.responses).flatMap(
+  const genericType = Object.entries(item.responses ?? {}).flatMap(
     ([statusCode, resOrRef]) =>
       makeAxiosRequestGenericType($refs, statusCode, resOrRef)
   );
@@ -378,10 +379,14 @@ function makeRequest(
   const queryParamProperties = queryParamObjects.map((paramObject) =>
     paramObject.required
       ? ts.factory.createShorthandPropertyAssignment(
-          /*name*/ ts.factory.createIdentifier(paramObject.name),
+          /*name*/ ts.factory.createIdentifier(
+            sanitizeParamName(paramObject.name)
+          ),
           /*objectAssignmentInitializer*/ undefined
         )
-      : shorthandOptionalObjectLiteralSpread(paramObject.name)
+      : shorthandOptionalObjectLiteralSpread(
+          sanitizeParamName(paramObject.name)
+        )
   );
 
   if (queryParamProperties.length) {

@@ -1,5 +1,5 @@
 import ts from "typescript";
-import type { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3_1 as OpenAPIV3 } from "openapi-types";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import {
   chunker,
@@ -249,25 +249,31 @@ describe("makeRequests", () => {
             content: {
               "application/xml": {
                 schema: {
-                  $ref:  '#/components/schemas/Pet'
-                }
-              }
-            }
-          }
+                  $ref: "#/components/schemas/Pet",
+                },
+              },
+            },
+          },
         },
         schemas: {
           Pets: {},
           Pet: {},
           Photos: {},
           "Pet.Dog": {},
-          "Pet.Cat": {}
-        }
-      }
+          "Pet.Cat": {},
+        },
+      },
     };
 
     const parser = new SwaggerParser();
-    const api = await parser.bundle(doc)
-    const str = compile(makeRequests(parser.$refs, api.paths as OpenAPIV3.PathsObject<{}, {}>, {} as any));
+    const api = await parser.bundle(doc);
+    const str = compile(
+      makeRequests(
+        parser.$refs,
+        api.paths as OpenAPIV3.PathsObject<{}, {}>,
+        {} as any
+      )
+    );
     expect(str).toBe(expected);
   });
 });

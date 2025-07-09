@@ -1,5 +1,5 @@
 import ts from "typescript";
-import type { OpenAPI, OpenAPIV3 } from "openapi-types";
+import type { OpenAPI, OpenAPIV3_1 as OpenAPIV3 } from "openapi-types";
 import { createLiteralNodeFromProperties } from "./types";
 import type SwaggerParser from "@apidevtools/swagger-parser";
 
@@ -224,43 +224,40 @@ export function createDictionaryType(
 
 export function nonArraySchemaObjectTypeToTs(
   $refs: SwaggerParser.$Refs,
-  item: OpenAPIV3.NonArraySchemaObject
+  item: OpenAPIV3.SchemaObject
 ): ts.TypeNode {
   if (!item.type) {
-    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+    return ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
   }
 
   switch (item.type) {
     case "string": {
       if (item.enum) {
-        return schemaObjectTypeToEnumType(item.enum, item.nullable);
+        return schemaObjectTypeToEnumType(item.enum);
       }
       return appendNullToUnion(
-        ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
-        item.nullable
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
       );
     }
     case "integer":
     case "number":
       return appendNullToUnion(
-        ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
-        item.nullable
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
       );
     case "boolean":
       return appendNullToUnion(
-        ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword),
-        item.nullable
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword)
       );
     case "object": {
       if (item.additionalProperties) {
         return createDictionaryType($refs, item);
       }
 
-      return appendNullToUnion(
-        createLiteralNodeFromProperties($refs, item),
-        item.nullable
-      );
+      return appendNullToUnion(createLiteralNodeFromProperties($refs, item));
     }
+    case "null":
+      return ts.factory.createLiteralTypeNode(ts.factory.createNull());
+
     default:
       return unknownTypeNode;
   }
@@ -342,6 +339,10 @@ export function sanitizeTypeName(name: string) {
     .join("");
 }
 
+export function sanitizeParamName(name: string) {
+  return name.replace(/[.]/, "_");
+}
+
 /**
  * Removes the path in the ref and just returns the last part, which is used as the Type name
  * @param ref The ref in the OpenAPI file
@@ -367,11 +368,11 @@ export function createParams(
     .sort((x, y) => (x.required === y.required ? 0 : x.required ? -1 : 1)) // put all optional values at the end
     .map((param) => ({
       required: param.required ?? false,
-      name: ts.factory.createIdentifier(param.name),
+      name: ts.factory.createIdentifier(sanitizeParamName(param.name)),
       arrowFuncParam: ts.factory.createParameterDeclaration(
         /*modifiers*/ undefined,
         /*dotDotDotToken*/ undefined,
-        /*name*/ ts.factory.createIdentifier(param.name),
+        /*name*/ ts.factory.createIdentifier(sanitizeParamName(param.name)),
         /*questionToken*/ param.required
           ? undefined
           : ts.factory.createToken(ts.SyntaxKind.QuestionToken),

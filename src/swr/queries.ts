@@ -1,5 +1,5 @@
 import ts from "typescript";
-import type { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3_1 as OpenAPIV3 } from "openapi-types";
 import {
   capitalizeFirstLetter,
   createParams,
@@ -9,9 +9,9 @@ import SwaggerParser from "@apidevtools/swagger-parser";
 
 export function makeQueries(
   $refs: SwaggerParser.$Refs,
-  paths: OpenAPIV3.PathsObject
+  paths: OpenAPIV3.PathsObject | undefined
 ) {
-  const properties = Object.entries(paths)
+  const properties = Object.entries(paths ?? {})
     .filter(([_, item]) => !!item?.get)
     .map(([pattern, item]) =>
       makeProperty($refs, pattern, item!.get, item!.parameters)
