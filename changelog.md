@@ -55,3 +55,7 @@ A major release with breaking changes. Involves updating type signatures to matc
 ### 3.5.3
 
 - Fix for issue #48: Make context parameter required in onSuccess callback to match React Query's types
+
+### 3.5.4
+
+- Fix for @tanstack/query v5.89.0 onError, onSuccess and onSettled signature change referenced in issue 9660
