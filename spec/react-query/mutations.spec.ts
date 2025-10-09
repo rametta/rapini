@@ -8,8 +8,8 @@ const expected = `type MutationConfigs = {
 };
 function makeMutations(requests: Requests, config?: Config["mutations"]) {
     return {
-        useCreatePet: (options?: Omit<UseMutationOptions<Response<"createPet">, unknown, Parameters<Requests["createPet"]>[0], unknown>, "mutationFn">) => useRapiniMutation<Response<"createPet">, unknown, Parameters<Requests["createPet"]>[0]>(payload => requests.createPet(payload), config?.useCreatePet, options),
-        useAddPetPhoto: (petId: string, options?: Omit<UseMutationOptions<Response<"addPetPhoto">, unknown, Parameters<Requests["addPetPhoto"]>[0], unknown>, "mutationFn">) => useRapiniMutation<Response<"addPetPhoto">, unknown, Parameters<Requests["addPetPhoto"]>[0]>(payload => requests.addPetPhoto(payload, petId), config?.useAddPetPhoto, options)
+        useCreatePet: (options?: Omit<UseMutationOptions<Response<"createPet">, unknown, Parameters<Requests["createPet"]>[0], unknown>, "mutationFn">) => useRapiniMutation<Response<"createPet">, unknown, Parameters<Requests["createPet"]>[0], unknown>(payload => requests.createPet(payload), config?.useCreatePet, options),
+        useAddPetPhoto: (petId: string, options?: Omit<UseMutationOptions<Response<"addPetPhoto">, unknown, Parameters<Requests["addPetPhoto"]>[0], unknown>, "mutationFn">) => useRapiniMutation<Response<"addPetPhoto">, unknown, Parameters<Requests["addPetPhoto"]>[0], unknown>(payload => requests.addPetPhoto(payload, petId), config?.useAddPetPhoto, options)
     } as const;
 }
 `;

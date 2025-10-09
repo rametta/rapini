@@ -1,22 +1,22 @@
 import { makeRapiniMutation } from "../../src/react-query/rapini-mutation";
 import { compile } from "../test.utils";
 
-const expected = `function useRapiniMutation<TData = unknown, TError = unknown, TVariables = void, TContext = unknown>(mutationFn: MutationFunction<TData, TVariables>, config?: (queryClient: QueryClient) => Pick<UseMutationOptions<TData, TError, TVariables, TContext>, "onSuccess" | "onSettled" | "onError">, options?: Omit<UseMutationOptions<TData, TError, TVariables, TContext>, "mutationFn">): UseMutationResult<TData, TError, TVariables, TContext> {
+const expected = `function useRapiniMutation<TData = unknown, TError = unknown, TVariables = void, TOnMutateResult = unknown>(mutationFn: MutationFunction<TData, TVariables>, config?: (queryClient: QueryClient) => Pick<UseMutationOptions<TData, TError, TVariables, TOnMutateResult>, "onSuccess" | "onSettled" | "onError">, options?: Omit<UseMutationOptions<TData, TError, TVariables, TOnMutateResult>, "mutationFn">): UseMutationResult<TData, TError, TVariables, TOnMutateResult> {
     const { onSuccess, onError, onSettled, ...rest } = options ?? {};
     const queryClient = useQueryClient();
     const conf = config?.(queryClient);
     const mutationOptions: typeof options = {
-        onSuccess: (data: TData, variables: TVariables, context: TContext) => {
-            conf?.onSuccess?.(data, variables, context);
-            onSuccess?.(data, variables, context);
+        onSuccess: (...args) => {
+            conf?.onSuccess?.(...args);
+            onSuccess?.(...args);
         },
-        onError: (error: TError, variables: TVariables, context?: TContext) => {
-            conf?.onError?.(error, variables, context);
-            onError?.(error, variables, context);
+        onError: (...args) => {
+            conf?.onError?.(...args);
+            onError?.(...args);
         },
-        onSettled: (data: TData | undefined, error: TError | null, variables: TVariables, context?: TContext) => {
-            conf?.onSettled?.(data, error, variables, context);
-            onSettled?.(data, error, variables, context);
+        onSettled: (...args) => {
+            conf?.onSettled?.(...args);
+            onSettled?.(...args);
         },
         ...rest
     };

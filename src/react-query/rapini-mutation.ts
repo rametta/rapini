@@ -3,6 +3,65 @@ import ts from "typescript";
 export const RAPINI_MUTATION_ID = "useRapiniMutation";
 
 export function makeRapiniMutation() {
+  const makeForwardingHandler = (
+    name: "onSuccess" | "onError" | "onSettled"
+  ) => {
+    return ts.factory.createPropertyAssignment(
+      ts.factory.createIdentifier(name),
+      ts.factory.createArrowFunction(
+        undefined,
+        undefined,
+        [
+          ts.factory.createParameterDeclaration(
+            undefined,
+            ts.factory.createToken(ts.SyntaxKind.DotDotDotToken),
+            ts.factory.createIdentifier("args"),
+            undefined,
+            undefined,
+            undefined
+          ),
+        ],
+        undefined,
+        ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+        ts.factory.createBlock(
+          [
+            ts.factory.createExpressionStatement(
+              ts.factory.createCallChain(
+                ts.factory.createPropertyAccessChain(
+                  ts.factory.createIdentifier("conf"),
+                  ts.factory.createToken(ts.SyntaxKind.QuestionDotToken),
+                  ts.factory.createIdentifier(name)
+                ),
+                ts.factory.createToken(ts.SyntaxKind.QuestionDotToken),
+                undefined,
+                [
+                  ts.factory.createSpreadElement(
+                    ts.factory.createIdentifier("args")
+                  ),
+                ]
+              )
+            ),
+            ts.factory.createExpressionStatement(
+              ts.factory.createCallChain(
+                ts.factory.createIdentifier(name),
+                ts.factory.createToken(ts.SyntaxKind.QuestionDotToken),
+                undefined,
+                [
+                  ts.factory.createSpreadElement(
+                    ts.factory.createIdentifier("args")
+                  ),
+                ]
+              )
+            ),
+          ],
+          true
+        )
+      )
+    );
+  };
+  const forwardingHandlers = ["onSuccess", "onError", "onSettled"].map(
+    (handler) => makeForwardingHandler(handler as "onSuccess" | "onError" | "onSettled")
+  );
   return ts.factory.createFunctionDeclaration(
     undefined,
     undefined,
@@ -28,7 +87,7 @@ export function makeRapiniMutation() {
       ),
       ts.factory.createTypeParameterDeclaration(
         undefined,
-        ts.factory.createIdentifier("TContext"),
+        ts.factory.createIdentifier("TOnMutateResult"),
         undefined,
         ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword)
       ),
@@ -93,7 +152,7 @@ export function makeRapiniMutation() {
                     undefined
                   ),
                   ts.factory.createTypeReferenceNode(
-                    ts.factory.createIdentifier("TContext"),
+                    ts.factory.createIdentifier("TOnMutateResult"),
                     undefined
                   ),
                 ]
@@ -138,7 +197,7 @@ export function makeRapiniMutation() {
                   undefined
                 ),
                 ts.factory.createTypeReferenceNode(
-                  ts.factory.createIdentifier("TContext"),
+                  ts.factory.createIdentifier("TOnMutateResult"),
                   undefined
                 ),
               ]
@@ -167,7 +226,7 @@ export function makeRapiniMutation() {
           undefined
         ),
         ts.factory.createTypeReferenceNode(
-          ts.factory.createIdentifier("TContext"),
+          ts.factory.createIdentifier("TOnMutateResult"),
           undefined
         ),
       ]
@@ -267,284 +326,7 @@ export function makeRapiniMutation() {
                 ),
                 ts.factory.createObjectLiteralExpression(
                   [
-                    ts.factory.createPropertyAssignment(
-                      ts.factory.createIdentifier("onSuccess"),
-                      ts.factory.createArrowFunction(
-                        undefined,
-                        undefined,
-                        [
-                          ts.factory.createParameterDeclaration(
-                            undefined,
-                            undefined,
-                            ts.factory.createIdentifier("data"),
-                            undefined,
-                            ts.factory.createTypeReferenceNode(
-                              ts.factory.createIdentifier("TData"),
-                              undefined
-                            ),
-                            undefined
-                          ),
-                          ts.factory.createParameterDeclaration(
-                            undefined,
-                            undefined,
-                            ts.factory.createIdentifier("variables"),
-                            undefined,
-                            ts.factory.createTypeReferenceNode(
-                              ts.factory.createIdentifier("TVariables"),
-                              undefined
-                            ),
-                            undefined
-                          ),
-                          ts.factory.createParameterDeclaration(
-                            undefined,
-                            undefined,
-                            ts.factory.createIdentifier("context"),
-                            undefined,
-                            ts.factory.createTypeReferenceNode(
-                              ts.factory.createIdentifier("TContext"),
-                              undefined
-                            ),
-                            undefined
-                          ),
-                        ],
-                        undefined,
-                        ts.factory.createToken(
-                          ts.SyntaxKind.EqualsGreaterThanToken
-                        ),
-                        ts.factory.createBlock(
-                          [
-                            ts.factory.createExpressionStatement(
-                              ts.factory.createCallChain(
-                                ts.factory.createPropertyAccessChain(
-                                  ts.factory.createIdentifier("conf"),
-                                  ts.factory.createToken(
-                                    ts.SyntaxKind.QuestionDotToken
-                                  ),
-                                  ts.factory.createIdentifier("onSuccess")
-                                ),
-                                ts.factory.createToken(
-                                  ts.SyntaxKind.QuestionDotToken
-                                ),
-                                undefined,
-                                [
-                                  ts.factory.createIdentifier("data"),
-                                  ts.factory.createIdentifier("variables"),
-                                  ts.factory.createIdentifier("context"),
-                                ]
-                              )
-                            ),
-                            ts.factory.createExpressionStatement(
-                              ts.factory.createCallChain(
-                                ts.factory.createIdentifier("onSuccess"),
-                                ts.factory.createToken(
-                                  ts.SyntaxKind.QuestionDotToken
-                                ),
-                                undefined,
-                                [
-                                  ts.factory.createIdentifier("data"),
-                                  ts.factory.createIdentifier("variables"),
-                                  ts.factory.createIdentifier("context"),
-                                ]
-                              )
-                            ),
-                          ],
-                          true
-                        )
-                      )
-                    ),
-                    ts.factory.createPropertyAssignment(
-                      ts.factory.createIdentifier("onError"),
-                      ts.factory.createArrowFunction(
-                        undefined,
-                        undefined,
-                        [
-                          ts.factory.createParameterDeclaration(
-                            undefined,
-                            undefined,
-                            ts.factory.createIdentifier("error"),
-                            undefined,
-                            ts.factory.createTypeReferenceNode(
-                              ts.factory.createIdentifier("TError"),
-                              undefined
-                            ),
-                            undefined
-                          ),
-                          ts.factory.createParameterDeclaration(
-                            undefined,
-                            undefined,
-                            ts.factory.createIdentifier("variables"),
-                            undefined,
-                            ts.factory.createTypeReferenceNode(
-                              ts.factory.createIdentifier("TVariables"),
-                              undefined
-                            ),
-                            undefined
-                          ),
-                          ts.factory.createParameterDeclaration(
-                            undefined,
-                            undefined,
-                            ts.factory.createIdentifier("context"),
-                            ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-                            ts.factory.createTypeReferenceNode(
-                              ts.factory.createIdentifier("TContext"),
-                              undefined
-                            ),
-                            undefined
-                          ),
-                        ],
-                        undefined,
-                        ts.factory.createToken(
-                          ts.SyntaxKind.EqualsGreaterThanToken
-                        ),
-                        ts.factory.createBlock(
-                          [
-                            ts.factory.createExpressionStatement(
-                              ts.factory.createCallChain(
-                                ts.factory.createPropertyAccessChain(
-                                  ts.factory.createIdentifier("conf"),
-                                  ts.factory.createToken(
-                                    ts.SyntaxKind.QuestionDotToken
-                                  ),
-                                  ts.factory.createIdentifier("onError")
-                                ),
-                                ts.factory.createToken(
-                                  ts.SyntaxKind.QuestionDotToken
-                                ),
-                                undefined,
-                                [
-                                  ts.factory.createIdentifier("error"),
-                                  ts.factory.createIdentifier("variables"),
-                                  ts.factory.createIdentifier("context"),
-                                ]
-                              )
-                            ),
-                            ts.factory.createExpressionStatement(
-                              ts.factory.createCallChain(
-                                ts.factory.createIdentifier("onError"),
-                                ts.factory.createToken(
-                                  ts.SyntaxKind.QuestionDotToken
-                                ),
-                                undefined,
-                                [
-                                  ts.factory.createIdentifier("error"),
-                                  ts.factory.createIdentifier("variables"),
-                                  ts.factory.createIdentifier("context"),
-                                ]
-                              )
-                            ),
-                          ],
-                          true
-                        )
-                      )
-                    ),
-                    ts.factory.createPropertyAssignment(
-                      ts.factory.createIdentifier("onSettled"),
-                      ts.factory.createArrowFunction(
-                        undefined,
-                        undefined,
-                        [
-                          ts.factory.createParameterDeclaration(
-                            undefined,
-                            undefined,
-                            ts.factory.createIdentifier("data"),
-                            undefined,
-                            ts.factory.createUnionTypeNode([
-                              ts.factory.createTypeReferenceNode(
-                                ts.factory.createIdentifier("TData"),
-                                undefined
-                              ),
-                              ts.factory.createKeywordTypeNode(
-                                ts.SyntaxKind.UndefinedKeyword
-                              ),
-                            ]),
-                            undefined
-                          ),
-                          ts.factory.createParameterDeclaration(
-                            undefined,
-                            undefined,
-                            ts.factory.createIdentifier("error"),
-                            undefined,
-                            ts.factory.createUnionTypeNode([
-                              ts.factory.createTypeReferenceNode(
-                                ts.factory.createIdentifier("TError"),
-                                undefined
-                              ),
-                              ts.factory.createLiteralTypeNode(
-                                ts.factory.createNull()
-                              ),
-                            ]),
-                            undefined
-                          ),
-                          ts.factory.createParameterDeclaration(
-                            undefined,
-                            undefined,
-                            ts.factory.createIdentifier("variables"),
-                            undefined,
-                            ts.factory.createTypeReferenceNode(
-                              ts.factory.createIdentifier("TVariables"),
-                              undefined
-                            ),
-                            undefined
-                          ),
-                          ts.factory.createParameterDeclaration(
-                            undefined,
-                            undefined,
-                            ts.factory.createIdentifier("context"),
-                            ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-                            ts.factory.createTypeReferenceNode(
-                              ts.factory.createIdentifier("TContext"),
-                              undefined
-                            ),
-                            undefined
-                          ),
-                        ],
-                        undefined,
-                        ts.factory.createToken(
-                          ts.SyntaxKind.EqualsGreaterThanToken
-                        ),
-                        ts.factory.createBlock(
-                          [
-                            ts.factory.createExpressionStatement(
-                              ts.factory.createCallChain(
-                                ts.factory.createPropertyAccessChain(
-                                  ts.factory.createIdentifier("conf"),
-                                  ts.factory.createToken(
-                                    ts.SyntaxKind.QuestionDotToken
-                                  ),
-                                  ts.factory.createIdentifier("onSettled")
-                                ),
-                                ts.factory.createToken(
-                                  ts.SyntaxKind.QuestionDotToken
-                                ),
-                                undefined,
-                                [
-                                  ts.factory.createIdentifier("data"),
-                                  ts.factory.createIdentifier("error"),
-                                  ts.factory.createIdentifier("variables"),
-                                  ts.factory.createIdentifier("context"),
-                                ]
-                              )
-                            ),
-                            ts.factory.createExpressionStatement(
-                              ts.factory.createCallChain(
-                                ts.factory.createIdentifier("onSettled"),
-                                ts.factory.createToken(
-                                  ts.SyntaxKind.QuestionDotToken
-                                ),
-                                undefined,
-                                [
-                                  ts.factory.createIdentifier("data"),
-                                  ts.factory.createIdentifier("error"),
-                                  ts.factory.createIdentifier("variables"),
-                                  ts.factory.createIdentifier("context"),
-                                ]
-                              )
-                            ),
-                          ],
-                          true
-                        )
-                      )
-                    ),
+                    ...forwardingHandlers,
                     ts.factory.createSpreadAssignment(
                       ts.factory.createIdentifier("rest")
                     ),

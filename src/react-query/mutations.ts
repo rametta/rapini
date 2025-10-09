@@ -232,6 +232,7 @@ function makeProperty(
             )
           )
         : ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+      ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
     ],
     /*args*/ [
       ts.factory.createArrowFunction(
