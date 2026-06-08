@@ -59,3 +59,7 @@ A major release with breaking changes. Involves updating type signatures to matc
 ### 3.5.4
 
 - Fix for @tanstack/query v5.89.0 onError, onSuccess and onSettled signature change referenced in issue 9660
+
+### 3.5.5
+
+- Fix `nullable: true` not being honored for `object` types with `additionalProperties` (dictionary types). Both code paths in `src/common/util.ts` now wrap the dictionary type with `appendNullToUnion` so `| null` is appended when `nullable: true` is set.
