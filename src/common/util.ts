@@ -137,7 +137,7 @@ export function schemaObjectTypeNode(
   }
 
   if (item.additionalProperties) {
-    return createDictionaryType($refs, item);
+    return appendNullToUnion(createDictionaryType($refs, item), item.nullable);
   }
 
   if (item.properties) {
@@ -253,7 +253,10 @@ export function nonArraySchemaObjectTypeToTs(
       );
     case "object": {
       if (item.additionalProperties) {
-        return createDictionaryType($refs, item);
+        return appendNullToUnion(
+          createDictionaryType($refs, item),
+          item.nullable
+        );
       }
 
       return appendNullToUnion(

@@ -70,6 +70,12 @@ export type MyDictionaryValueNested = {
         };
     };
 };
+export type MyNullableDictionary = {
+    [key: string]: any;
+} | null;
+export type MyNullableDictionaryString = {
+    [key: string]: string;
+} | null;
 `;
 
 describe("makeTypes", () => {
@@ -292,6 +298,18 @@ describe("makeTypes", () => {
                 },
               },
             },
+          },
+          MyNullableDictionary: {
+            type: "object",
+            additionalProperties: true,
+            nullable: true,
+          },
+          MyNullableDictionaryString: {
+            type: "object",
+            additionalProperties: {
+              type: "string",
+            },
+            nullable: true,
           },
         },
       },
