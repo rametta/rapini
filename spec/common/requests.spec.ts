@@ -270,6 +270,90 @@ describe("makeRequests", () => {
     const str = compile(makeRequests(parser.$refs, api.paths as OpenAPIV3.PathsObject<{}, {}>, {} as any));
     expect(str).toBe(expected);
   });
+
+  it("generates query params for the Xquik search endpoint", async () => {
+    const doc: OpenAPIV3.Document = {
+      openapi: "3.0.0",
+      info: {
+        title: "Xquik API",
+        version: "1.0.0",
+      },
+      paths: {
+        "/api/v1/x/tweets/search": {
+          get: {
+            operationId: "searchTweets",
+            parameters: [
+              {
+                name: "q",
+                in: "query",
+                required: true,
+                schema: {
+                  type: "string",
+                },
+              },
+              {
+                name: "queryType",
+                in: "query",
+                required: false,
+                schema: {
+                  type: "string",
+                },
+              },
+              {
+                name: "limit",
+                in: "query",
+                required: false,
+                schema: {
+                  type: "integer",
+                },
+              },
+            ],
+            responses: {
+              200: {
+                description: "Search results",
+                content: {
+                  "application/json": {
+                    schema: {
+                      $ref: "#/components/schemas/SearchTweetsResponse",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      components: {
+        schemas: {
+          SearchTweetsResponse: {},
+        },
+      },
+    };
+
+    const parser = new SwaggerParser();
+    const api = await parser.bundle(doc);
+    const str = compile(
+      makeRequests(parser.$refs, api.paths as OpenAPIV3.PathsObject<{}, {}>, {} as any)
+    );
+
+    expect(str).toBe(`function makeRequests(axios: AxiosInstance, config?: AxiosConfig) {
+    return {
+        searchTweets: (q: string, queryType?: string, limit?: number) => axios.request<SearchTweetsResponse>({
+            method: "get",
+            url: \`/api/v1/x/tweets/search\`,
+            params: {
+                q,
+                ...(queryType !== undefined ? { queryType } : undefined),
+                ...(limit !== undefined ? { limit } : undefined)
+            },
+            paramsSerializer: config?.paramsSerializer
+        }).then(res => res.data)
+    } as const;
+}
+export type Requests = ReturnType<typeof makeRequests>;
+export type Response<T extends keyof Requests> = Awaited<ReturnType<Requests[T]>>;
+`);
+  });
 });
 
 describe("chunker", () => {
